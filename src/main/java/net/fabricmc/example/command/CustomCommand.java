@@ -1,5 +1,7 @@
 package net.fabricmc.example.command;
 
+import baritone.api.BaritoneAPI;
+import baritone.api.pathing.goals.GoalBlock;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.command.CommandRegistryAccess;
@@ -15,6 +17,8 @@ public class CustomCommand {
         dispatcher.register(literal("something")
                 .then(argument("message", StringArgumentType.string())
                         .executes(context -> {
+                            GoalBlock goal = new GoalBlock(0, 60, 200);
+                            BaritoneAPI.getProvider().getPrimaryBaritone().getCustomGoalProcess().setGoalAndPath(goal);
                             String message = StringArgumentType.getString(context, "message");
                             context.getSource().sendFeedback(() -> Text.of("You typed: " + message), false);
                             // Add custom logic here

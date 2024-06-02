@@ -2,38 +2,21 @@ package net.fabricmc.example.mixin;
 
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
-import baritone.api.pathing.goals.GoalBlock;
 import net.fabricmc.example.mobai.BreakBlockAndChaseGoal;
 import net.fabricmc.example.mobai.CustomTargetGoal;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.mob.PathAwareEntity;
-import net.minecraft.entity.mob.ZombieEntity;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.entity.mob.SpiderEntity;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.mob.ZombieEntity;
-import net.minecraft.entity.mob.PathAwareEntity;
-import net.minecraft.entity.ai.goal.GoalSelector;
-import net.minecraft.world.World;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.lang.reflect.Field;
-import java.util.Set;
-
-@Mixin(ZombieEntity.class)
-public abstract class ZombieEntityMixin extends PathAwareEntity {
-
-    protected ZombieEntityMixin(EntityType<? extends PathAwareEntity> entityType, World world) {
+@Mixin(SpiderEntity.class)
+public class SpiderEntityMixin extends PathAwareEntity {
+    protected SpiderEntityMixin(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
     }
 
@@ -41,7 +24,6 @@ public abstract class ZombieEntityMixin extends PathAwareEntity {
     private void addCustomGoals(CallbackInfo info) {
         //GoalBlock goal = new GoalBlock(0, 60, 200);
         BaritoneAPI.getProvider().createBaritone(MinecraftClient.getInstance(),  this);
-        this.goalSelector.add(1, new BreakBlockAndChaseGoal(this ));
         this.goalSelector.add(6, new CustomTargetGoal(this));
         // BaritoneAPI.getProvider().getBaritoneForEntity(this).getCustomGoalProcess().setGoalAndPath(goal);
         System.out.println("Baritone goal successfully added to ZombieEntity");

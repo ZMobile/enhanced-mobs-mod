@@ -2,38 +2,21 @@ package net.fabricmc.example.mixin;
 
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
-import baritone.api.pathing.goals.GoalBlock;
 import net.fabricmc.example.mobai.BreakBlockAndChaseGoal;
 import net.fabricmc.example.mobai.CustomTargetGoal;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.mob.PathAwareEntity;
-import net.minecraft.entity.mob.ZombieEntity;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.entity.mob.WitchEntity;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.mob.ZombieEntity;
-import net.minecraft.entity.mob.PathAwareEntity;
-import net.minecraft.entity.ai.goal.GoalSelector;
-import net.minecraft.world.World;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.lang.reflect.Field;
-import java.util.Set;
-
-@Mixin(ZombieEntity.class)
-public abstract class ZombieEntityMixin extends PathAwareEntity {
-
-    protected ZombieEntityMixin(EntityType<? extends PathAwareEntity> entityType, World world) {
+@Mixin(WitchEntity.class)
+public class WitchEntityMixin extends PathAwareEntity {
+    protected WitchEntityMixin(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
     }
 
@@ -44,11 +27,11 @@ public abstract class ZombieEntityMixin extends PathAwareEntity {
         this.goalSelector.add(1, new BreakBlockAndChaseGoal(this ));
         this.goalSelector.add(6, new CustomTargetGoal(this));
         // BaritoneAPI.getProvider().getBaritoneForEntity(this).getCustomGoalProcess().setGoalAndPath(goal);
-        System.out.println("Baritone goal successfully added to ZombieEntity");
+        System.out.println("Baritone goal successfully added to WitchEntity");
     }
 
-    @Inject(method = "tick", at = @At("HEAD"))
-    private void checkZombieState(CallbackInfo info) {
+    @Inject(method = "tickMovement", at = @At("HEAD"))
+    private void checkWitchState(CallbackInfo info) {
         /*ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if (player != null) {
             Vec3d playerPosition = MinecraftClient.getInstance().player.getPos();
@@ -60,15 +43,15 @@ public abstract class ZombieEntityMixin extends PathAwareEntity {
         }*/
     }
 
-    @Inject(method = "tick", at = @At("TAIL"))
-    private void onZombieDespawn(CallbackInfo info) {
+    @Inject(method = "tickMovement", at = @At("TAIL"))
+    private void onWitchDespawn(CallbackInfo info) {
         if (!this.isAlive()) {
             IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
             if (goalBaritone != null) {
                 // Clean up Baritone instance for this entity
                 BaritoneAPI.getProvider().destroyBaritone(goalBaritone);
                 // Debug log to verify cleanup
-                System.out.println("Baritone instance successfully removed for ZombieEntity on despawn");
+                System.out.println("Baritone instance successfully removed for WitchEntity on despawn");
             }
         }
     }

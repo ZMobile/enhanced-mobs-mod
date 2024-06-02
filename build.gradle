@@ -44,8 +44,11 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modImplementation urlFile("https://github.com/cabaletta/baritone/releases/download/v1.10.2/baritone-api-fabric-1.10.2.jar", 'baritone', '1.20.4-1.10.2')
+	//modImplementation urlFile("https://github.com/cabaletta/baritone/releases/download/v1.10.2/baritone-api-fabric-1.10.2.jar", 'baritone', '1.20.4-1.10.2')
+	modImplementation files("C:/Users/hzant/IdeaProjects/baritone-zante/dist/baritone-api-fabric-1.9.3-59-gcd629f44.jar")
 	implementation "dev.babbaj:nether-pathfinder:1.4.1"
+
+	modImplementation files("C:/Users/hzant/IdeaProjects/enhanced-mobs-mod/lib/cloth-config-13.0.121-fabric.jar")
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
 	// You may need to force-disable transitiveness on them.
 }
@@ -64,7 +67,6 @@ tasks.withType(JavaCompile).configureEach {
 	// see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
 	// If Javadoc is generated, this must be specified in that task too.
 	it.options.encoding = "UTF-8"
-
 	// The Minecraft launcher currently installs Java 8 for users, so your mod probably wants to target Java 8 too
 	// JDK 9 introduced a new way of specifying this that will make sure no newer classes or methods are used.
 	// We'll use that if it's available, but otherwise we'll use the older option.
