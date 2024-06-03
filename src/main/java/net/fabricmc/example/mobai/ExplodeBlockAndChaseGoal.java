@@ -36,6 +36,7 @@ public class ExplodeBlockAndChaseGoal extends Goal {
         BaritoneAPI.getSettings().allowParkourAscend.value = false;
         BaritoneAPI.getSettings().allowParkourPlace.value = false;
         BaritoneAPI.getSettings().assumeExternalAutoTool.value = true; // Assume tool is externally managed
+        BaritoneAPI.getSettings().avoidance.value = false;
         BaritoneAPI.getSettings().renderPath.value = false;
         BaritoneAPI.getSettings().renderSelectionBoxes.value = false;
         BaritoneAPI.getSettings().renderGoal.value = false;

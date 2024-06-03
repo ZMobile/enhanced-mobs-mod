@@ -14,6 +14,7 @@ public class CustomTargetGoal extends Goal {
     private PlayerEntity targetPlayer;
     private int sightCounter;
     private static final int SIGHT_DURATION = 40; // 2 seconds (40 ticks)
+    private static final int MAX_HEARING_DISTANCE = 20;
     private static final int MAX_UNOBSTRUCTED_DISTANCE = 200;
     private static final int MAX_GLASS_OBSTRUCTED_DISTANCE = 50;
     boolean playerTargeted = false;
@@ -25,6 +26,10 @@ public class CustomTargetGoal extends Goal {
 
     @Override
     public boolean canStart() {
+        targetPlayer = mob.getWorld().getClosestPlayer(mob, MAX_HEARING_DISTANCE);
+        if (targetPlayer != null) {
+            return true;
+        }
         targetPlayer = mob.getWorld().getClosestPlayer(mob, MAX_UNOBSTRUCTED_DISTANCE);
         if (BloodmoonHandler.INSTANCE.isBloodmoonActive() && within40Y(mob, targetPlayer)) {
             return true;
@@ -67,6 +72,11 @@ public class CustomTargetGoal extends Goal {
 
     @Override
     public void tick() {
+        PlayerEntity hearingTargetPlayer = mob.getWorld().getClosestPlayer(mob, MAX_HEARING_DISTANCE);
+        if (hearingTargetPlayer != null) {
+            mob.setTarget(hearingTargetPlayer);
+            stop();
+        }
         if (targetPlayer != null) {
             if (BloodmoonHandler.INSTANCE.isBloodmoonActive() && within40Y(mob, targetPlayer)) {
                 mob.setTarget(targetPlayer);
@@ -99,4 +109,5 @@ public class CustomTargetGoal extends Goal {
     private boolean within40Y(Entity entity1, Entity entity2) {
         return Math.abs(entity1.getY() - entity2.getY()) <= 40;
     }
+
 }

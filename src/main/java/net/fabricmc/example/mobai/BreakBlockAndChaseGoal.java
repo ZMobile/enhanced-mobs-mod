@@ -192,6 +192,7 @@ public class BreakBlockAndChaseGoal extends Goal {
         if (pathingBehavior != null && pathingBehavior.getCurrent() != null) {
             IPathExecutor current = pathingBehavior.getCurrent(); // this should prevent most race conditions?
             Set<BlockPos> blocksToBreak = current.toBreak();
+            Set<BlockPos> blocksToWalkInto = current.toWalkInto();
             //System.out.println("Blocks to break size: " + blocksToBreak.size());
             for (BlockPos pos : blocksToBreak) {
                 if (pos.equals(blockPos)) {
@@ -199,6 +200,11 @@ public class BreakBlockAndChaseGoal extends Goal {
                     return true;
                 }
             }
+            /*for (BlockPos pos : blocksToWalkInto) {
+                if (pos.equals(blockPos)) {
+                    return true;
+                }
+            }*/
         }
         return mob.getWorld().getBlockState(blockPos).isSolidBlock(mob.getWorld(), blockPos);
     }

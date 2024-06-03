@@ -3,7 +3,7 @@ package net.fabricmc.example.bloodmoon.handler;
 import net.fabricmc.example.ExampleMod;
 import net.fabricmc.example.bloodmoon.client.ClientBloodmoonHandler;
 import net.fabricmc.example.bloodmoon.config.BloodmoonConfig;
-import net.fabricmc.example.bloodmoon.lib.Reference;
+import net.fabricmc.example.bloodmoon.reference.Reference;
 import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
