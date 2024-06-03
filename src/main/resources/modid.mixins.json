@@ -5,11 +5,11 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "ZombieEntityMixin",
-    "SkeletonEntityMixin",
     "CreeperEntityMixin",
-    "WitchEntityMixin",
     "SpiderEntityMixin",
-    "RaiderEntityMixin"
+    "SkeletonEntityMixin",
+    "RaiderEntityMixin",
+    "WitchEntityMixin"
   ],
   "client": [
   ],

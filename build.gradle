@@ -45,7 +45,7 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 	//modImplementation urlFile("https://github.com/cabaletta/baritone/releases/download/v1.10.2/baritone-api-fabric-1.10.2.jar", 'baritone', '1.20.4-1.10.2')
-	modImplementation files("C:/Users/hzant/IdeaProjects/baritone-zante/dist/baritone-api-fabric-1.9.3-59-gcd629f44.jar")
+	modImplementation files("C:/Users/hzant/IdeaProjects/baritone-zante/dist/baritone-api-fabric-1.9.3-60-g7b52426b.jar")
 	implementation "dev.babbaj:nether-pathfinder:1.4.1"
 
 	modImplementation files("C:/Users/hzant/IdeaProjects/enhanced-mobs-mod/lib/cloth-config-13.0.121-fabric.jar")
