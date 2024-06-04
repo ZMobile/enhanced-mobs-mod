@@ -60,7 +60,7 @@ public class BloodmoonEventHandler {
 
 	public void endWorldTick(ServerWorld world) {
 		if (BloodmoonHandler.INSTANCE != null) {
-			BloodmoonHandler.INSTANCE.endWorldTick(world);
+			BloodmoonHandler.endWorldTick(world);
 		}
 	}
 }

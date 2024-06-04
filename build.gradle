@@ -45,14 +45,11 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	//modImplementation urlFile("https://github.com/cabaletta/baritone/releases/download/v1.10.2/baritone-api-fabric-1.10.2.jar", 'baritone', '1.20.4-1.10.2')
-	//modImplementation files("C:/Users/hzant/IdeaProjects/baritone-server/dist/baritone-api-fabric-1.10.2-2-8-gd770c850.jar")
-	//modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-2/mobitone.1.20.4-2.jar", 'mobitone', '1.20.4-2')
 	implementation "dev.babbaj:nether-pathfinder:1.4.1"
 
-	// Include the cloth-config jar in the lib directory
-	modImplementation files('lib/cloth-config-13.0.121-fabric.jar')
+	//modImplementation files('lib/cloth-config-13.0.121-fabric.jar')
 	modImplementation files('lib/mobitone1.20.4-server.jar')
+	implementation 'com.typesafe:config:1.4.1'
 
 	//modImplementation urlFile("https://www.curseforge.com/minecraft/mc-mods/cloth-config/download/4973455", 'cloth-config', '13.0.121-fabric')
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.

@@ -1,5 +1,20 @@
 package net.fabricmc.example.bloodmoon.server;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.example.bloodmoon.config.BloodmoonConfig;
+import net.fabricmc.example.bloodmoon.network.PacketHandler;
+import net.fabricmc.example.bloodmoon.network.messages.MessageBloodmoonStatus;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.datafixer.DataFixTypes;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import net.minecraft.world.*;
+
 import net.fabricmc.example.bloodmoon.config.BloodmoonConfig;
 import net.fabricmc.example.bloodmoon.network.PacketHandler;
 import net.fabricmc.example.bloodmoon.network.messages.MessageBloodmoonStatus;
@@ -11,7 +26,11 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.world.*;
+import net.minecraft.world.Difficulty;
+import net.minecraft.world.GameRules;
+import net.minecraft.world.PersistentState;
+import net.minecraft.world.PersistentStateManager;
+import net.minecraft.world.World;
 
 public class BloodmoonHandler extends PersistentState {
 	public static ServerWorld world;
@@ -56,6 +75,11 @@ public class BloodmoonHandler extends PersistentState {
 
 	public static void endWorldTick(ServerWorld world) {
 		if (INSTANCE != null && world.getRegistryKey() == World.OVERWORLD) {
+			if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+				// Client-specific code should not be here
+				return;
+			}
+
 			int time = (int) (world.getTimeOfDay() % 24000);
 			if (INSTANCE.isBloodmoonActive()) {
 				if (!BloodmoonConfig.GENERAL.RESPECT_GAMERULE || world.getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING)) {

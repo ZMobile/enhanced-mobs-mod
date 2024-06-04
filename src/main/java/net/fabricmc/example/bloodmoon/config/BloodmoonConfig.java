@@ -1,12 +1,13 @@
 package net.fabricmc.example.bloodmoon.config;
 
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
+import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValueFactory;
 
+import java.io.File;
 import java.util.*;
 
-import me.shedaniel.clothconfig2.api.ConfigBuilder;
-import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 
 
 public class BloodmoonConfig {
@@ -14,6 +15,13 @@ public class BloodmoonConfig {
 	public static Appearance APPEARANCE = new Appearance();
 	public static Schedule SCHEDULE = new Schedule();
 	public static Spawning SPAWNING = new Spawning();
+
+	private static Config config;
+	private static final File configFile = new File("config/bloodmoon.conf");
+
+	static {
+		loadConfig();
+	}
 
 	public static class General {
 		public boolean NO_SLEEP = true;
@@ -76,93 +84,67 @@ public class BloodmoonConfig {
 		return entityClass.getSimpleName();
 	}
 
-	public static Screen getConfigScreen(Screen parent) {
-		ConfigBuilder builder = ConfigBuilder.create()
-				.setParentScreen(parent)
-				.setTitle(Text.of("Bloodmoon Configuration"));
+	private static void loadConfig() {
+		if (configFile.exists()) {
+			config = ConfigFactory.parseFile(configFile);
+		} else {
+			config = ConfigFactory.empty();
+			saveConfig();
+		}
 
-		ConfigEntryBuilder entryBuilder = builder.entryBuilder();
+		GENERAL.NO_SLEEP = config.hasPath("general.no_sleep") ? config.getBoolean("general.no_sleep") : GENERAL.NO_SLEEP;
+		GENERAL.VANISH = config.hasPath("general.vanish") ? config.getBoolean("general.vanish") : GENERAL.VANISH;
+		GENERAL.RESPECT_GAMERULE = config.hasPath("general.respect_gamerule") ? config.getBoolean("general.respect_gamerule") : GENERAL.RESPECT_GAMERULE;
+		GENERAL.SEND_MESSAGE = config.hasPath("general.send_message") ? config.getBoolean("general.send_message") : GENERAL.SEND_MESSAGE;
 
-		builder.getOrCreateCategory(Text.of("General"))
-				.addEntry(entryBuilder.startBooleanToggle(Text.of("No Sleep"), GENERAL.NO_SLEEP)
-						.setDefaultValue(true)
-						.setSaveConsumer(newValue -> GENERAL.NO_SLEEP = newValue)
-						.build())
-				.addEntry(entryBuilder.startBooleanToggle(Text.of("Vanish"), GENERAL.VANISH)
-						.setDefaultValue(false)
-						.setSaveConsumer(newValue -> GENERAL.VANISH = newValue)
-						.build())
-				.addEntry(entryBuilder.startBooleanToggle(Text.of("Respect Gamerule"), GENERAL.RESPECT_GAMERULE)
-						.setDefaultValue(true)
-						.setSaveConsumer(newValue -> GENERAL.RESPECT_GAMERULE = newValue)
-						.build())
-				.addEntry(entryBuilder.startBooleanToggle(Text.of("Send Message"), GENERAL.SEND_MESSAGE)
-						.setDefaultValue(true)
-						.setSaveConsumer(newValue -> GENERAL.SEND_MESSAGE = newValue)
-						.build());
+		APPEARANCE.RED_MOON = config.hasPath("appearance.red_moon") ? config.getBoolean("appearance.red_moon") : APPEARANCE.RED_MOON;
+		APPEARANCE.RED_SKY = config.hasPath("appearance.red_sky") ? config.getBoolean("appearance.red_sky") : APPEARANCE.RED_SKY;
+		APPEARANCE.RED_LIGHT = config.hasPath("appearance.red_light") ? config.getBoolean("appearance.red_light") : APPEARANCE.RED_LIGHT;
+		APPEARANCE.BLACK_FOG = config.hasPath("appearance.black_fog") ? config.getBoolean("appearance.black_fog") : APPEARANCE.BLACK_FOG;
 
-		builder.getOrCreateCategory(Text.of("Appearance"))
-				.addEntry(entryBuilder.startBooleanToggle(Text.of("Red Moon"), APPEARANCE.RED_MOON)
-						.setDefaultValue(true)
-						.setSaveConsumer(newValue -> APPEARANCE.RED_MOON = newValue)
-						.build())
-				.addEntry(entryBuilder.startBooleanToggle(Text.of("Red Sky"), APPEARANCE.RED_SKY)
-						.setDefaultValue(true)
-						.setSaveConsumer(newValue -> APPEARANCE.RED_SKY = newValue)
-						.build())
-				.addEntry(entryBuilder.startBooleanToggle(Text.of("Red Light"), APPEARANCE.RED_LIGHT)
-						.setDefaultValue(true)
-						.setSaveConsumer(newValue -> APPEARANCE.RED_LIGHT = newValue)
-						.build())
-				.addEntry(entryBuilder.startBooleanToggle(Text.of("Black Fog"), APPEARANCE.BLACK_FOG)
-						.setDefaultValue(true)
-						.setSaveConsumer(newValue -> APPEARANCE.BLACK_FOG = newValue)
-						.build());
+		SCHEDULE.CHANCE = config.hasPath("schedule.chance") ? config.getDouble("schedule.chance") : SCHEDULE.CHANCE;
+		SCHEDULE.FULLMOON = config.hasPath("schedule.fullmoon") ? config.getBoolean("schedule.fullmoon") : SCHEDULE.FULLMOON;
+		SCHEDULE.NTH_NIGHT = config.hasPath("schedule.nth_night") ? config.getInt("schedule.nth_night") : SCHEDULE.NTH_NIGHT;
 
-		builder.getOrCreateCategory(Text.of("Schedule"))
-				.addEntry(entryBuilder.startDoubleField(Text.of("Chance"), SCHEDULE.CHANCE)
-						.setDefaultValue(0.05)
-						.setSaveConsumer(newValue -> SCHEDULE.CHANCE = newValue)
-						.build())
-				.addEntry(entryBuilder.startBooleanToggle(Text.of("Full Moon"), SCHEDULE.FULLMOON)
-						.setDefaultValue(false)
-						.setSaveConsumer(newValue -> SCHEDULE.FULLMOON = newValue)
-						.build())
-				.addEntry(entryBuilder.startIntField(Text.of("Nth Night"), SCHEDULE.NTH_NIGHT)
-						.setDefaultValue(0)
-						.setSaveConsumer(newValue -> SCHEDULE.NTH_NIGHT = newValue)
-						.build());
+		SPAWNING.SPAWN_SPEED = config.hasPath("spawning.spawn_speed") ? config.getInt("spawning.spawn_speed") : SPAWNING.SPAWN_SPEED;
+		SPAWNING.SPAWN_LIMIT_MULT = config.hasPath("spawning.spawn_limit_mult") ? config.getInt("spawning.spawn_limit_mult") : SPAWNING.SPAWN_LIMIT_MULT;
+		SPAWNING.SPAWN_RANGE = config.hasPath("spawning.spawn_range") ? config.getInt("spawning.spawn_range") : SPAWNING.SPAWN_RANGE;
+		SPAWNING.SPAWN_DISTANCE = config.hasPath("spawning.spawn_distance") ? config.getInt("spawning.spawn_distance") : SPAWNING.SPAWN_DISTANCE;
+		SPAWNING.SPAWN_WHITELIST = config.hasPath("spawning.spawn_whitelist") ? config.getStringList("spawning.spawn_whitelist") : SPAWNING.SPAWN_WHITELIST;
+		SPAWNING.SPAWN_BLACKLIST = config.hasPath("spawning.spawn_blacklist") ? config.getStringList("spawning.spawn_blacklist") : SPAWNING.SPAWN_BLACKLIST;
+	}
 
-		builder.getOrCreateCategory(Text.of("Spawning"))
-				.addEntry(entryBuilder.startIntField(Text.of("Spawn Speed"), SPAWNING.SPAWN_SPEED)
-						.setDefaultValue(4)
-						.setSaveConsumer(newValue -> SPAWNING.SPAWN_SPEED = newValue)
-						.build())
-				.addEntry(entryBuilder.startIntField(Text.of("Spawn Limit Multiplier"), SPAWNING.SPAWN_LIMIT_MULT)
-						.setDefaultValue(4)
-						.setSaveConsumer(newValue -> SPAWNING.SPAWN_LIMIT_MULT = newValue)
-						.build())
-				.addEntry(entryBuilder.startIntField(Text.of("Spawn Range"), SPAWNING.SPAWN_RANGE)
-						.setDefaultValue(2)
-						.setSaveConsumer(newValue -> SPAWNING.SPAWN_RANGE = newValue)
-						.build())
-				.addEntry(entryBuilder.startIntField(Text.of("World Spawn Distance"), SPAWNING.SPAWN_DISTANCE)
-						.setDefaultValue(24)
-						.setSaveConsumer(newValue -> SPAWNING.SPAWN_DISTANCE = newValue)
-						.build())
-				.addEntry(entryBuilder.startStrList(Text.of("Spawn Whitelist"), SPAWNING.SPAWN_WHITELIST)
-						.setDefaultValue(new ArrayList<>())
-						.setSaveConsumer(newValue -> SPAWNING.SPAWN_WHITELIST = newValue)
-						.build())
-				.addEntry(entryBuilder.startStrList(Text.of("Spawn Blacklist"), SPAWNING.SPAWN_BLACKLIST)
-						.setDefaultValue(new ArrayList<>())
-						.setSaveConsumer(newValue -> SPAWNING.SPAWN_BLACKLIST = newValue)
-						.build());
+	public static void saveConfig() {
+		config = ConfigFactory.empty()
+				.withValue("general.no_sleep", ConfigValueFactory.fromAnyRef(GENERAL.NO_SLEEP))
+				.withValue("general.vanish", ConfigValueFactory.fromAnyRef(GENERAL.VANISH))
+				.withValue("general.respect_gamerule", ConfigValueFactory.fromAnyRef(GENERAL.RESPECT_GAMERULE))
+				.withValue("general.send_message", ConfigValueFactory.fromAnyRef(GENERAL.SEND_MESSAGE))
+				.withValue("appearance.red_moon", ConfigValueFactory.fromAnyRef(APPEARANCE.RED_MOON))
+				.withValue("appearance.red_sky", ConfigValueFactory.fromAnyRef(APPEARANCE.RED_SKY))
+				.withValue("appearance.red_light", ConfigValueFactory.fromAnyRef(APPEARANCE.RED_LIGHT))
+				.withValue("appearance.black_fog", ConfigValueFactory.fromAnyRef(APPEARANCE.BLACK_FOG))
+				.withValue("schedule.chance", ConfigValueFactory.fromAnyRef(SCHEDULE.CHANCE))
+				.withValue("schedule.fullmoon", ConfigValueFactory.fromAnyRef(SCHEDULE.FULLMOON))
+				.withValue("schedule.nth_night", ConfigValueFactory.fromAnyRef(SCHEDULE.NTH_NIGHT))
+				.withValue("spawning.spawn_speed", ConfigValueFactory.fromAnyRef(SPAWNING.SPAWN_SPEED))
+				.withValue("spawning.spawn_limit_mult", ConfigValueFactory.fromAnyRef(SPAWNING.SPAWN_LIMIT_MULT))
+				.withValue("spawning.spawn_range", ConfigValueFactory.fromAnyRef(SPAWNING.SPAWN_RANGE))
+				.withValue("spawning.spawn_distance", ConfigValueFactory.fromAnyRef(SPAWNING.SPAWN_DISTANCE))
+				.withValue("spawning.spawn_whitelist", ConfigValueFactory.fromAnyRef(SPAWNING.SPAWN_WHITELIST))
+				.withValue("spawning.spawn_blacklist", ConfigValueFactory.fromAnyRef(SPAWNING.SPAWN_BLACKLIST));
 
-		builder.setSavingRunnable(() -> {
-			// Save the config file
-		});
-
-		return builder.build();
+		ConfigFactory.parseFile(configFile).root().withValue("general.no_sleep", ConfigValueFactory.fromAnyRef(GENERAL.NO_SLEEP));
+		config = config.withFallback(ConfigFactory.parseFile(configFile));
+		try {
+			com.typesafe.config.ConfigRenderOptions options = com.typesafe.config.ConfigRenderOptions.defaults().setComments(true);
+			com.typesafe.config.ConfigFactory.parseFile(configFile).withFallback(config).root().render(options);
+			ConfigFactory.parseFile(configFile).root().withFallback(config).render(options);
+			com.typesafe.config.ConfigFactory.parseFile(configFile).withFallback(config).root().render(options);
+			ConfigFactory.parseFile(configFile).root().render(options);
+			com.typesafe.config.ConfigFactory.parseFile(configFile).root().render(options);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
