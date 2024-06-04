@@ -37,6 +37,7 @@ def urlFile = { url, name, version ->
 	return [name: name, version: version]
 }
 
+
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -45,10 +46,14 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 	//modImplementation urlFile("https://github.com/cabaletta/baritone/releases/download/v1.10.2/baritone-api-fabric-1.10.2.jar", 'baritone', '1.20.4-1.10.2')
-	modImplementation files("C:/Users/hzant/IdeaProjects/baritone-zante/dist/baritone-api-fabric-1.9.3-66-gfac6749e.jar")
+	//modImplementation files("C:/Users/hzant/IdeaProjects/baritone-zante/dist/baritone-api-fabric-1.9.3-66-gfac6749e.jar")
+	modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-2/mobitone.1.20.4-2.jar", 'mobitone', '1.20.4-2')
 	implementation "dev.babbaj:nether-pathfinder:1.4.1"
 
-	modImplementation files("C:/Users/hzant/IdeaProjects/enhanced-mobs-mod/lib/cloth-config-13.0.121-fabric.jar")
+	// Include the cloth-config jar in the lib directory
+	modImplementation files('lib/cloth-config-13.0.121-fabric.jar')
+
+	//modImplementation urlFile("https://www.curseforge.com/minecraft/mc-mods/cloth-config/download/4973455", 'cloth-config', '13.0.121-fabric')
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
 	// You may need to force-disable transitiveness on them.
 }
