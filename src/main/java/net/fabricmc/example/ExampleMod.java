@@ -9,6 +9,7 @@ import net.fabricmc.example.bloodmoon.reference.Reference;
 import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.bloodmoon.server.BloodmoonSpawner;
 import net.fabricmc.example.bloodmoon.server.CommandBloodmoon;
+import net.fabricmc.example.util.MinecraftServerUtil;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -49,6 +50,7 @@ public class ExampleMod implements ModInitializer {
 
 		// Server starting event
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+			MinecraftServerUtil.setMinecraftServer(server);
 			LOGGER.info("Server is starting");
 		});
 

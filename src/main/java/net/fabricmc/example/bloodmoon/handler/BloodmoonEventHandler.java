@@ -23,15 +23,8 @@ public class BloodmoonEventHandler {
 	public void registerEvents() {
 		ServerWorldEvents.LOAD.register(this::loadWorld);
 		ServerTickEvents.END_WORLD_TICK.register(this::endWorldTick);
-		// Handle sleeping event with custom event or logic if necessary
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> playerJoinedWorld(handler.getPlayer()));
-		ClientTickEvents.END_CLIENT_TICK.register(client -> {
-			if (client.world != null && client.player != null) {
-				ClientBloodmoonHandler.INSTANCE.onClientTick(client);
-			}
-		});
 	}
-
 
 	public void loadWorld(MinecraftServer server, ServerWorld world) {
 		BloodmoonHandler.initialize(world);
