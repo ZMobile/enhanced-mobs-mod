@@ -27,7 +27,7 @@ public class CustomTargetGoal extends Goal {
     @Override
     public boolean canStart() {
         targetPlayer = mob.getWorld().getClosestPlayer(mob, MAX_HEARING_DISTANCE);
-        if (targetPlayer != null) {
+        if (targetPlayer != null && !CustomVisibilityCheckServiceImpl.isInCreativeMode(targetPlayer) && !targetPlayer.isSneaking()) {
             return true;
         }
         targetPlayer = mob.getWorld().getClosestPlayer(mob, MAX_UNOBSTRUCTED_DISTANCE);

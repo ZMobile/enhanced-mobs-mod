@@ -4,6 +4,7 @@
   "package": "net.fabricmc.example.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "MobSpawnerMixin",
     "ZombieEntityMixin",
     "CreeperEntityMixin",
     "SpiderEntityMixin",

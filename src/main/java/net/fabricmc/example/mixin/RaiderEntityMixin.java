@@ -4,6 +4,7 @@ import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
 import net.fabricmc.example.mobai.BreakBlockAndChaseGoal;
 import net.fabricmc.example.mobai.CustomTargetGoal;
+import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.fabricmc.example.util.MinecraftServerUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
@@ -25,7 +26,7 @@ public abstract class RaiderEntityMixin extends PathAwareEntity {
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void addCustomGoals(CallbackInfo info) {
         //GoalBlock goal = new GoalBlock(0, 60, 200);
-        BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(),  this);
+        //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(),  this);
         this.goalSelector.add(6, new BreakBlockAndChaseGoal(this ));
         this.goalSelector.add(6, new CustomTargetGoal(this));
         // BaritoneAPI.getProvider().getBaritoneForEntity(this).getCustomGoalProcess().setGoalAndPath(goal);
@@ -35,13 +36,14 @@ public abstract class RaiderEntityMixin extends PathAwareEntity {
     @Inject(method = "onDeath", at = @At("TAIL"))
     private void onIllagerDespawn(CallbackInfo info) {
         if (!this.isAlive()) {
-            IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
+            /*IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
             if (goalBaritone != null) {
                 // Clean up Baritone instance for this entity
                 BaritoneAPI.getProvider().destroyBaritone(goalBaritone);
                 // Debug log to verify cleanup
                 //System.out.println("Baritone instance successfully removed for IllagerEntity on despawn");
-            }
+            }*/
+            MobitoneServiceImpl.removeMobitone(this);
         }
     }
 }

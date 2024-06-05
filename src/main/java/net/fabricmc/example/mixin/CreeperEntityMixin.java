@@ -5,6 +5,7 @@ import baritone.api.IBaritone;
 import net.fabricmc.example.mobai.CustomCreeperTargetGoal;
 import net.fabricmc.example.mobai.CustomTargetGoal;
 import net.fabricmc.example.mobai.ExplodeBlockAndChaseGoal;
+import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.fabricmc.example.util.MinecraftServerUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
@@ -25,7 +26,7 @@ public abstract class CreeperEntityMixin extends PathAwareEntity {
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void addCustomGoals(CallbackInfo info) {
         CreeperEntity creeperEntity = (CreeperEntity) (Object) this;
-        BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(), creeperEntity);
+        //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(), creeperEntity);
         this.goalSelector.add(1, new ExplodeBlockAndChaseGoal(creeperEntity));
         this.goalSelector.add(6, new CustomCreeperTargetGoal(creeperEntity));
         //System.out.println("Baritone goal successfully added to CreeperEntity");
@@ -39,11 +40,12 @@ public abstract class CreeperEntityMixin extends PathAwareEntity {
     @Inject(method = "tick", at = @At("TAIL"))
     private void onCreeperDespawn(CallbackInfo info) {
         if (!this.isAlive()) {
-            IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
+            /*IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
             if (goalBaritone != null) {
-                BaritoneAPI.getProvider().destroyBaritone(goalBaritone);
+                //BaritoneAPI.getProvider().destroyBaritone(goalBaritone);
                 //System.out.println("Baritone instance successfully removed for CreeperEntity on despawn");
-            }
+            }*/
+            MobitoneServiceImpl.removeMobitone(this);
         }
     }
 }

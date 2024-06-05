@@ -1,14 +1,22 @@
 package net.fabricmc.example.bloodmoon.config;
 
-import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigValueFactory;
-
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 
 
+
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 public class BloodmoonConfig {
 	public static General GENERAL = new General();
@@ -16,8 +24,7 @@ public class BloodmoonConfig {
 	public static Schedule SCHEDULE = new Schedule();
 	public static Spawning SPAWNING = new Spawning();
 
-	private static Config config;
-	private static final File configFile = new File("config/bloodmoon.conf");
+	private static final String CONFIG_FILE_PATH = "config/bloodmoon.properties";
 
 	static {
 		loadConfig();
@@ -80,71 +87,114 @@ public class BloodmoonConfig {
 	}
 
 	public static String getEntityName(Class<?> entityClass) {
-		// Implementation for fetching the entity name
 		return entityClass.getSimpleName();
 	}
 
 	private static void loadConfig() {
-		if (configFile.exists()) {
-			config = ConfigFactory.parseFile(configFile);
-		} else {
-			config = ConfigFactory.empty();
-			saveConfig();
+		Properties properties = new Properties();
+		try {
+			File configFile = new File(CONFIG_FILE_PATH);
+			if (!configFile.exists()) {
+				saveDefaultConfig();
+			}
+
+			try (FileInputStream fis = new FileInputStream(CONFIG_FILE_PATH)) {
+				properties.load(fis);
+			}
+
+			GENERAL.NO_SLEEP = Boolean.parseBoolean(properties.getProperty("general.no_sleep", "true"));
+			GENERAL.VANISH = Boolean.parseBoolean(properties.getProperty("general.vanish", "false"));
+			GENERAL.RESPECT_GAMERULE = Boolean.parseBoolean(properties.getProperty("general.respect_gamerule", "true"));
+			GENERAL.SEND_MESSAGE = Boolean.parseBoolean(properties.getProperty("general.send_message", "true"));
+
+			APPEARANCE.RED_MOON = Boolean.parseBoolean(properties.getProperty("appearance.red_moon", "true"));
+			APPEARANCE.RED_SKY = Boolean.parseBoolean(properties.getProperty("appearance.red_sky", "true"));
+			APPEARANCE.RED_LIGHT = Boolean.parseBoolean(properties.getProperty("appearance.red_light", "true"));
+			APPEARANCE.BLACK_FOG = Boolean.parseBoolean(properties.getProperty("appearance.black_fog", "true"));
+
+			SCHEDULE.CHANCE = Double.parseDouble(properties.getProperty("schedule.chance", "0.05"));
+			SCHEDULE.FULLMOON = Boolean.parseBoolean(properties.getProperty("schedule.fullmoon", "false"));
+			SCHEDULE.NTH_NIGHT = Integer.parseInt(properties.getProperty("schedule.nth_night", "0"));
+
+			SPAWNING.SPAWN_SPEED = Integer.parseInt(properties.getProperty("spawning.spawn_speed", "4"));
+			SPAWNING.SPAWN_LIMIT_MULT = Integer.parseInt(properties.getProperty("spawning.spawn_limit_mult", "4"));
+			SPAWNING.SPAWN_RANGE = Integer.parseInt(properties.getProperty("spawning.spawn_range", "2"));
+			SPAWNING.SPAWN_DISTANCE = Integer.parseInt(properties.getProperty("spawning.spawn_distance", "24"));
+			SPAWNING.SPAWN_WHITELIST = parseList(properties.getProperty("spawning.spawn_whitelist", ""));
+			SPAWNING.SPAWN_BLACKLIST = parseList(properties.getProperty("spawning.spawn_blacklist", ""));
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+	}
 
-		GENERAL.NO_SLEEP = config.hasPath("general.no_sleep") ? config.getBoolean("general.no_sleep") : GENERAL.NO_SLEEP;
-		GENERAL.VANISH = config.hasPath("general.vanish") ? config.getBoolean("general.vanish") : GENERAL.VANISH;
-		GENERAL.RESPECT_GAMERULE = config.hasPath("general.respect_gamerule") ? config.getBoolean("general.respect_gamerule") : GENERAL.RESPECT_GAMERULE;
-		GENERAL.SEND_MESSAGE = config.hasPath("general.send_message") ? config.getBoolean("general.send_message") : GENERAL.SEND_MESSAGE;
+	private static void saveDefaultConfig() {
+		Properties properties = new Properties();
+		properties.setProperty("general.no_sleep", String.valueOf(GENERAL.NO_SLEEP));
+		properties.setProperty("general.vanish", String.valueOf(GENERAL.VANISH));
+		properties.setProperty("general.respect_gamerule", String.valueOf(GENERAL.RESPECT_GAMERULE));
+		properties.setProperty("general.send_message", String.valueOf(GENERAL.SEND_MESSAGE));
 
-		APPEARANCE.RED_MOON = config.hasPath("appearance.red_moon") ? config.getBoolean("appearance.red_moon") : APPEARANCE.RED_MOON;
-		APPEARANCE.RED_SKY = config.hasPath("appearance.red_sky") ? config.getBoolean("appearance.red_sky") : APPEARANCE.RED_SKY;
-		APPEARANCE.RED_LIGHT = config.hasPath("appearance.red_light") ? config.getBoolean("appearance.red_light") : APPEARANCE.RED_LIGHT;
-		APPEARANCE.BLACK_FOG = config.hasPath("appearance.black_fog") ? config.getBoolean("appearance.black_fog") : APPEARANCE.BLACK_FOG;
+		properties.setProperty("appearance.red_moon", String.valueOf(APPEARANCE.RED_MOON));
+		properties.setProperty("appearance.red_sky", String.valueOf(APPEARANCE.RED_SKY));
+		properties.setProperty("appearance.red_light", String.valueOf(APPEARANCE.RED_LIGHT));
+		properties.setProperty("appearance.black_fog", String.valueOf(APPEARANCE.BLACK_FOG));
 
-		SCHEDULE.CHANCE = config.hasPath("schedule.chance") ? config.getDouble("schedule.chance") : SCHEDULE.CHANCE;
-		SCHEDULE.FULLMOON = config.hasPath("schedule.fullmoon") ? config.getBoolean("schedule.fullmoon") : SCHEDULE.FULLMOON;
-		SCHEDULE.NTH_NIGHT = config.hasPath("schedule.nth_night") ? config.getInt("schedule.nth_night") : SCHEDULE.NTH_NIGHT;
+		properties.setProperty("schedule.chance", String.valueOf(SCHEDULE.CHANCE));
+		properties.setProperty("schedule.fullmoon", String.valueOf(SCHEDULE.FULLMOON));
+		properties.setProperty("schedule.nth_night", String.valueOf(SCHEDULE.NTH_NIGHT));
 
-		SPAWNING.SPAWN_SPEED = config.hasPath("spawning.spawn_speed") ? config.getInt("spawning.spawn_speed") : SPAWNING.SPAWN_SPEED;
-		SPAWNING.SPAWN_LIMIT_MULT = config.hasPath("spawning.spawn_limit_mult") ? config.getInt("spawning.spawn_limit_mult") : SPAWNING.SPAWN_LIMIT_MULT;
-		SPAWNING.SPAWN_RANGE = config.hasPath("spawning.spawn_range") ? config.getInt("spawning.spawn_range") : SPAWNING.SPAWN_RANGE;
-		SPAWNING.SPAWN_DISTANCE = config.hasPath("spawning.spawn_distance") ? config.getInt("spawning.spawn_distance") : SPAWNING.SPAWN_DISTANCE;
-		SPAWNING.SPAWN_WHITELIST = config.hasPath("spawning.spawn_whitelist") ? config.getStringList("spawning.spawn_whitelist") : SPAWNING.SPAWN_WHITELIST;
-		SPAWNING.SPAWN_BLACKLIST = config.hasPath("spawning.spawn_blacklist") ? config.getStringList("spawning.spawn_blacklist") : SPAWNING.SPAWN_BLACKLIST;
+		properties.setProperty("spawning.spawn_speed", String.valueOf(SPAWNING.SPAWN_SPEED));
+		properties.setProperty("spawning.spawn_limit_mult", String.valueOf(SPAWNING.SPAWN_LIMIT_MULT));
+		properties.setProperty("spawning.spawn_range", String.valueOf(SPAWNING.SPAWN_RANGE));
+		properties.setProperty("spawning.spawn_distance", String.valueOf(SPAWNING.SPAWN_DISTANCE));
+		properties.setProperty("spawning.spawn_whitelist", String.join(",", SPAWNING.SPAWN_WHITELIST));
+		properties.setProperty("spawning.spawn_blacklist", String.join(",", SPAWNING.SPAWN_BLACKLIST));
+
+		try (FileOutputStream fos = new FileOutputStream(CONFIG_FILE_PATH)) {
+			properties.store(fos, null);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void saveConfig() {
-		config = ConfigFactory.empty()
-				.withValue("general.no_sleep", ConfigValueFactory.fromAnyRef(GENERAL.NO_SLEEP))
-				.withValue("general.vanish", ConfigValueFactory.fromAnyRef(GENERAL.VANISH))
-				.withValue("general.respect_gamerule", ConfigValueFactory.fromAnyRef(GENERAL.RESPECT_GAMERULE))
-				.withValue("general.send_message", ConfigValueFactory.fromAnyRef(GENERAL.SEND_MESSAGE))
-				.withValue("appearance.red_moon", ConfigValueFactory.fromAnyRef(APPEARANCE.RED_MOON))
-				.withValue("appearance.red_sky", ConfigValueFactory.fromAnyRef(APPEARANCE.RED_SKY))
-				.withValue("appearance.red_light", ConfigValueFactory.fromAnyRef(APPEARANCE.RED_LIGHT))
-				.withValue("appearance.black_fog", ConfigValueFactory.fromAnyRef(APPEARANCE.BLACK_FOG))
-				.withValue("schedule.chance", ConfigValueFactory.fromAnyRef(SCHEDULE.CHANCE))
-				.withValue("schedule.fullmoon", ConfigValueFactory.fromAnyRef(SCHEDULE.FULLMOON))
-				.withValue("schedule.nth_night", ConfigValueFactory.fromAnyRef(SCHEDULE.NTH_NIGHT))
-				.withValue("spawning.spawn_speed", ConfigValueFactory.fromAnyRef(SPAWNING.SPAWN_SPEED))
-				.withValue("spawning.spawn_limit_mult", ConfigValueFactory.fromAnyRef(SPAWNING.SPAWN_LIMIT_MULT))
-				.withValue("spawning.spawn_range", ConfigValueFactory.fromAnyRef(SPAWNING.SPAWN_RANGE))
-				.withValue("spawning.spawn_distance", ConfigValueFactory.fromAnyRef(SPAWNING.SPAWN_DISTANCE))
-				.withValue("spawning.spawn_whitelist", ConfigValueFactory.fromAnyRef(SPAWNING.SPAWN_WHITELIST))
-				.withValue("spawning.spawn_blacklist", ConfigValueFactory.fromAnyRef(SPAWNING.SPAWN_BLACKLIST));
+		Properties properties = new Properties();
+		properties.setProperty("general.no_sleep", String.valueOf(GENERAL.NO_SLEEP));
+		properties.setProperty("general.vanish", String.valueOf(GENERAL.VANISH));
+		properties.setProperty("general.respect_gamerule", String.valueOf(GENERAL.RESPECT_GAMERULE));
+		properties.setProperty("general.send_message", String.valueOf(GENERAL.SEND_MESSAGE));
 
-		ConfigFactory.parseFile(configFile).root().withValue("general.no_sleep", ConfigValueFactory.fromAnyRef(GENERAL.NO_SLEEP));
-		config = config.withFallback(ConfigFactory.parseFile(configFile));
-		try {
-			com.typesafe.config.ConfigRenderOptions options = com.typesafe.config.ConfigRenderOptions.defaults().setComments(true);
-			com.typesafe.config.ConfigFactory.parseFile(configFile).withFallback(config).root().render(options);
-			ConfigFactory.parseFile(configFile).root().withFallback(config).render(options);
-			com.typesafe.config.ConfigFactory.parseFile(configFile).withFallback(config).root().render(options);
-			ConfigFactory.parseFile(configFile).root().render(options);
-			com.typesafe.config.ConfigFactory.parseFile(configFile).root().render(options);
-		} catch (Exception e) {
+		properties.setProperty("appearance.red_moon", String.valueOf(APPEARANCE.RED_MOON));
+		properties.setProperty("appearance.red_sky", String.valueOf(APPEARANCE.RED_SKY));
+		properties.setProperty("appearance.red_light", String.valueOf(APPEARANCE.RED_LIGHT));
+		properties.setProperty("appearance.black_fog", String.valueOf(APPEARANCE.BLACK_FOG));
+
+		properties.setProperty("schedule.chance", String.valueOf(SCHEDULE.CHANCE));
+		properties.setProperty("schedule.fullmoon", String.valueOf(SCHEDULE.FULLMOON));
+		properties.setProperty("schedule.nth_night", String.valueOf(SCHEDULE.NTH_NIGHT));
+
+		properties.setProperty("spawning.spawn_speed", String.valueOf(SPAWNING.SPAWN_SPEED));
+		properties.setProperty("spawning.spawn_limit_mult", String.valueOf(SPAWNING.SPAWN_LIMIT_MULT));
+		properties.setProperty("spawning.spawn_range", String.valueOf(SPAWNING.SPAWN_RANGE));
+		properties.setProperty("spawning.spawn_distance", String.valueOf(SPAWNING.SPAWN_DISTANCE));
+		properties.setProperty("spawning.spawn_whitelist", String.join(",", SPAWNING.SPAWN_WHITELIST));
+		properties.setProperty("spawning.spawn_blacklist", String.join(",", SPAWNING.SPAWN_BLACKLIST));
+
+		try (FileOutputStream fos = new FileOutputStream(CONFIG_FILE_PATH)) {
+			properties.store(fos, null);
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private static List<String> parseList(String property) {
+		List<String> list = new ArrayList<>();
+		if (!property.isEmpty()) {
+			String[] items = property.split(",");
+			for (String item : items) {
+				list.add(item.trim());
+			}
+		}
+		return list;
 	}
 }

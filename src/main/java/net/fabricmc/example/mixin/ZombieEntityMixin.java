@@ -4,6 +4,7 @@ import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
 import net.fabricmc.example.mobai.BreakBlockAndChaseGoal;
 import net.fabricmc.example.mobai.CustomTargetGoal;
+import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.fabricmc.example.util.MinecraftServerUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
@@ -49,13 +50,14 @@ public abstract class ZombieEntityMixin extends PathAwareEntity {
     @Inject(method = "tick", at = @At("TAIL"))
     private void onZombieDespawn(CallbackInfo info) {
         if (!this.isAlive()) {
-            IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
+            /*IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
             if (goalBaritone != null) {
                 // Clean up Baritone instance for this entity
                 BaritoneAPI.getProvider().destroyBaritone(goalBaritone);
                 // Debug log to verify cleanup
                 //System.out.println("Baritone instance successfully removed for ZombieEntity on despawn");
-            }
+            }*/
+            MobitoneServiceImpl.removeMobitone(this);
         }
     }
 }

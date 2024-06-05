@@ -9,6 +9,7 @@ import net.fabricmc.example.bloodmoon.reference.Reference;
 import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.bloodmoon.server.BloodmoonSpawner;
 import net.fabricmc.example.bloodmoon.server.CommandBloodmoon;
+import net.fabricmc.example.listener.MobTargetListener;
 import net.fabricmc.example.util.MinecraftServerUtil;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
@@ -73,6 +74,7 @@ public class ExampleMod implements ModInitializer {
 				player.sendMessage(Text.literal("You cannot sleep right now! The bloodmoon is active"));
 			}
 		});
+		MobTargetListener.register();
 
 		LOGGER.info("ExampleMod has been initialized");
 	}
