@@ -30,7 +30,7 @@ public class ExplodeBlockAndChaseGoal extends Goal {
     public ExplodeBlockAndChaseGoal(CreeperEntity mob) {
         this.mob = mob;
         BaritoneAPI.getSettings().allowBreak.value = true;
-        BaritoneAPI.getSettings().allowPlace.value = false;
+        BaritoneAPI.getSettings().allowPlace.value = true;
         BaritoneAPI.getSettings().allowParkour.value = false;
         BaritoneAPI.getSettings().allowJumpAt256.value = false;
         BaritoneAPI.getSettings().allowParkourAscend.value = false;

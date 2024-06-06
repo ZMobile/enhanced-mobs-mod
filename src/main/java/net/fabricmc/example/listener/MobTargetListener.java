@@ -39,9 +39,12 @@ public class MobTargetListener {
     }
 
     public static void onMobTargetPlayer(MobEntity mob, PlayerEntity targetPlayer) {
+        System.out.println("Mob targeting player");
+        MobitoneServiceImpl.removeOutdatedMobitones();
         // Implement your custom functionality here
         // For example, print a message to the console
         MobitoneServiceImpl.addMobitone(mob);
+        MobitoneServiceImpl.fillInQueue();
         //System.out.println(mob.getName().asString() + " is targeting " + targetPlayer.getName().asString());
 
         // Add your desired functionality here

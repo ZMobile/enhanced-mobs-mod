@@ -107,6 +107,7 @@ public class CustomTargetGoal extends Goal {
     }
 
     private boolean within40Y(Entity entity1, Entity entity2) {
+        if (entity1 == null || entity2 == null) return false;
         return Math.abs(entity1.getY() - entity2.getY()) <= 40;
     }
 

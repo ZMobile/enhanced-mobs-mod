@@ -13,10 +13,14 @@ import net.fabricmc.example.listener.MobTargetListener;
 import net.fabricmc.example.util.MinecraftServerUtil;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Blocks;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.mob.ZombieEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import org.apache.logging.log4j.LogManager;
@@ -31,6 +35,8 @@ public class ExampleMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		ServerEntityEvents.ENTITY_LOAD.register(this::onEntityLoad);
+
 		// Initialize Bloodmoon instance and proxy
 		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
 			proxy = new ClientProxy();
@@ -77,5 +83,11 @@ public class ExampleMod implements ModInitializer {
 		MobTargetListener.register();
 
 		LOGGER.info("ExampleMod has been initialized");
+	}
+
+	private void onEntityLoad(Entity entity, ServerWorld world) {
+		if (entity instanceof ZombieEntity) {
+			((ZombieEntity) entity).setCanPickUpLoot(true);
+		}
 	}
 }

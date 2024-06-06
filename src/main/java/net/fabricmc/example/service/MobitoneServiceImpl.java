@@ -43,6 +43,13 @@ public class MobitoneServiceImpl implements MobitoneService {
     }
 
     public static void removeMobitone(LivingEntity livingEntity) {
+        IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(livingEntity);
+        if (goalBaritone != null) {
+            // Clean up Baritone instance for this entity
+            BaritoneAPI.getProvider().destroyBaritone(goalBaritone);
+            // Debug log to verify cleanup
+            //System.out.println("Baritone instance successfully removed for ZombieEntity on despawn");
+        }
         if (queue.contains(livingEntity)) {
             queue.remove(livingEntity);
         } else {
@@ -50,13 +57,6 @@ public class MobitoneServiceImpl implements MobitoneService {
                     .filter(mobitoneProvisionQuery -> mobitoneProvisionQuery.getLivingEntity().equals(livingEntity))
                     .findFirst().orElse(null);
             if (existingMobitoneProvision != null) {
-                IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(livingEntity);
-                if (goalBaritone != null) {
-                    // Clean up Baritone instance for this entity
-                    BaritoneAPI.getProvider().destroyBaritone(goalBaritone);
-                    // Debug log to verify cleanup
-                    //System.out.println("Baritone instance successfully removed for ZombieEntity on despawn");
-                }
                 mobitoneProvisions.remove(existingMobitoneProvision);
             }
         }
@@ -84,7 +84,7 @@ public class MobitoneServiceImpl implements MobitoneService {
                     }
                     mobitoneProvisions.remove(mobitoneProvision);
                 });
-        fillInQueue();
+        //fillInQueue();
     }
 
     public static void fillInQueue() {

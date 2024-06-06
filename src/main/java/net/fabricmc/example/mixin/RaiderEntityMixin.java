@@ -2,7 +2,7 @@ package net.fabricmc.example.mixin;
 
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
-import net.fabricmc.example.mobai.BreakBlockAndChaseGoal;
+import net.fabricmc.example.mobai.BreakPlaceAndChaseGoal;
 import net.fabricmc.example.mobai.CustomTargetGoal;
 import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.fabricmc.example.util.MinecraftServerUtil;
@@ -27,7 +27,7 @@ public abstract class RaiderEntityMixin extends PathAwareEntity {
     private void addCustomGoals(CallbackInfo info) {
         //GoalBlock goal = new GoalBlock(0, 60, 200);
         //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(),  this);
-        this.goalSelector.add(6, new BreakBlockAndChaseGoal(this ));
+        this.goalSelector.add(6, new BreakPlaceAndChaseGoal(this ));
         this.goalSelector.add(6, new CustomTargetGoal(this));
         // BaritoneAPI.getProvider().getBaritoneForEntity(this).getCustomGoalProcess().setGoalAndPath(goal);
         //System.out.println("Baritone goal successfully added to IllagerEntity");
