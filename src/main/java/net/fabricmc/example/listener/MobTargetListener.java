@@ -39,7 +39,6 @@ public class MobTargetListener {
     }
 
     public static void onMobTargetPlayer(MobEntity mob, PlayerEntity targetPlayer) {
-        System.out.println("Mob targeting player");
         MobitoneServiceImpl.removeOutdatedMobitones();
         // Implement your custom functionality here
         // For example, print a message to the console
