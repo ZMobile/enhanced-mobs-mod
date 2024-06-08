@@ -36,10 +36,12 @@ import net.minecraft.util.math.MathHelper;
 
 import java.util.Collections;
 
+import static net.minecraft.entity.EntityType.WITCH;
+
 public final class BloodmoonSpawner implements Spawner {
 	private static final int MOB_COUNT_DIV = (int) Math.pow(17.0D, 2.0D);
 	private final Set<ChunkPos> eligibleChunksForSpawning = Sets.newHashSet();
-
+	int witchCount = 0; // Counter for witches
 
 
 	public void triggerBloodmoonSpawning(ServerWorld world, boolean spawnHostileMobs, boolean spawnPeacefulMobs) {
@@ -116,6 +118,17 @@ public final class BloodmoonSpawner implements Spawner {
 									if (!spawnList.isEmpty()) {
 										int spawnIndex = world.random.nextInt(spawnList.getEntries().size());
 										SpawnSettings.SpawnEntry spawnEntry = spawnList.getEntries().get(spawnIndex);
+
+										if (spawnEntry.type == WITCH && Math.random() > 0.1) { // 10% chance to spawn a witch
+											continue;
+										}
+
+										if (spawnEntry.type == WITCH) {
+											witchCount++;
+											if (witchCount > 5) { // Limit to 5 witches
+												continue;
+											}
+										}
 										if (BloodmoonConfig.canSpawn(spawnEntry.type.getBaseClass())) {
 											MobEntity mobEntity;
 

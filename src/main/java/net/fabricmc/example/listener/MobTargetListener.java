@@ -1,15 +1,14 @@
 package net.fabricmc.example.listener;
 
+import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.mob.CreeperEntity;
+import net.minecraft.entity.mob.*;
 import net.minecraft.entity.raid.RaiderEntity;
-import net.minecraft.entity.mob.SkeletonEntity;
-import net.minecraft.entity.mob.WitchEntity;
-import net.minecraft.entity.mob.ZombieEntity;
-import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
+
+import javax.swing.text.Style;
 
 public class MobTargetListener {
     public static void register() {
@@ -33,13 +32,15 @@ public class MobTargetListener {
     public static boolean isSpecificMob(MobEntity mob) {
         return mob instanceof CreeperEntity ||
                 mob instanceof RaiderEntity ||
-                mob instanceof SkeletonEntity ||
+                mob instanceof AbstractSkeletonEntity ||
                 mob instanceof WitchEntity ||
                 mob instanceof ZombieEntity;
     }
 
     public static void onMobTargetPlayer(MobEntity mob, PlayerEntity targetPlayer) {
-        MobitoneServiceImpl.removeOutdatedMobitones();
+        if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+            MobitoneServiceImpl.removeOutdatedMobitones();
+        }
         // Implement your custom functionality here
         // For example, print a message to the console
         MobitoneServiceImpl.addMobitone(mob);

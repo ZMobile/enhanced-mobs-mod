@@ -46,6 +46,7 @@ public class BreakBlockAndChaseGoal extends Goal {
         BaritoneAPI.getSettings().renderGoalAnimated.value = false;
         BaritoneAPI.getSettings().renderPathAsLine.value = false;
         BaritoneAPI.getSettings().renderGoalXZBeacon.value = false;
+        BaritoneAPI.getSettings().assumeWalkOnWater.value = true;
     }
 
     @Override
@@ -221,7 +222,7 @@ public class BreakBlockAndChaseGoal extends Goal {
                 calculatePath();
             }
             if (breakingPos != null) {
-                if (mob.getBlockPos().isWithinDistance(breakingPos, 3)) {
+                if (mob.getBlockPos().isWithinDistance(breakingPos, 4)) {
                     //System.out.println("Block is within distance to break.");
                     continueBreakingBlock();
                 } else {

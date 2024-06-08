@@ -19,12 +19,24 @@ import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.mob.ZombieEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.BiomeKeys;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.Random;
 
 import static net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents.START_SLEEPING;
 
@@ -36,6 +48,18 @@ public class ExampleMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ServerEntityEvents.ENTITY_LOAD.register(this::onEntityLoad);
+		ServerEntityEvents.ENTITY_LOAD.register((entity, serverWorld) -> {
+			if (entity instanceof ZombieEntity) {
+				World world = entity.getWorld();
+				BlockPos pos = entity.getBlockPos();
+				RegistryEntry<Biome> biome = world.getBiome(pos);
+				Random random = new Random();
+				if (random.nextInt(10) < 3) { // 30% chance to have blocks
+					ItemStack stack = getRandomBlockStack(biome, random);
+					entity.equipStack(EquipmentSlot.MAINHAND, stack);
+				}
+			}
+		});
 
 		// Initialize Bloodmoon instance and proxy
 		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
@@ -83,6 +107,24 @@ public class ExampleMod implements ModInitializer {
 		MobTargetListener.register();
 
 		LOGGER.info("ExampleMod has been initialized");
+	}
+
+	private ItemStack getRandomBlockStack(RegistryEntry<Biome> biome, Random random) {
+		ItemStack stack;
+		int amount = random.nextInt(3) + 1; // Random amount from 1 to 12
+
+		if (biome.matchesKey(BiomeKeys.DESERT)) {
+			stack = new ItemStack(Items.SANDSTONE, amount);
+		} else {
+			ItemStack[] possibleBlocks = new ItemStack[] {
+					new ItemStack(Items.COBBLESTONE, amount),
+					new ItemStack(Items.DIRT, amount),
+					new ItemStack(Items.STONE, amount)
+			};
+			stack = possibleBlocks[random.nextInt(possibleBlocks.length)];
+		}
+
+		return stack;
 	}
 
 	private void onEntityLoad(Entity entity, ServerWorld world) {

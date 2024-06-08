@@ -2,6 +2,7 @@ package net.fabricmc.example.service;
 
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
+import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.model.MobitoneProvision;
 import net.fabricmc.example.util.MinecraftServerUtil;
 import net.minecraft.entity.LivingEntity;
@@ -30,9 +31,10 @@ public class MobitoneServiceImpl implements MobitoneService {
             existingMobitoneProvision.updateProvisionTime();
             return;
         }
-        if (mobitoneProvisions.size() < maxMobitoneProvisions) {
+        if (mobitoneProvisions.size() < maxMobitoneProvisions || !BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
             mobitoneProvisions.add(new MobitoneProvision(livingEntity));
             BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(), livingEntity);
+            System.out.println("Baritone instance successfully added for " + livingEntity.getName().getString());
         } else {
             if (!queue.contains(livingEntity)) {
                 queue.add(livingEntity);
@@ -47,6 +49,7 @@ public class MobitoneServiceImpl implements MobitoneService {
         if (goalBaritone != null) {
             // Clean up Baritone instance for this entity
             BaritoneAPI.getProvider().destroyBaritone(goalBaritone);
+            System.out.println("Baritone instance successfully removed from " + livingEntity.getName().getString());
             // Debug log to verify cleanup
             //System.out.println("Baritone instance successfully removed for ZombieEntity on despawn");
         }
@@ -65,6 +68,9 @@ public class MobitoneServiceImpl implements MobitoneService {
     }
 
     public static void removeOutdatedMobitones() {
+        if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+            return;
+        }
         mobitoneProvisions.stream()
                 .filter(mobitoneProvisionQuery -> {
                     // Get current time in UTC
@@ -88,7 +94,7 @@ public class MobitoneServiceImpl implements MobitoneService {
     }
 
     public static void fillInQueue() {
-        while (mobitoneProvisions.size() < maxMobitoneProvisions && !queue.isEmpty()) {
+        while ((mobitoneProvisions.size() < maxMobitoneProvisions || !BloodmoonHandler.INSTANCE.isBloodmoonActive()) && !queue.isEmpty()) {
             LivingEntity entityToAdd = queue.stream()
                     .filter(livingEntity -> mobitoneProvisions.stream()
                             .noneMatch(mobitoneProvisionQuery -> mobitoneProvisionQuery.getLivingEntity().equals(livingEntity)))
