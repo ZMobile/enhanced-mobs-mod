@@ -43,8 +43,15 @@ public class MobTargetListener {
         }
         // Implement your custom functionality here
         // For example, print a message to the console
-        MobitoneServiceImpl.addMobitone(mob);
-        MobitoneServiceImpl.fillInQueue();
+        if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+            if (mob instanceof CreeperEntity || mob instanceof ZombieEntity) {
+                MobitoneServiceImpl.addMobitone(mob);
+                MobitoneServiceImpl.fillInQueue();
+            }
+        } else {
+            MobitoneServiceImpl.addMobitone(mob);
+            MobitoneServiceImpl.fillInQueue();
+        }
         //System.out.println(mob.getName().asString() + " is targeting " + targetPlayer.getName().asString());
 
         // Add your desired functionality here

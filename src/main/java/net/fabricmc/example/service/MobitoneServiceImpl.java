@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MobitoneServiceImpl implements MobitoneService {
-    private static int maxProvisionDeadlineSeconds = 60;
+    private static int maxProvisionDeadlineSeconds = 120;
     private static int maxMobitoneProvisions = 25;
     private static List<MobitoneProvision> mobitoneProvisions = new ArrayList<>();
     private static List<LivingEntity> queue = new ArrayList<>();
@@ -31,15 +31,15 @@ public class MobitoneServiceImpl implements MobitoneService {
             existingMobitoneProvision.updateProvisionTime();
             return;
         }
-        if (mobitoneProvisions.size() < maxMobitoneProvisions || !BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+        //if (mobitoneProvisions.size() < maxMobitoneProvisions || !BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
             mobitoneProvisions.add(new MobitoneProvision(livingEntity));
             BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(), livingEntity);
             System.out.println("Baritone instance successfully added for " + livingEntity.getName().getString());
-        } else {
+        /*} else {
             if (!queue.contains(livingEntity)) {
                 queue.add(livingEntity);
             }
-        }
+        }*/
         //removeOutdatedMobitones();
         //fillInQueue();
     }
@@ -94,7 +94,7 @@ public class MobitoneServiceImpl implements MobitoneService {
     }
 
     public static void fillInQueue() {
-        while ((mobitoneProvisions.size() < maxMobitoneProvisions || !BloodmoonHandler.INSTANCE.isBloodmoonActive()) && !queue.isEmpty()) {
+        /*while ((mobitoneProvisions.size() < maxMobitoneProvisions || !BloodmoonHandler.INSTANCE.isBloodmoonActive()) && !queue.isEmpty()) {
             LivingEntity entityToAdd = queue.stream()
                     .filter(livingEntity -> mobitoneProvisions.stream()
                             .noneMatch(mobitoneProvisionQuery -> mobitoneProvisionQuery.getLivingEntity().equals(livingEntity)))
@@ -107,7 +107,7 @@ public class MobitoneServiceImpl implements MobitoneService {
             } else {
                 break;
             }
-        }
+        }*/
     }
 
     public static void updateMobitoneProvision(LivingEntity livingEntity) {

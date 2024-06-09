@@ -46,7 +46,8 @@ public class BreakBlockAndChaseGoal extends Goal {
         BaritoneAPI.getSettings().renderGoalAnimated.value = false;
         BaritoneAPI.getSettings().renderPathAsLine.value = false;
         BaritoneAPI.getSettings().renderGoalXZBeacon.value = false;
-        BaritoneAPI.getSettings().assumeWalkOnWater.value = true;
+        BaritoneAPI.getSettings().assumeWalkOnWater.value = false;
+        BaritoneAPI.getSettings().walkOnWaterOnePenalty.value = 23D;
     }
 
     @Override

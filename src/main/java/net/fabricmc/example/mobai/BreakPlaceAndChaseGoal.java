@@ -22,6 +22,7 @@ import java.util.*;
 
 public class BreakPlaceAndChaseGoal extends Goal {
     private final PathAwareEntity mob;
+    private BlockPos previousPos;
     private PlayerEntity targetPlayer;
     private IPathingBehavior pathingBehavior;
     private IPath currentPath;
@@ -51,7 +52,8 @@ public class BreakPlaceAndChaseGoal extends Goal {
         BaritoneAPI.getSettings().renderGoalAnimated.value = true;
         BaritoneAPI.getSettings().renderPathAsLine.value = true;
         BaritoneAPI.getSettings().renderGoalXZBeacon.value = false;
-        BaritoneAPI.getSettings().assumeWalkOnWater.value = true;
+        BaritoneAPI.getSettings().assumeWalkOnWater.value = false;
+        BaritoneAPI.getSettings().walkOnWaterOnePenalty.value = 23D;
     }
 
     @Override
@@ -187,7 +189,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
                         //Now to check if placement needed:
                         BetterBlockPos floorUnderBlockPos = new BetterBlockPos(pos.x, pos.y - 1, pos.z);
-                        if (isPlacementNeeded(floorUnderBlockPos) && mob.getMainHandStack().getItem() instanceof BlockItem) {
+                        if (isPlacementNeeded(floorUnderBlockPos) && !isSolidBlock(floorUnderBlockPos) && mob.getMainHandStack().getItem() instanceof BlockItem) {
                             System.out.println("Placement block set");
                             if (!hasAdjacentBlockIncludingBelow(floorUnderBlockPos)) {
                                 placingPos = floorUnderBlockPos.down();
@@ -328,24 +330,34 @@ public class BreakPlaceAndChaseGoal extends Goal {
     public void tick() {
         if (targetPlayer != null) {
             if (breakingPos != null) {
-                if (mob.getBlockPos().isWithinDistance(breakingPos, 4)) {
+                System.out.println("Breaking pos active");
+                System.out.println("Is attacking: " + mob.isAttacking());
+                if (mob.getBlockPos().isWithinDistance(breakingPos, 6)) {
                     //System.out.println("Block is within distance to break.");
                     continueBreakingBlock();
                 } else {
+                    if (previousPos == null) {
+                        previousPos = mob.getBlockPos();
+                    }
                     mob.getNavigation().startMovingTo(breakingPos.getX(), breakingPos.getY(), breakingPos.getZ(), 1.0);
-                    if (!mob.isNavigating()) {
+                    if (mob.getBlockPos().getManhattanDistance(previousPos) > 2) {
+                        previousPos = mob.getBlockPos();
+                        standingStillTicks = 0;
+                    } else {
                         standingStillTicks++;
                     }
-                    if (standingStillTicks> 100) {
+                    if (standingStillTicks> 200) {
                         System.out.println("Standing still for too long");
-                        stop();
+                        resetGoal();
                     }
                 }
                 //System.out.println("Block is not within distance to break. Moving to block.");
                 //System.out.println("Distance: " + mob.getBlockPos().getManhattanDistance(breakingPos));
             } else if (placingPos != null) {
+                System.out.println("Placing pos active");
+                System.out.println("Is attacking: " + mob.isAttacking());
                 System.out.println("Squared distance: " + mob.getBlockPos().getSquaredDistance(placingPos));
-                System.out.println("Placing pos: " + placingPos);
+                System.out.println(mob.getUuid() + " Placing pos: " + placingPos);
                 System.out.println("Placing target pos: " + placingTargetPos);
                 if (mob.getBlockPos().isWithinDistance(placingPos, 5)) {
                     // System.out.println("Block is within distance to place.");
@@ -358,17 +370,24 @@ public class BreakPlaceAndChaseGoal extends Goal {
                     // System.out.println("Distance: " + mob.getBlockPos().getManhattanDistance(placingPos));
                     //find the nearest block 1 block adjacent or 1 block adjacent and lower with a solid ground:
                     // is placing pos down
+                    if (previousPos == null) {
+                        previousPos = mob.getBlockPos();
+                    }
                     if (placingTargetPos != null) {
                         mob.getNavigation().startMovingTo(placingTargetPos.getX(), placingTargetPos.getY(), placingTargetPos.getZ(), 1.0);
                     } else {
                         mob.getNavigation().startMovingTo(placingPos.getX(), placingPos.getY(), placingPos.getZ(), 1.0);
                     }
-                    if (!mob.isNavigating()) {
+                    //If mob moved more than 2 blocks away from previous pos:
+                    if (mob.getBlockPos().getManhattanDistance(previousPos) > 2) {
+                        previousPos = mob.getBlockPos();
+                        standingStillTicks = 0;
+                    } else {
                         standingStillTicks++;
                     }
-                    if (standingStillTicks > 100 || Objects.requireNonNull(MinecraftServerUtil.getMinecraftServer().getWorld(getWorld(mob).getRegistryKey())).getBlockState(placingPos).isAir()) {
-                        System.out.println("Standing still for too long");
-                        stop();
+                    if (standingStillTicks > 200 ||!isPlacementNeeded(placingPos) || isSolidBlock(placingPos)) {
+                        System.out.println("Stopping goal");
+                        resetGoal();
                     }
                 }
             } else {
@@ -385,9 +404,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
             boolean success = world.setBlockState(placingPos, blockItem.getBlock().getDefaultState(), 3);
             System.out.println("Block placed: " + success);
             if (success) {
-                itemStack.decrement(1);
-                placingPos = null;
-                placingTargetPos = null;
+                resetGoal();
             }
         }
     }
@@ -503,6 +520,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
         placingPos = null;
         placingTargetPos = null;
         breakingPos = null;
+        previousPos = null;
         mob.getNavigation().stop();
     }
 }

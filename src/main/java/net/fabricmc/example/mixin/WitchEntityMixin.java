@@ -25,7 +25,7 @@ public class WitchEntityMixin extends PathAwareEntity {
 
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void addCustomGoals(CallbackInfo info) {
-        if (BloodmoonHandler.INSTANCE.isBloodmoonActive() && random.nextFloat() < 0.95) {
+        if (BloodmoonHandler.INSTANCE.isBloodmoonActive() && random.nextFloat() < 0.9) {
             this.discard();
         }
         //GoalBlock goal = new GoalBlock(0, 60, 200);

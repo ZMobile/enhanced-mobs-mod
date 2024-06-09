@@ -27,10 +27,10 @@ public abstract class CreeperEntityMixin extends PathAwareEntity {
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void addCustomGoals(CallbackInfo info) {
         CreeperEntity creeperEntity = (CreeperEntity) (Object) this;
-        if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+        //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
             MobitoneServiceImpl.addMobitone(this);
             MobitoneServiceImpl.fillInQueue();
-        }
+        //}
         //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(), creeperEntity);
         this.goalSelector.add(1, new ExplodeBlockAndChaseGoal(creeperEntity));
         this.goalSelector.add(6, new CustomCreeperTargetGoal(this));
