@@ -110,8 +110,29 @@ public class BreakPlaceAndChaseGoal extends Goal {
         }
     }
 
-    private boolean isPlacementNeeded(BlockPos blockPos) {
-        return getWorld(mob).getBlockState(blockPos).isAir() || getWorld(mob).getBlockState(blockPos).isOf(Blocks.WATER);
+    private boolean isPlacementNeeded(BlockPos blockPos, int pathIndex) {
+        if (getWorld(mob).getBlockState(blockPos).isAir()) {
+            return true;
+        }
+        if (getWorld(mob).getBlockState(blockPos).isOf(Blocks.WATER)) {
+            if (pathIndex == 0) {
+                if (pathIndex == currentPath.length() - 1) {
+                    return false;
+                } else {
+                    BlockPos nextPos = currentPath.positions().get(pathIndex + 1);
+                    if (nextPos.getY() > blockPos.getY()) {
+                        return true;
+                    }
+                }
+            } else {
+                BlockPos pos = currentPath.positions().get(pathIndex);
+                BlockPos previousPos = currentPath.positions().get(pathIndex - 1);
+                if (getWorld(mob).getBlockState(previousPos).isOf(Blocks.WATER) && !getWorld(mob).getBlockState(pos).isOf(Blocks.WATER)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void findBreakingOrPlacingBlock() {
@@ -148,8 +169,8 @@ public class BreakPlaceAndChaseGoal extends Goal {
                         if (nextPos.x != pos.x && nextPos.z != pos.z) {
                             BlockPos diagonalBlockPos1 = new BlockPos(pos.x, pos.y, nextPos.z);
                             BlockPos diagonalBlockPos2 = new BlockPos(nextPos.x, pos.y, pos.z);
-                            if ((isBreakable(diagonalBlockPos1) || isBreakable(diagonalBlockPos1.up()) && !isPlacementNeeded(diagonalBlockPos1.down()))) {
-                                if (!isPlacementNeeded(diagonalBlockPos2.down())&& !isSolidBlock(diagonalBlockPos2) && !isSolidBlock(diagonalBlockPos2)) {
+                            if ((isBreakable(diagonalBlockPos1) || isBreakable(diagonalBlockPos1.up()) && !isPlacementNeeded(diagonalBlockPos1.down(), i))) {
+                                if (!isPlacementNeeded(diagonalBlockPos2.down(), i) && !isSolidBlock(diagonalBlockPos2) && !isSolidBlock(diagonalBlockPos2)) {
                                     //Diagonal path already exists, none needed
                                     continue;
                                 }
@@ -159,8 +180,8 @@ public class BreakPlaceAndChaseGoal extends Goal {
                                 mob.getNavigation().startMovingTo(pos.getX(), pos.getY(), pos.getZ(), 1.0);
                                 return;
                             }
-                            if (isBreakable(diagonalBlockPos2) || isBreakable(diagonalBlockPos2.up()) && !isPlacementNeeded(diagonalBlockPos2.down())) {
-                                if (!isPlacementNeeded(diagonalBlockPos1.down()) && !isSolidBlock(diagonalBlockPos1) && !isSolidBlock(diagonalBlockPos1)) {
+                            if (isBreakable(diagonalBlockPos2) || isBreakable(diagonalBlockPos2.up()) && !isPlacementNeeded(diagonalBlockPos2.down(), i)) {
+                                if (!isPlacementNeeded(diagonalBlockPos1.down(), i) && !isSolidBlock(diagonalBlockPos1) && !isSolidBlock(diagonalBlockPos1)) {
                                     //Diagonal path already exists, none needed
                                     continue;
                                 }
@@ -189,31 +210,29 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
                         //Now to check if placement needed:
                         BetterBlockPos floorUnderBlockPos = new BetterBlockPos(pos.x, pos.y - 1, pos.z);
-                        if (isPlacementNeeded(floorUnderBlockPos) && !isSolidBlock(floorUnderBlockPos) && mob.getMainHandStack().getItem() instanceof BlockItem) {
+                        if (isPlacementNeeded(floorUnderBlockPos, i) && !isSolidBlock(floorUnderBlockPos) && mob.getMainHandStack().getItem() instanceof BlockItem) {
                             System.out.println("Placement block set");
+                            // Ensure breakingPos is null
                             if (!hasAdjacentBlockIncludingBelow(floorUnderBlockPos)) {
                                 placingPos = floorUnderBlockPos.down();
-                                placingTargetPos = findSuitableAdjacentBlock(placingPos);
                                 System.out.println("Placing pos identified 1: " + placingPos);
-                                System.out.println("Placing target pos: " + placingTargetPos);
-                                breakingPos = null; // Ensure breakingPos is null
-                                if (placingTargetPos == null) {
-                                    mob.getNavigation().startMovingTo(placingPos.getX(), placingPos.getY(), placingPos.getZ(), 1.0);
-                                } else {
-                                    mob.getNavigation().startMovingTo(placingTargetPos.getX(), placingTargetPos.getY(), placingTargetPos.getZ(), 1.0);
-                                }
-                                return;
+                            } else {
+                                placingPos = floorUnderBlockPos;
+                                System.out.println("Placing pos identified 2: " + placingPos);
                             }
-                            placingPos = floorUnderBlockPos;
-                            placingTargetPos = findSuitableAdjacentBlock(placingPos);
-                            System.out.println("Placing pos identified 2: " + placingPos);
                             System.out.println("Placing target pos: " + placingTargetPos);
                             breakingPos = null; // Ensure breakingPos is null
-                             if (placingTargetPos == null) {
-                                 mob.getNavigation().startMovingTo(placingPos.getX(), placingPos.getY(), placingPos.getZ(), 1.0);
-                             } else {
-                                 mob.getNavigation().startMovingTo(placingTargetPos.getX(), placingTargetPos.getY(), placingTargetPos.getZ(), 1.0);
-                             }
+                            if (!hasAdjacentBlockIncludingBelow(placingPos) && getWorld(mob).getBlockState(placingPos).isOf(Blocks.WATER)) {
+                                while (!hasAdjacentBlockIncludingBelow(placingPos)) {
+                                    placingPos = placingPos.down();
+                                }
+                            }
+                            placingTargetPos = findSuitableAdjacentBlock(placingPos);
+                            if (placingTargetPos == null) {
+                                mob.getNavigation().startMovingTo(placingPos.getX(), placingPos.getY(), placingPos.getZ(), 1.0);
+                            } else {
+                                mob.getNavigation().startMovingTo(placingTargetPos.getX(), placingTargetPos.getY(), placingTargetPos.getZ(), 1.0);
+                            }
                             return;
                         } else {
                     /*if (mob.getMainHandStack().getItem() instanceof BlockItem) {
@@ -385,7 +404,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
                     } else {
                         standingStillTicks++;
                     }
-                    if (standingStillTicks > 200 ||!isPlacementNeeded(placingPos) || isSolidBlock(placingPos)) {
+                    if (standingStillTicks > 200 || isSolidBlock(placingPos)) {
                         System.out.println("Stopping goal");
                         resetGoal();
                     }
@@ -412,11 +431,11 @@ public class BreakPlaceAndChaseGoal extends Goal {
     private boolean hasAdjacentBlockIncludingBelow(BlockPos blockPos) {
         for (Direction direction : Direction.Type.HORIZONTAL) {
             BlockPos adjacentPos = blockPos.offset(direction);
-            if (!isPlacementNeeded(adjacentPos)) {
+            if (!isSolidBlock(adjacentPos)) {
                 return true;
             }
         }
-        return !isPlacementNeeded(blockPos.down());
+        return !isSolidBlock(blockPos.down());
     }
 
 
@@ -466,7 +485,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
             BetterBlockPos pos = positions.get(i);
             //System.out.println("Checking block at: " + pos);
             BlockPos blockPos = new BlockPos(pos.x, pos.y, pos.z);
-            if (isBreakable(blockPos) || isBreakable(blockPos.up()) || isPlacementNeeded(blockPos.down())) {
+            if (isBreakable(blockPos) || isBreakable(blockPos.up()) || isPlacementNeeded(blockPos.down(), i)) {
                 return true;
             } else {
                 //System.out.println("Check diagonals between positions.");
@@ -476,14 +495,14 @@ public class BreakPlaceAndChaseGoal extends Goal {
                         BlockPos diagonalBlockPos1 = new BlockPos(pos.x, pos.y, nextPos.z);
                         BlockPos diagonalBlockPos2 = new BlockPos(nextPos.x, pos.y, pos.z);
                         if ((isBreakable(diagonalBlockPos1) || isBreakable(diagonalBlockPos1.up())) && isSolidBlock(diagonalBlockPos1.down())) {
-                            if (!isPlacementNeeded(diagonalBlockPos2.down()) && !isSolidBlock(diagonalBlockPos2) && !isSolidBlock(diagonalBlockPos2)) {
+                            if (!isPlacementNeeded(diagonalBlockPos2.down(), i) && !isSolidBlock(diagonalBlockPos2) && !isSolidBlock(diagonalBlockPos2)) {
                                 //Diagonal path already exists, none needed
                                 continue;
                             }
                             return true;
                         }
                         if ((isBreakable(diagonalBlockPos2) || isBreakable(diagonalBlockPos2.up())) && isSolidBlock(diagonalBlockPos2.down())) {
-                            if (!isPlacementNeeded(diagonalBlockPos1.down()) && !isSolidBlock(diagonalBlockPos1) && !isSolidBlock(diagonalBlockPos1)) {
+                            if (!isPlacementNeeded(diagonalBlockPos1.down(), i) && !isSolidBlock(diagonalBlockPos1) && !isSolidBlock(diagonalBlockPos1)) {
                                 //Diagonal path already exists, none needed
                                 continue;
                             }
