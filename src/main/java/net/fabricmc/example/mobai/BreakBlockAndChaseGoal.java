@@ -56,7 +56,8 @@ public class BreakBlockAndChaseGoal extends Goal {
             targetPlayer = (PlayerEntity) mob.getTarget();
             boolean withinRange = mob.getBlockPos().isWithinDistance(targetPlayer.getBlockPos(), 100)
                     && Math.abs(mob.getBlockPos().getY() - targetPlayer.getBlockPos().getY()) < 50;
-            return !mob.isAttacking() && !mob.isNavigating() && withinRange;
+            return !mob.isAttacking() && withinRange;
+
         }
         return false;
     }

@@ -111,7 +111,7 @@ public final class BloodmoonSpawner implements Spawner {
 								float spawnX = (float) x + 0.5F;
 								float spawnZ = (float) z + 0.5F;
 
-								if (world.isSkyVisible(mutablePos) && world.getClosestPlayer(spawnX, y, spawnZ, BloodmoonConfig.SPAWNING.SPAWN_RANGE, false) == null && worldSpawnPos.isWithinDistance(new Vec3d(spawnX, y, spawnZ), BloodmoonConfig.SPAWNING.SPAWN_DISTANCE)) {
+								if (world.isSkyVisible(mutablePos) && /*world.getClosestPlayer(spawnX, y, spawnZ, BloodmoonConfig.SPAWNING.SPAWN_RANGE, false) == null && worldSpawnPos.isWithinDistance(new Vec3d(spawnX, y, spawnZ), BloodmoonConfig.SPAWNING.SPAWN_DISTANCE)*/ isPlayerNearby(world, mutablePos, 200)) {
 									RegistryEntry<Biome> biome = world.getBiome(mutablePos);
 									Pool<SpawnSettings.SpawnEntry> spawnList = world.getChunkManager().getChunkGenerator().getEntitySpawnList(biome, world.getStructureAccessor(), spawnGroup, mutablePos);
 
@@ -154,6 +154,15 @@ public final class BloodmoonSpawner implements Spawner {
 				}
 			}
 		}
+	}
+
+	private boolean isPlayerNearby(ServerWorld world, BlockPos pos, double distance) {
+		for (PlayerEntity player : world.getPlayers()) {
+			if (!player.isSpectator() && player.squaredDistanceTo(pos.getX(), pos.getY(), pos.getZ()) <= distance * distance) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private int countEntities(ServerWorld world, SpawnGroup spawnGroup) {

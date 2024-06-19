@@ -2,6 +2,7 @@ package net.fabricmc.example.service;
 
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
+import net.fabricmc.example.bloodmoon.client.PathUpdateListener;
 import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.model.MobitoneProvision;
 import net.fabricmc.example.util.MinecraftServerUtil;
@@ -34,6 +35,12 @@ public class MobitoneServiceImpl implements MobitoneService {
         //if (mobitoneProvisions.size() < maxMobitoneProvisions || !BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
             mobitoneProvisions.add(new MobitoneProvision(livingEntity));
             BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(), livingEntity);
+
+            IBaritone baritone = BaritoneAPI.getProvider().getBaritoneForEntity(livingEntity);
+            if (baritone != null && baritone.getPathingBehavior() != null) {
+                PathUpdateListener pathUpdateListener = new PathUpdateListener(livingEntity.getUuid(), baritone.getPathingBehavior());
+                baritone.getGameEventHandler().registerEventListener(pathUpdateListener);
+            }
             System.out.println("Baritone instance successfully added for " + livingEntity.getName().getString());
         /*} else {
             if (!queue.contains(livingEntity)) {
