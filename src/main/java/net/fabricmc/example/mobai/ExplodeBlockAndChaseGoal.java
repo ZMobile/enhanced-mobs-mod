@@ -7,11 +7,15 @@ import baritone.api.pathing.calc.IPath;
 import baritone.api.pathing.goals.GoalBlock;
 import baritone.api.pathing.path.IPathExecutor;
 import baritone.api.utils.BetterBlockPos;
+import baritone.api.utils.MinecraftServerUtil;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.mob.CreeperEntity;
+import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.world.World;
 
 import java.util.HashMap;
 import java.util.List;
@@ -46,7 +50,7 @@ public class ExplodeBlockAndChaseGoal extends Goal {
         BaritoneAPI.getSettings().renderPathAsLine.value = false;
         BaritoneAPI.getSettings().renderGoalXZBeacon.value = false;
         BaritoneAPI.getSettings().assumeWalkOnWater.value = false;
-        BaritoneAPI.getSettings().walkOnWaterOnePenalty.value = 23D;
+        BaritoneAPI.getSettings().walkOnWaterOnePenalty.value = 5D;
     }
 
     @Override
@@ -184,14 +188,19 @@ public class ExplodeBlockAndChaseGoal extends Goal {
                 //System.out.println("Block to break: " + pos);
             }
         }
-        return mob.getWorld().getBlockState(blockPos).isSolidBlock(mob.getWorld(), blockPos);
+        return isSolidBlock(blockPos);
+    }
+
+    private World getWorld(PathAwareEntity mob) {
+        return MinecraftServerUtil.getMinecraftServer().getWorld(mob.getWorld().getRegistryKey());
     }
 
     private boolean isSolidBlock(BlockPos blockPos) {
-        //System.out.println("block state: " + mob.getWorld().getBlockState(blockPos));
+        //System.out.println("block state: " + getWorld(mob).getBlockState(blockPos));
         if (pathingBehavior != null && pathingBehavior.getCurrent() != null) {
             IPathExecutor current = pathingBehavior.getCurrent(); // this should prevent most race conditions?
             Set<BlockPos> blocksToBreak = current.toBreak();
+            Set<BlockPos> blocksToWalkInto = current.toWalkInto();
             //System.out.println("Blocks to break size: " + blocksToBreak.size());
             for (BlockPos pos : blocksToBreak) {
                 if (pos.equals(blockPos)) {
@@ -199,8 +208,31 @@ public class ExplodeBlockAndChaseGoal extends Goal {
                     return true;
                 }
             }
+            /*for (BlockPos pos : blocksToWalkInto) {
+                if (pos.equals(blockPos)) {
+                if (pos.equals(blockPos)) {
+                    return true;
+                }
+            }*/
         }
-        return mob.getWorld().getBlockState(blockPos).isSolidBlock(mob.getWorld(), blockPos);
+        boolean nonSolidButObstructive = getWorld(mob).getBlockState(blockPos).isOf(Blocks.LADDER)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.VINE)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.IRON_DOOR)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.OAK_DOOR)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.SPRUCE_DOOR)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.BIRCH_DOOR)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.JUNGLE_DOOR)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.ACACIA_DOOR)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.DARK_OAK_DOOR)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.IRON_TRAPDOOR)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.OAK_TRAPDOOR)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.SPRUCE_TRAPDOOR)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.BIRCH_TRAPDOOR)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.JUNGLE_TRAPDOOR)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.ACACIA_TRAPDOOR)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.DARK_OAK_TRAPDOOR)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.POINTED_DRIPSTONE);
+        return getWorld(mob).getBlockState(blockPos).isSolidBlock(getWorld(mob), blockPos) || nonSolidButObstructive;
     }
 
     @Override

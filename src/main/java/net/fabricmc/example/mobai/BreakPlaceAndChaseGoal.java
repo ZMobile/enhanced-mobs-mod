@@ -5,17 +5,21 @@ import baritone.api.IBaritone;
 import baritone.api.behavior.IPathingBehavior;
 import baritone.api.pathing.calc.IPath;
 import baritone.api.pathing.goals.GoalBlock;
-import baritone.api.pathing.goals.GoalGetToBlock;
 import baritone.api.pathing.path.IPathExecutor;
 import baritone.api.utils.BetterBlockPos;
 import baritone.api.utils.MinecraftServerUtil;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
@@ -33,7 +37,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
     private BlockPos breakingPos;
     private BlockPos placingPos;
     private BlockPos placingTargetPos;
-    private BlockPos walkingTargetPos;
     private static final int BREAKING_TIME = 50; // Faster breaking time in ticks (2.5 seconds)
     private final Map<BlockPos, Integer> blockDamageProgress = new HashMap<>();
 
@@ -56,7 +59,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
         BaritoneAPI.getSettings().renderPathAsLine.value = true;
         BaritoneAPI.getSettings().renderGoalXZBeacon.value = false;
         BaritoneAPI.getSettings().assumeWalkOnWater.value = false;
-        BaritoneAPI.getSettings().walkOnWaterOnePenalty.value = 23D;
+        BaritoneAPI.getSettings().walkOnWaterOnePenalty.value = 5.0D;
         BaritoneAPI.getSettings().blockPlacementPenalty.value = 3.0D;
     }
 
@@ -78,43 +81,39 @@ public class BreakPlaceAndChaseGoal extends Goal {
     }
 
     private void calculatePath() {
-        System.out.println("Calculating path.");
-        GoalBlock goal = null;
+        //System.out.println("Calculating path.");
         if (this.targetPlayer != null) {
-            System.out.println("Target player isnt null.");
             BlockPos targetPos = targetPlayer.getBlockPos();
-            goal = new GoalBlock(targetPos.getX(), targetPos.getY(), targetPos.getZ());
+            GoalBlock goal = new GoalBlock(targetPos.getX(), targetPos.getY(), targetPos.getZ());
             //Check if block underneath player is air and if so set goal to one of the adjacent blocks thats over a solid block.
             if (mob.getEntityWorld().getBlockState(targetPos.down()).isAir()) {
                 for (Direction direction : Direction.Type.HORIZONTAL) {
                     BlockPos adjacentPos = targetPos.offset(direction);
-                    if (mob.getEntityWorld().getBlockState(adjacentPos.down()).isSolidBlock(mob.getEntityWorld(), adjacentPos.down())) {
+                    if (isSolidBlock(adjacentPos.down())) {
                         goal = new GoalBlock(adjacentPos.getX(), adjacentPos.getY(), adjacentPos.getZ());
                         break;
                     }
                 }
             }
-            System.out.println("Goal: " + goal);
-        }
-        IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(mob);
-        if (goalBaritone != null) {
-            System.out.println("Goal baritone isnt null.");
-            pathingBehavior = goalBaritone.getPathingBehavior();
-            if (goalBaritone.getPathingBehavior().getCurrent() == null) {
-                goalBaritone.getCustomGoalProcess().setGoalAndPath(goal);
-                currentPath = null;
-            } else {
-                System.out.println("Current path set");
-                currentPath = goalBaritone.getPathingBehavior().getCurrent().getPath();
-                breakingPos = null;
-                placingPos = null;
-                placingTargetPos = null;
-                //System.out.println("Failed to calculate path.");
+            if (mob.getEntityWorld().getBlockState(targetPos.down()).isAir()) {
+                //System.out.println("Player is standing on air. Cannot calculate path.");
+                return;
             }
-        }
-        System.out.println("Current path: " + currentPath);
-        if (currentPath != null) {
-            findBreakingOrPlacingBlock();
+            IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(mob);
+            if (goalBaritone != null) {
+                pathingBehavior = goalBaritone.getPathingBehavior();
+                goalBaritone.getCustomGoalProcess().setGoalAndPath(goal);
+                if (goalBaritone.getPathingBehavior().getCurrent() != null) {
+                    currentPath = goalBaritone.getPathingBehavior().getCurrent().getPath();
+                    breakingPos = null;
+                    placingPos = null;
+                    placingTargetPos = null;
+                     findBreakingOrPlacingBlock();
+                } else {
+                    currentPath = null;
+                    //System.out.println("Failed to calculate path.");
+                }
+            }
         }
     }
 
@@ -146,8 +145,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
     }
 
     private void findBreakingOrPlacingBlock() {
-        System.out.println("Finding breaking or placing block for mob: " + mob.getUuid());
-        System.out.println("Goal: " + pathingBehavior.getGoal());
         if (currentPath != null) {
             List<BetterBlockPos> positions = currentPath.positions();
             for (int i = 0; i < positions.size(); i++) {
@@ -223,9 +220,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                         }
 
                         //Now to check if placement needed:
-                        System.out.println("Checking if placement blocks are needed");
-                        System.out.println("i: " + i);
-                        System.out.println("Current path length: " + currentPath.length());
                         BetterBlockPos floorUnderBlockPos = new BetterBlockPos(pos.x, pos.y - 1, pos.z);
                         if (isPlacementNeeded(floorUnderBlockPos, i) && !isSolidBlock(floorUnderBlockPos) && mob.getMainHandStack().getItem() instanceof BlockItem) {
                             System.out.println("Placement block set");
@@ -256,9 +250,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                     //
                 }
             }
-            walkingTargetPos = positions.get(positions.size() - 1);
-        } else {
-            System.out.println("Current path is null, voiding");
         }
         //System.out.println("No block to break found in the path.");
     }
@@ -317,7 +308,24 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.BIRCH_TRAPDOOR)
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.JUNGLE_TRAPDOOR)
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.ACACIA_TRAPDOOR)
-                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.DARK_OAK_TRAPDOOR);
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.DARK_OAK_TRAPDOOR)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.WHITE_BED)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.ORANGE_BED)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.MAGENTA_BED)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.LIGHT_BLUE_BED)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.YELLOW_BED)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.LIME_BED)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.PINK_BED)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.GRAY_BED)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.LIGHT_GRAY_BED)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.CYAN_BED)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.PURPLE_BED)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.BLUE_BED)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.BROWN_BED)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.GREEN_BED)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.RED_BED)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.BLACK_BED)
+                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.DRIPSTONE_BLOCK);
         return getWorld(mob).getBlockState(blockPos).isSolidBlock(getWorld(mob), blockPos) || isLadderVineOrDoor ;
     }
 
@@ -362,9 +370,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
     @Override
     public void tick() {
-        if (mob.getTarget() != null && mob.getTarget() instanceof PlayerEntity) {
-            targetPlayer = (PlayerEntity) mob.getTarget();
-        }
+        targetPlayer = (PlayerEntity) mob.getTarget();
         if (mob instanceof ZombieEntity && mob.getMainHandStack().getItem() instanceof BlockItem) {
             System.out.println("Tick zombie " + mob.getUuid() + " with block item in hand");
         }
@@ -373,7 +379,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
             if (breakingPos != null) {
                 System.out.println("Breaking pos active");
                 System.out.println("Is attacking: " + mob.isAttacking());
-                if (mob.getBlockPos().isWithinDistance(breakingPos, 6)) {
+                if (mob.getBlockPos().isWithinDistance(breakingPos, 4.5)) {
                     //System.out.println("Block is within distance to break.");
                     continueBreakingBlock();
                 } else {
@@ -387,7 +393,8 @@ public class BreakPlaceAndChaseGoal extends Goal {
                     } else {
                         standingStillTicks++;
                     }
-                    if (standingStillTicks> 200) {
+                    if (standingStillTicks> 200 || !isSolidBlock(breakingPos))
+                    {
                         System.out.println("Standing still for too long");
                         resetGoal();
                     }
@@ -431,12 +438,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                         resetGoal();
                     }
                 }
-            } else if (walkingTargetPos != null) {
-                if (mob.getBlockPos().isWithinDistance(walkingTargetPos, 2)) {
-                    resetGoal();
-                } else {
-                    mob.getNavigation().startMovingTo(walkingTargetPos.getX(), walkingTargetPos.getY(), walkingTargetPos.getZ(), 1.0);
-                }
             } else {
                 System.out.println("No block to break or place found. Calculating path.");
                 calculatePath();
@@ -444,47 +445,65 @@ public class BreakPlaceAndChaseGoal extends Goal {
         }
     }
 
+    private boolean isPlaceableBlock(ItemStack itemStack) {
+        if (!(itemStack.getItem() instanceof BlockItem)) {
+            return false;
+        }
+        BlockState blockState = ((BlockItem) itemStack.getItem()).getBlock().getDefaultState();
+        if (blockState.isOf(Blocks.POINTED_DRIPSTONE)) {
+            return false;
+        }
+        BlockItem blockItem = (BlockItem) itemStack.getItem();
+        boolean isLadderVineDoorOrBed = blockItem.getBlock() == Blocks.LADDER
+                || blockItem.getBlock() == Blocks.VINE
+                || blockItem.getBlock() == Blocks.IRON_DOOR
+                || blockItem.getBlock() == Blocks.OAK_DOOR
+                || blockItem.getBlock() == Blocks.SPRUCE_DOOR
+                || blockItem.getBlock() == Blocks.BIRCH_DOOR
+                || blockItem.getBlock() == Blocks.JUNGLE_DOOR
+                || blockItem.getBlock() == Blocks.ACACIA_DOOR
+                || blockItem.getBlock() == Blocks.DARK_OAK_DOOR
+                || blockItem.getBlock() == Blocks.IRON_TRAPDOOR
+                || blockItem.getBlock() == Blocks.OAK_TRAPDOOR
+                || blockItem.getBlock() == Blocks.SPRUCE_TRAPDOOR
+                || blockItem.getBlock() == Blocks.BIRCH_TRAPDOOR
+                || blockItem.getBlock() == Blocks.JUNGLE_TRAPDOOR
+                || blockItem.getBlock() == Blocks.ACACIA_TRAPDOOR
+                || blockItem.getBlock() == Blocks.DARK_OAK_TRAPDOOR
+                || blockItem.getBlock() == Blocks.WHITE_BED
+                || blockItem.getBlock() == Blocks.ORANGE_BED
+                || blockItem.getBlock() == Blocks.MAGENTA_BED
+                || blockItem.getBlock() == Blocks.LIGHT_BLUE_BED
+                || blockItem.getBlock() == Blocks.YELLOW_BED
+                || blockItem.getBlock() == Blocks.LIME_BED
+                || blockItem.getBlock() == Blocks.PINK_BED
+                || blockItem.getBlock() == Blocks.GRAY_BED
+                || blockItem.getBlock() == Blocks.LIGHT_GRAY_BED
+                || blockItem.getBlock() == Blocks.CYAN_BED
+                || blockItem.getBlock() == Blocks.PURPLE_BED
+                || blockItem.getBlock() == Blocks.BLUE_BED
+                || blockItem.getBlock() == Blocks.BROWN_BED
+                || blockItem.getBlock() == Blocks.GREEN_BED
+                || blockItem.getBlock() == Blocks.RED_BED
+                || blockItem.getBlock() == Blocks.BLACK_BED;
+        if (isLadderVineDoorOrBed) {
+            return false;
+        }
+        return !isSeed(itemStack.getItem());
+    }
+
+    public boolean isSeed(Item item) {
+        return item == Items.WHEAT_SEEDS || item == Items.BEETROOT_SEEDS || item == Items.MELON_SEEDS || item == Items.PUMPKIN_SEEDS;
+    }
+
+
     private void placeBlock() {
         if (placingPos != null && mob.getMainHandStack().getItem() instanceof BlockItem) {
             World world = getWorld(mob);
             ItemStack itemStack = mob.getMainHandStack();
             BlockItem blockItem = (BlockItem) itemStack.getItem();
-
-            // Make sure it isn't a half slab, door, trapdoor, or bed:
-            boolean isLadderVineDoorOrBed = blockItem.getBlock() == Blocks.LADDER
-                    || blockItem.getBlock() == Blocks.VINE
-                    || blockItem.getBlock() == Blocks.IRON_DOOR
-                    || blockItem.getBlock() == Blocks.OAK_DOOR
-                    || blockItem.getBlock() == Blocks.SPRUCE_DOOR
-                    || blockItem.getBlock() == Blocks.BIRCH_DOOR
-                    || blockItem.getBlock() == Blocks.JUNGLE_DOOR
-                    || blockItem.getBlock() == Blocks.ACACIA_DOOR
-                    || blockItem.getBlock() == Blocks.DARK_OAK_DOOR
-                    || blockItem.getBlock() == Blocks.IRON_TRAPDOOR
-                    || blockItem.getBlock() == Blocks.OAK_TRAPDOOR
-                    || blockItem.getBlock() == Blocks.SPRUCE_TRAPDOOR
-                    || blockItem.getBlock() == Blocks.BIRCH_TRAPDOOR
-                    || blockItem.getBlock() == Blocks.JUNGLE_TRAPDOOR
-                    || blockItem.getBlock() == Blocks.ACACIA_TRAPDOOR
-                    || blockItem.getBlock() == Blocks.DARK_OAK_TRAPDOOR
-                    || blockItem.getBlock() == Blocks.WHITE_BED
-                    || blockItem.getBlock() == Blocks.ORANGE_BED
-                    || blockItem.getBlock() == Blocks.MAGENTA_BED
-                    || blockItem.getBlock() == Blocks.LIGHT_BLUE_BED
-                    || blockItem.getBlock() == Blocks.YELLOW_BED
-                    || blockItem.getBlock() == Blocks.LIME_BED
-                    || blockItem.getBlock() == Blocks.PINK_BED
-                    || blockItem.getBlock() == Blocks.GRAY_BED
-                    || blockItem.getBlock() == Blocks.LIGHT_GRAY_BED
-                    || blockItem.getBlock() == Blocks.CYAN_BED
-                    || blockItem.getBlock() == Blocks.PURPLE_BED
-                    || blockItem.getBlock() == Blocks.BLUE_BED
-                    || blockItem.getBlock() == Blocks.BROWN_BED
-                    || blockItem.getBlock() == Blocks.GREEN_BED
-                    || blockItem.getBlock() == Blocks.RED_BED
-                    || blockItem.getBlock() == Blocks.BLACK_BED;
-
-            if (!isLadderVineDoorOrBed) {
+            //Make sure it isnt a half slab, door, trapdoor, or bed:
+            if (isPlaceableBlock(itemStack)) {
                 boolean success = world.setBlockState(placingPos, blockItem.getBlock().getDefaultState(), 3);
                 if (success) {
                     // Decrement the amount of blocks in the mob's hand by 1
@@ -495,14 +514,15 @@ public class BreakPlaceAndChaseGoal extends Goal {
             resetGoal();
         }
     }
+
     private boolean hasAdjacentBlockIncludingBelow(BlockPos blockPos) {
         for (Direction direction : Direction.Type.HORIZONTAL) {
             BlockPos adjacentPos = blockPos.offset(direction);
-            if (isSolidBlock(adjacentPos)) {
+            if (!isSolidBlock(adjacentPos)) {
                 return true;
             }
         }
-        return isSolidBlock(blockPos.down());
+        return !isSolidBlock(blockPos.down());
     }
 
 
@@ -601,12 +621,10 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
     private void resetGoal() {
         currentPath = null;
-        //calculating = false;
         breakingTicks = 0;
         standingStillTicks = 0;
         placingPos = null;
         placingTargetPos = null;
-        walkingTargetPos = null;
         breakingPos = null;
         previousPos = null;
         mob.getNavigation().stop();

@@ -39,6 +39,7 @@ import net.minecraft.world.biome.BiomeKeys;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Objects;
 import java.util.Random;
 
 import static net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents.START_SLEEPING;
@@ -143,7 +144,10 @@ public class ExampleMod implements ModInitializer {
 	}
 
 	private void onEntityLoad(Entity entity, ServerWorld world) {
-		entity.setCustomName(Text.of(entity.getUuid().toString()));
+		if (Objects.equals(entity.getCustomName(), entity.getUuid())) {
+			//Remove the custom name
+			entity.setCustomName(null);
+		}
 		if (entity instanceof ZombieEntity) {
 			((ZombieEntity) entity).setCanPickUpLoot(true);
 		}
