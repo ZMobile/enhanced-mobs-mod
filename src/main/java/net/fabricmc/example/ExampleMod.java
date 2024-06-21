@@ -144,10 +144,10 @@ public class ExampleMod implements ModInitializer {
 	}
 
 	private void onEntityLoad(Entity entity, ServerWorld world) {
-		if (Objects.equals(entity.getCustomName(), entity.getUuid())) {
-			//Remove the custom name
-			entity.setCustomName(null);
-		}
+		//if (entity.getCustomName() != null) {
+				//Remove the custom name
+				//entity.setCustomName(null);
+		//}
 		if (entity instanceof ZombieEntity) {
 			((ZombieEntity) entity).setCanPickUpLoot(true);
 		}

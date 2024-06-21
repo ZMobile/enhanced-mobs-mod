@@ -31,7 +31,7 @@ public class CustomTargetGoal extends Goal {
             return true;
         }
         targetPlayer = mob.getWorld().getClosestPlayer(mob, MAX_UNOBSTRUCTED_DISTANCE);
-        if (BloodmoonHandler.INSTANCE.isBloodmoonActive() && within40Y(mob, targetPlayer)) {
+        if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
             return true;
         }
         if (mob.getTarget() == null && targetPlayer != null  && within40Y(mob, targetPlayer) &&
@@ -78,7 +78,7 @@ public class CustomTargetGoal extends Goal {
             stop();
         }
         if (targetPlayer != null) {
-            if (BloodmoonHandler.INSTANCE.isBloodmoonActive() && within40Y(mob, targetPlayer)) {
+            if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
                 mob.setTarget(targetPlayer);
                 stop();
             }

@@ -11,6 +11,7 @@ import baritone.api.utils.MinecraftServerUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.ZombieEntity;
@@ -29,7 +30,7 @@ import java.util.*;
 public class BreakPlaceAndChaseGoal extends Goal {
     private final PathAwareEntity mob;
     private BlockPos previousPos;
-    private PlayerEntity targetPlayer;
+    private Entity targetEntity;
     private IPathingBehavior pathingBehavior;
     private IPath currentPath;
     private int breakingTicks;
@@ -60,15 +61,15 @@ public class BreakPlaceAndChaseGoal extends Goal {
         BaritoneAPI.getSettings().renderGoalXZBeacon.value = false;
         BaritoneAPI.getSettings().assumeWalkOnWater.value = false;
         BaritoneAPI.getSettings().walkOnWaterOnePenalty.value = 5.0D;
-        BaritoneAPI.getSettings().blockPlacementPenalty.value = 3.0D;
+        BaritoneAPI.getSettings().blockPlacementPenalty.value = 2.0D;
     }
 
     @Override
     public boolean canStart() {
         if (mob.getTarget() != null && mob.getTarget() instanceof PlayerEntity) {
-            targetPlayer = (PlayerEntity) mob.getTarget();
-            boolean withinRange = mob.getBlockPos().isWithinDistance(targetPlayer.getBlockPos(), 100)
-                    && Math.abs(mob.getBlockPos().getY() - targetPlayer.getBlockPos().getY()) < 50;
+            targetEntity = (PlayerEntity) mob.getTarget();
+            boolean withinRange = mob.getBlockPos().isWithinDistance(targetEntity.getBlockPos(), 100)
+                    && Math.abs(mob.getBlockPos().getY() - targetEntity.getBlockPos().getY()) < 50;
             return !mob.isAttacking() && !mob.isNavigating() && withinRange;
         }
         return false;
@@ -82,8 +83,8 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
     private void calculatePath() {
         //System.out.println("Calculating path.");
-        if (this.targetPlayer != null) {
-            BlockPos targetPos = targetPlayer.getBlockPos();
+        if (this.targetEntity != null) {
+            BlockPos targetPos = targetEntity.getBlockPos();
             GoalBlock goal = new GoalBlock(targetPos.getX(), targetPos.getY(), targetPos.getZ());
             //Check if block underneath player is air and if so set goal to one of the adjacent blocks thats over a solid block.
             if (mob.getEntityWorld().getBlockState(targetPos.down()).isAir()) {
@@ -370,11 +371,11 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
     @Override
     public void tick() {
-        targetPlayer = (PlayerEntity) mob.getTarget();
+        targetEntity = mob.getTarget();
         if (mob instanceof ZombieEntity && mob.getMainHandStack().getItem() instanceof BlockItem) {
             System.out.println("Tick zombie " + mob.getUuid() + " with block item in hand");
         }
-        if (targetPlayer != null) {
+        if (targetEntity != null) {
             System.out.println("target player is set");
             if (breakingPos != null) {
                 System.out.println("Breaking pos active");
@@ -518,11 +519,11 @@ public class BreakPlaceAndChaseGoal extends Goal {
     private boolean hasAdjacentBlockIncludingBelow(BlockPos blockPos) {
         for (Direction direction : Direction.Type.HORIZONTAL) {
             BlockPos adjacentPos = blockPos.offset(direction);
-            if (!isSolidBlock(adjacentPos)) {
+            if (isSolidBlock(adjacentPos)) {
                 return true;
             }
         }
-        return !isSolidBlock(blockPos.down());
+        return isSolidBlock(blockPos.down());
     }
 
 
