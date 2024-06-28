@@ -3,6 +3,7 @@ package net.fabricmc.example.bloodmoon.server;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.fabricmc.example.config.ConfigManager;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
@@ -15,8 +16,12 @@ public class CommandBloodmoon {
                         .executes(CommandBloodmoon::forceBloodmoon))
                 .then(CommandManager.literal("stop")
                         .executes(CommandBloodmoon::stopBloodmoon))
+                .then(CommandManager.literal("enabled")
+                        .executes(CommandBloodmoon::enableBloodmoon))
+                .then(CommandManager.literal("disabled")
+                        .executes(CommandBloodmoon::disableBloodmoon))
                 .executes(context -> {
-                    context.getSource().sendError(Text.literal("Usage: /bloodmoon <force|stop|entitynames>"));
+                    context.getSource().sendError(Text.literal("Usage: /bloodmoon <force|stop|enabled|disabled|entitynames>"));
                     return 0;
                 })
         );
@@ -43,6 +48,22 @@ public class CommandBloodmoon {
         } else {
             source.sendError(Text.literal("Bloodmoon handler not initialized."));
         }
+        return 1;
+    }
+
+    private static int enableBloodmoon(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        ServerCommandSource source = context.getSource();
+        ConfigManager.getConfig().setBloodmoonEnabled(true);
+        ConfigManager.saveConfig();
+        source.sendFeedback(() -> Text.literal("Bloodmoon enabled."), true);
+        return 1;
+    }
+
+    private static int disableBloodmoon(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        ServerCommandSource source = context.getSource();
+        ConfigManager.getConfig().setBloodmoonEnabled(false);
+        ConfigManager.saveConfig();
+        source.sendFeedback(() -> Text.literal("Bloodmoon disabled."), true);
         return 1;
     }
 }

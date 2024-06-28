@@ -10,7 +10,9 @@
     "SpiderEntityMixin",
     "SkeletonEntityMixin",
     "RaiderEntityMixin",
-    "WitchEntityMixin"
+    "WitchEntityMixin",
+    "SlimeEntityMixin",
+    "ModPlayerDataMixin"
   ],
   "client": [
   ],

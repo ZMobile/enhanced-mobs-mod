@@ -18,6 +18,7 @@ repositories {
 	flatDir {
 		dirs "./lib"
 	}
+	maven { url "https://maven.shedaniel.me/" }
 	maven {
 		name = 'babbaj-repo'
 		url = 'https://babbaj.github.io/maven/'
@@ -48,10 +49,10 @@ dependencies {
 	implementation "dev.babbaj:nether-pathfinder:1.4.1"
 
 	//modImplementation files('lib/cloth-config-13.0.121-fabric.jar')
-	modImplementation files('lib/mobitone1.20.4-server.jar')
+	//modImplementation files('lib/mobitone1.20.4-server.jar')
 	//implementation 'com.typesafe:config:1.4.1'
 
-	//modImplementation urlFile("https://www.curseforge.com/minecraft/mc-mods/cloth-config/download/4973455", 'cloth-config', '13.0.121-fabric')
+	modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone/mobitone1.20.4-server.jar", 'mobitone', '1.20.4-Server')
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
 	// You may need to force-disable transitiveness on them.
 }

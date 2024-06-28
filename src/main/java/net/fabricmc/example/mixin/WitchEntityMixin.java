@@ -3,6 +3,7 @@ package net.fabricmc.example.mixin;
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
 import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
+import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.example.mobai.BreakPlaceAndChaseGoal;
 import net.fabricmc.example.mobai.CustomTargetGoal;
 import net.fabricmc.example.service.MobitoneServiceImpl;
@@ -26,14 +27,17 @@ public class WitchEntityMixin extends PathAwareEntity {
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void addCustomGoals(CallbackInfo info) {
         if (BloodmoonHandler.INSTANCE.isBloodmoonActive() && random.nextFloat() < 0.9) {
+            //Reducing with spawns during bloodmoon by 95% because it spawns too many witches
             this.discard();
         }
         //GoalBlock goal = new GoalBlock(0, 60, 200);
         //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(),  this);
-        if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+        //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+        if (ConfigManager.getConfig().isWitchesBreakBlocks()) {
             MobitoneServiceImpl.addMobitone(this);
             MobitoneServiceImpl.fillInQueue();
         }
+        //}
         this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this ));
         this.goalSelector.add(6, new CustomTargetGoal(this));
         // BaritoneAPI.getProvider().getBaritoneForEntity(this).getCustomGoalProcess().setGoalAndPath(goal);

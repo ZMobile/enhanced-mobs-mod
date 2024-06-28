@@ -3,6 +3,7 @@ package net.fabricmc.example.mixin;
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
 import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
+import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.example.mobai.BreakPlaceAndChaseGoal;
 import net.fabricmc.example.mobai.CustomTargetGoal;
 import net.fabricmc.example.service.MobitoneServiceImpl;
@@ -28,10 +29,12 @@ public abstract class SkeletonEntityMixin extends PathAwareEntity {
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void addCustomGoals(CallbackInfo info) {
         //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(), (SkeletonEntity) (Object) this);
-        if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+        //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+        if (ConfigManager.getConfig().isSkeletonsBreakBlocks()) {
             MobitoneServiceImpl.addMobitone(this);
             MobitoneServiceImpl.fillInQueue();
         }
+        //}
         this.goalSelector.add(1, new BreakPlaceAndChaseGoal( this));
         this.goalSelector.add(6, new CustomTargetGoal(this));
         //System.out.println("Baritone goal successfully added to SkeletonEntity");

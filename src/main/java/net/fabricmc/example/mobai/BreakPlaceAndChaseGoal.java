@@ -43,25 +43,14 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
     public BreakPlaceAndChaseGoal(PathAwareEntity mob) {
         this.mob = mob;
-        BaritoneAPI.getSettings().allowBreak.value = true;
-        BaritoneAPI.getSettings().allowPlace.value = true;
         BaritoneAPI.getSettings().allowParkour.value = false;
         BaritoneAPI.getSettings().allowJumpAt256.value = false;
         BaritoneAPI.getSettings().allowParkourAscend.value = false;
         BaritoneAPI.getSettings().allowParkourPlace.value = false;
         BaritoneAPI.getSettings().avoidance.value = false;
         BaritoneAPI.getSettings().assumeExternalAutoTool.value = true; // Assume tool is externally managed
-        BaritoneAPI.getSettings().renderPath.value = true;
-        BaritoneAPI.getSettings().renderSelectionBoxes.value = true;
-        BaritoneAPI.getSettings().renderGoal.value = true;
-        BaritoneAPI.getSettings().renderCachedChunks.value = true;
-        BaritoneAPI.getSettings().renderSelectionCorners.value = true;
-        BaritoneAPI.getSettings().renderGoalAnimated.value = true;
-        BaritoneAPI.getSettings().renderPathAsLine.value = true;
-        BaritoneAPI.getSettings().renderGoalXZBeacon.value = false;
         BaritoneAPI.getSettings().assumeWalkOnWater.value = false;
         BaritoneAPI.getSettings().walkOnWaterOnePenalty.value = 5.0D;
-        BaritoneAPI.getSettings().blockPlacementPenalty.value = 2.0D;
     }
 
     @Override
@@ -77,8 +66,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
     @Override
     public void start() {
-        System.out.println("#################### GOAL Triggered: + " + mob.getUuid());
-        //calculatePath();
+         //calculatePath();
     }
 
     private void calculatePath() {
@@ -119,25 +107,17 @@ public class BreakPlaceAndChaseGoal extends Goal {
     }
 
     private boolean isPlacementNeeded(BlockPos blockPos, int pathIndex) {
-        System.out.println("Checking if placement needed: " + blockPos);
         if (getWorld(mob).getBlockState(blockPos).isAir()) {
             return true;
         }
-       if (getWorld(mob).getBlockState(blockPos).isOf(Blocks.WATER)) {
-           if (!getWorld(mob).getBlockState(blockPos.up()).isAir()) {
-               return false;
-           }
-           System.out.println("Block is water");
+        if (getWorld(mob).getBlockState(blockPos).isOf(Blocks.WATER)) {
+            if (!getWorld(mob).getBlockState(blockPos.up()).isAir()) {
+                return false;
+            }
             if (pathIndex == currentPath.length() - 1) {
                 return false;
             }
-            System.out.println("Checking if block is water and next block is higher");
-            System.out.println("Current path: " + currentPath.positions().get(pathIndex));
-            System.out.println("Next path: " + currentPath.positions().get(pathIndex + 1));
-            System.out.println("Block pos equals pos down: " + blockPos.equals(currentPath.positions().get(pathIndex).down()));
             boolean isNextPosHigher = currentPath.positions().get(pathIndex + 1).getY() > currentPath.positions().get(pathIndex).getY();
-            System.out.println("Next pos is higher: " + isNextPosHigher);
-            System.out.println("Block below next pos is not water: " + !getWorld(mob).getBlockState(currentPath.positions().get(pathIndex + 1).down()).isOf(Blocks.WATER));
             BlockPos pos = currentPath.positions().get(pathIndex);
             BlockPos nextPos = currentPath.positions().get(pathIndex + 1);
             return blockPos.equals(pos.down()) && nextPos.getY() > pos.getY() && !getWorld(mob).getBlockState(nextPos.down()).isOf(Blocks.WATER);
@@ -159,8 +139,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 //System.out.println("Checking block at: " + pos);
                 if (isBreakable(pos) || isBreakable(pos.up())) {
                     breakingPos = isBreakable(pos) ? pos : pos.up();
-                    System.out.println("Breaking pos identified 1 for mob: " + mob.getUuid() +  ": " + placingPos);
-                    //System.out.println("Identified block to break at: " + breakingPos);
+                     //System.out.println("Identified block to break at: " + breakingPos);
                     BlockPos adjacentPos;
                     if (i == 0) {
                         adjacentPos = mob.getBlockPos();
@@ -185,7 +164,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                                     //continue;
                                 } else {
                                     breakingPos = isBreakable(diagonalBlockPos1) ? diagonalBlockPos1 : diagonalBlockPos1.up();
-                                    System.out.println("Breaking pos identified 2 for mob: " + mob.getUuid() +  ": " + placingPos);
                                     //System.out.println("Identified block to break at: " + breakingPos);
                                     mob.getNavigation().startMovingTo(pos.getX(), pos.getY(), pos.getZ(), 1.0);
                                     return;
@@ -197,7 +175,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                                     //continue;
                                 } else {
                                     breakingPos = isBreakable(diagonalBlockPos2) ? diagonalBlockPos2 : diagonalBlockPos2.up();
-                                    System.out.println("Breaking pos identified 3 for mob: " + mob.getUuid() + ": " + placingPos);
                                     //System.out.println("Identified block to break at: " + breakingPos);
                                     mob.getNavigation().startMovingTo(pos.getX(), pos.getY(), pos.getZ(), 1.0);
                                     return;
@@ -213,7 +190,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                             }
                             if (isBreakable(twoBlocksUp)) {
                                 breakingPos = twoBlocksUp;
-                                System.out.println("Breaking pos identified 4 for mob: " + mob.getUuid() +  ": " + placingPos);
                                 //System.out.println("Identified block to break at: " + breakingPos);
                                 mob.getNavigation().startMovingTo(pos.getX(), pos.getY(), pos.getZ(), 1.0);
                                 return;
@@ -223,16 +199,12 @@ public class BreakPlaceAndChaseGoal extends Goal {
                         //Now to check if placement needed:
                         BetterBlockPos floorUnderBlockPos = new BetterBlockPos(pos.x, pos.y - 1, pos.z);
                         if (isPlacementNeeded(floorUnderBlockPos, i) && !isSolidBlock(floorUnderBlockPos) && mob.getMainHandStack().getItem() instanceof BlockItem) {
-                            System.out.println("Placement block set");
                             // Ensure breakingPos is null
                             if (!hasAdjacentBlockIncludingBelow(floorUnderBlockPos)) {
                                 placingPos = floorUnderBlockPos.down();
-                                System.out.println("Placing pos identified 1 for mob: " + mob.getUuid() +  ": " + placingPos);
                             } else {
                                 placingPos = floorUnderBlockPos;
-                                System.out.println("Placing pos identified 2 for mob: " + mob.getUuid() +  ": " + placingPos);
                             }
-                            System.out.println("Placing target pos: " + placingTargetPos);
                             breakingPos = null; // Ensure breakingPos is null
                             placingTargetPos = findSuitableAdjacentBlock(placingPos);
                             if (placingTargetPos == null) {
@@ -372,14 +344,8 @@ public class BreakPlaceAndChaseGoal extends Goal {
     @Override
     public void tick() {
         targetEntity = mob.getTarget();
-        if (mob instanceof ZombieEntity && mob.getMainHandStack().getItem() instanceof BlockItem) {
-            System.out.println("Tick zombie " + mob.getUuid() + " with block item in hand");
-        }
         if (targetEntity != null) {
-            System.out.println("target player is set");
             if (breakingPos != null) {
-                System.out.println("Breaking pos active");
-                System.out.println("Is attacking: " + mob.isAttacking());
                 if (mob.getBlockPos().isWithinDistance(breakingPos, 4.5)) {
                     //System.out.println("Block is within distance to break.");
                     continueBreakingBlock();
@@ -396,21 +362,14 @@ public class BreakPlaceAndChaseGoal extends Goal {
                     }
                     if (standingStillTicks> 200 || !isSolidBlock(breakingPos))
                     {
-                        System.out.println("Standing still for too long");
                         resetGoal();
                     }
                 }
                 //System.out.println("Block is not within distance to break. Moving to block.");
                 //System.out.println("Distance: " + mob.getBlockPos().getManhattanDistance(breakingPos));
             } else if (placingPos != null) {
-                System.out.println("Placing pos active");
-                System.out.println("Is attacking: " + mob.isAttacking());
-                System.out.println("Squared distance: " + mob.getBlockPos().getSquaredDistance(placingPos));
-                System.out.println(mob.getUuid() + " Placing pos: " + placingPos);
-                System.out.println("Placing target pos: " + placingTargetPos);
                 if (mob.getBlockPos().isWithinDistance(placingPos, 5)) {
                     // System.out.println("Block is within distance to place.");
-                    System.out.println("Is within distance");
                     placeBlock();
                 } else {
                     //mob.getNavigation().startMovingTo(placingPos
@@ -435,12 +394,10 @@ public class BreakPlaceAndChaseGoal extends Goal {
                         standingStillTicks++;
                     }
                     if (standingStillTicks > 200 || isSolidBlock(placingPos)) {
-                        System.out.println("Stopping goal");
                         resetGoal();
                     }
                 }
             } else {
-                System.out.println("No block to break or place found. Calculating path.");
                 calculatePath();
             }
         }
@@ -509,7 +466,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 if (success) {
                     // Decrement the amount of blocks in the mob's hand by 1
                     itemStack.decrement(1);
-                    System.out.println("Block placed: " + success);
                 }
             }
             resetGoal();
@@ -616,7 +572,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
     @Override
     public void stop() {
-        System.out.println("#################### GOAL Stopped: " + mob.getUuid());
         resetGoal();
     }
 

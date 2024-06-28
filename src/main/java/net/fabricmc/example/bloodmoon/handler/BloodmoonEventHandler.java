@@ -1,11 +1,9 @@
 package net.fabricmc.example.bloodmoon.handler;
 
-import net.fabricmc.example.ExampleMod;
-import net.fabricmc.example.bloodmoon.client.ClientBloodmoonHandler;
+import net.fabricmc.example.EnhancedMobsMod;
 import net.fabricmc.example.bloodmoon.config.BloodmoonConfig;
 import net.fabricmc.example.bloodmoon.reference.Reference;
 import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -44,7 +42,7 @@ public class BloodmoonEventHandler {
 
 	public ActionResult sleepInBed(ServerPlayerEntity player, BlockPos pos) {
 		if (BloodmoonHandler.INSTANCE != null && BloodmoonConfig.GENERAL.NO_SLEEP) {
-			if (ExampleMod.proxy.isBloodmoon()) {
+			if (EnhancedMobsMod.proxy.isBloodmoon()) {
 				player.sendMessage(Text.translatable("text.bloodmoon.nosleep").formatted(Formatting.RED), true);
 				return ActionResult.FAIL;
 			}

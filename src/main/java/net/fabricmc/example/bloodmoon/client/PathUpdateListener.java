@@ -110,7 +110,6 @@ public class PathUpdateListener implements IGameEventListener {
 
     @Override
     public void onPathEvent(PathEvent pathEvent) {
-        System.out.println("Custom on path event executed");
         IPathExecutor executor = behavior.getCurrent();
         if (executor != null && executor.getPath() != null) {
             List<BetterBlockPos> pathPositions = executor.getPath().positions();
@@ -125,7 +124,6 @@ public class PathUpdateListener implements IGameEventListener {
             MinecraftServer server = BaritoneAPI.getProvider().getPrimaryBaritone().getPlayerContext().world().getServer();
             if (server != null) {
                 for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                    System.out.println("Sending packet to player: " + player.getName());
                     ServerPlayNetworking.send(player, BARITONE_PACKET_ID, buf);
                 }
             }

@@ -3,6 +3,7 @@ package net.fabricmc.example.mixin;
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
 import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
+import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.example.mobai.BreakPlaceAndChaseGoal;
 import net.fabricmc.example.mobai.CustomTargetGoal;
 import net.fabricmc.example.service.MobitoneServiceImpl;
@@ -31,10 +32,12 @@ public abstract class ZombieEntityMixin extends PathAwareEntity {
         //GoalBlock goal = new GoalBlock(0, 60, 200);
         //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(),  this);
         //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+        if (ConfigManager.getConfig().isZombiesBreakAndPlaceBlocks()) {
             MobitoneServiceImpl.addMobitone(this);
             MobitoneServiceImpl.fillInQueue();
+        }
         //}
-        this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this ));
+        this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this));
         this.goalSelector.add(6, new CustomTargetGoal(this));
         // BaritoneAPI.getProvider().getBaritoneForEntity(this).getCustomGoalProcess().setGoalAndPath(goal);
         System.out.println("Baritone goal successfully added to ZombieEntity");

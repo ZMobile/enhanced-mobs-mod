@@ -1,27 +1,27 @@
 package net.fabricmc.example;
 
+import baritone.api.BaritoneAPI;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.example.bloodmoon.config.BloodmoonConfig;
 import net.fabricmc.example.bloodmoon.proxy.ClientProxy;
 import net.fabricmc.example.bloodmoon.proxy.CommonProxy;
 import net.fabricmc.example.bloodmoon.reference.Reference;
-import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
-import net.fabricmc.example.bloodmoon.server.BloodmoonSpawner;
 import net.fabricmc.example.bloodmoon.server.CommandBloodmoon;
-import net.fabricmc.example.listener.MobTargetListener;
+import net.fabricmc.example.command.mob.*;
+import net.fabricmc.example.command.mob.penalty.MobBlockBreakAdditionalPenaltyCommand;
+import net.fabricmc.example.command.mob.penalty.MobBlockPlacementPenaltyCommand;
+import net.fabricmc.example.command.mob.penalty.MobJumpPenaltyCommand;
+import net.fabricmc.example.config.ConfigManager;
+import net.fabricmc.example.enforcement.ClientModPacket;
+import net.fabricmc.example.enforcement.ModPlayerData;
 import net.fabricmc.example.util.MinecraftServerUtil;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -30,8 +30,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
@@ -39,19 +37,39 @@ import net.minecraft.world.biome.BiomeKeys;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-import static net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents.START_SLEEPING;
-
-public class ExampleMod implements ModInitializer {
+public class EnhancedMobsMod implements ModInitializer {
 	public static final Logger LOGGER = LogManager.getLogger(Reference.MOD_ID);
 	public static CommonProxy proxy;
-	public static BloodmoonConfig config;
+
+	private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
 
 	@Override
 	public void onInitialize() {
-		ServerEntityEvents.ENTITY_LOAD.register(this::onEntityLoad);
+		ConfigManager.loadConfig();
+		BaritoneAPI.getSettings().blockPlacementPenalty.value = ConfigManager.getConfig().getMobBlockPlacementPenalty();
+		BaritoneAPI.getSettings().blockBreakAdditionalPenalty.value = ConfigManager.getConfig().getMobBlockBreakAdditionalPenalty();
+		BaritoneAPI.getSettings().jumpPenalty.value = ConfigManager.getConfig().getMobJumpPenalty();
+		BaritoneAPI.getSettings().allowPlace.value = ConfigManager.getConfig().isAllowPlace();
+		BaritoneAPI.getSettings().allowBreak.value = ConfigManager.getConfig().isAllowBreak();
+		CommandRegistrationCallback.EVENT.register((dispatcher, dedicated, registryAccess) -> {
+			AllowPlaceCommand.register(dispatcher);
+			AllowBreakCommand.register(dispatcher);
+			CreepersExplodeObstructionsCommand.register(dispatcher);
+			RaidersBreakBlocksCommand.register(dispatcher);
+			SkeletonsBreakBlocksCommand.register(dispatcher);
+			WitchesBreakBlocksCommand.register(dispatcher);
+			ZombiesBreakAndPlaceBlocksCommand.register(dispatcher);
+			MobBlockBreakAdditionalPenaltyCommand.register(dispatcher);
+			MobBlockPlacementPenaltyCommand.register(dispatcher);
+			MobJumpPenaltyCommand.register(dispatcher);
+		});
+ 		ServerEntityEvents.ENTITY_LOAD.register(this::onEntityLoad);
 		ServerEntityEvents.ENTITY_LOAD.register((entity, serverWorld) -> {
 			if (entity instanceof ZombieEntity) {
 				World world = entity.getWorld();
@@ -89,35 +107,47 @@ public class ExampleMod implements ModInitializer {
 			LOGGER.info("Server is starting");
 		});
 
-		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
+		/*UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
 			// Check if the block being interacted with is a bed
 			if (world.getBlockState(hitResult.getBlockPos()).getBlock() == Blocks.WHITE_BED ||
 					world.getBlockState(hitResult.getBlockPos()).getBlock() instanceof net.minecraft.block.BedBlock) {
-				if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+				//if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
 					// Cancel the interaction
-					return ActionResult.FAIL;
+				if (player instanceof ServerPlayerEntity) {
+					// Set the player's spawn point
+					ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
+					BlockPos bedPos = hitResult.getBlockPos();
+					serverPlayer.setSpawnPoint(world.getRegistryKey(), bedPos, 0, true, true);
+					//serverPlayer.sendMessage(Text.literal("Your spawn point has been set!"), false);
+					return ActionResult.SUCCESS;
 				}
+				//return ActionResult.FAIL;
+				//}
 			}
 			return ActionResult.PASS;
 		});
 
 		EntitySleepEvents.START_SLEEPING.register((player, pos) -> {
 			// Wake the player up and send a message
-			if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+			//if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
 				player.wakeUp();
-				player.sendMessage(Text.literal("You cannot sleep right now! The bloodmoon is active"));
-			}
+				player.sendMessage(Text.literal("Unable to skip the night via sleeping"));
+			//}
+		});*/
+
+		ClientModPacket.register();
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+			((ModPlayerData) handler.getPlayer()).setHasMod(false);
+
+			// Schedule the check after a delay (e.g., 5 seconds)
+			scheduler.schedule(() -> server.execute(() -> {
+				if (!((ModPlayerData) handler.getPlayer()).hasMod() && ConfigManager.getConfig().isTrueDarknessEnforced()) {
+					handler.disconnect(Text.literal("You must have Zante's True Darkness mod installed to join this server."));
+				}
+			}), 5, TimeUnit.SECONDS);
 		});
-		MobTargetListener.register();
-		ServerPlayerEvents.AFTER_RESPAWN.register(this::onPlayerRespawn);
 
-		LOGGER.info("ExampleMod has been initialized");
-	}
-
-	private void onPlayerRespawn(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, boolean alive) {
-		// Grant op status to the player
-		MinecraftServer server = newPlayer.server;
-		server.getPlayerManager().addToOperators(newPlayer.getGameProfile());
+		LOGGER.info("Enhanced Mobs Mod has been initialized");
 	}
 
 	private void onPlayerJoin(ServerPlayerEntity player, MinecraftServer server) {

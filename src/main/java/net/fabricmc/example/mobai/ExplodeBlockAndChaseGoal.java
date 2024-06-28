@@ -33,24 +33,14 @@ public class ExplodeBlockAndChaseGoal extends Goal {
 
     public ExplodeBlockAndChaseGoal(CreeperEntity mob) {
         this.mob = mob;
-        BaritoneAPI.getSettings().allowBreak.value = true;
-        BaritoneAPI.getSettings().allowPlace.value = true;
         BaritoneAPI.getSettings().allowParkour.value = false;
         BaritoneAPI.getSettings().allowJumpAt256.value = false;
         BaritoneAPI.getSettings().allowParkourAscend.value = false;
         BaritoneAPI.getSettings().allowParkourPlace.value = false;
-        BaritoneAPI.getSettings().assumeExternalAutoTool.value = true; // Assume tool is externally managed
         BaritoneAPI.getSettings().avoidance.value = false;
-        BaritoneAPI.getSettings().renderPath.value = false;
-        BaritoneAPI.getSettings().renderSelectionBoxes.value = false;
-        BaritoneAPI.getSettings().renderGoal.value = false;
-        BaritoneAPI.getSettings().renderCachedChunks.value = false;
-        BaritoneAPI.getSettings().renderSelectionCorners.value = false;
-        BaritoneAPI.getSettings().renderGoalAnimated.value = false;
-        BaritoneAPI.getSettings().renderPathAsLine.value = false;
-        BaritoneAPI.getSettings().renderGoalXZBeacon.value = false;
+        BaritoneAPI.getSettings().assumeExternalAutoTool.value = true; // Assume tool is externally managed
         BaritoneAPI.getSettings().assumeWalkOnWater.value = false;
-        BaritoneAPI.getSettings().walkOnWaterOnePenalty.value = 5D;
+        BaritoneAPI.getSettings().walkOnWaterOnePenalty.value = 5.0D;
     }
 
     @Override
