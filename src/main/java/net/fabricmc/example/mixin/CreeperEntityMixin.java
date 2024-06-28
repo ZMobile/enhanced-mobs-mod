@@ -2,6 +2,7 @@ package net.fabricmc.example.mixin;
 
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
+import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.example.mobai.CustomCreeperTargetGoal;
 import net.fabricmc.example.mobai.CustomTargetGoal;
 import net.fabricmc.example.mobai.ExplodeBlockAndChaseGoal;
@@ -24,8 +25,10 @@ public abstract class CreeperEntityMixin extends PathAwareEntity {
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void addCustomGoals(CallbackInfo info) {
         CreeperEntity creeperEntity = (CreeperEntity) (Object) this;
-        BaritoneAPI.getProvider().createBaritone(MinecraftClient.getInstance(), creeperEntity);
-        this.goalSelector.add(1, new ExplodeBlockAndChaseGoal(creeperEntity));
+        if (ConfigManager.getConfig().isCreepersExplodeObstructions()) {
+            BaritoneAPI.getProvider().createBaritone(MinecraftClient.getInstance(), creeperEntity);
+            this.goalSelector.add(1, new ExplodeBlockAndChaseGoal(creeperEntity));
+        }
         this.goalSelector.add(6, new CustomCreeperTargetGoal(creeperEntity));
         //System.out.println("Baritone goal successfully added to CreeperEntity");
     }

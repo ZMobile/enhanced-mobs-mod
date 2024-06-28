@@ -19,10 +19,11 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "net.fabricmc.example.EnhancedMobsMod"
     ],
     "client": [
-      "net.fabricmc.example.bloodmoon.client.ClientBloodmoonHandler"
+      "net.fabricmc.example.bloodmoon.client.ClientBloodmoonHandler",
+      "net.fabricmc.example.client.ClientPathManager"
     ]
   },
   "mixins": [

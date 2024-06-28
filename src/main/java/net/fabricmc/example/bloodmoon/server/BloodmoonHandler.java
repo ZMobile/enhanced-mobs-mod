@@ -3,6 +3,7 @@ package net.fabricmc.example.bloodmoon.server;
 import net.fabricmc.example.bloodmoon.config.BloodmoonConfig;
 import net.fabricmc.example.bloodmoon.network.PacketHandler;
 import net.fabricmc.example.bloodmoon.network.messages.MessageBloodmoonStatus;
+import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.datafixer.DataFixTypes;
@@ -81,12 +82,14 @@ public class BloodmoonHandler extends PersistentState {
 
 					if (INSTANCE.forceBloodMoon || Math.random() < BloodmoonConfig.SCHEDULE.CHANCE || (BloodmoonConfig.SCHEDULE.FULLMOON && world.getMoonPhase() == 0) || (BloodmoonConfig.SCHEDULE.NTH_NIGHT != 0 && INSTANCE.nightCounter == 0)) {
 						INSTANCE.forceBloodMoon = false;
-						INSTANCE.setBloodmoon(true);
+						if (ConfigManager.getConfig().isBloodmoonEnabled()) {
+							INSTANCE.setBloodmoon(true);
 
-						if (BloodmoonConfig.GENERAL.SEND_MESSAGE) {
-							world.getPlayers().forEach(player -> {
-								player.sendMessage(Text.literal("Bloodmoon is rising...").formatted(Formatting.RED), false);
-							});
+							if (BloodmoonConfig.GENERAL.SEND_MESSAGE) {
+								world.getPlayers().forEach(player -> {
+									player.sendMessage(Text.literal("Bloodmoon is rising...").formatted(Formatting.RED), false);
+								});
+							}
 						}
 
 						if (INSTANCE.nightCounter == 0 && BloodmoonConfig.SCHEDULE.NTH_NIGHT != 0) {
