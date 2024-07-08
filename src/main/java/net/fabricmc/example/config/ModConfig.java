@@ -13,6 +13,8 @@ public class  ModConfig {
     private double mobBlockPlacementPenalty;
     private double mobBlockBreakAdditionalPenalty;
     private double mobJumpPenalty;
+    private Boolean optimizedMobitone;
+    private Boolean infiniteZombieBlocks;
 
     public ModConfig() {
         allowBreak = true;
@@ -27,6 +29,8 @@ public class  ModConfig {
         mobBlockPlacementPenalty = 3.0;
         mobBlockBreakAdditionalPenalty = 2.0;
         mobJumpPenalty = 2.0;
+        optimizedMobitone = true;
+        infiniteZombieBlocks = true;
     }
 
     public boolean isAllowBreak() {
@@ -123,5 +127,21 @@ public class  ModConfig {
 
     public void setMobJumpPenalty(double mobJumpPenalty) {
         this.mobJumpPenalty = mobJumpPenalty;
+    }
+
+    public Boolean isOptimizedMobitone() {
+        return optimizedMobitone;
+    }
+
+    public void setOptimizedMobitone(Boolean optimizedMobitone) {
+        this.optimizedMobitone = optimizedMobitone;
+    }
+
+    public Boolean isInfiniteZombieBlocks() {
+        return infiniteZombieBlocks;
+    }
+
+    public void setInfiniteZombieBlocks(Boolean infiniteZombieBlocks) {
+        this.infiniteZombieBlocks = infiniteZombieBlocks;
     }
 }

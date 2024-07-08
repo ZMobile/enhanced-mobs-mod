@@ -1,5 +1,6 @@
 package net.fabricmc.example.command.mob.penalty;
 
+import baritone.api.BaritoneAPI;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import net.fabricmc.example.config.ConfigManager;
@@ -17,6 +18,7 @@ public class MobBlockPlacementPenaltyCommand {
                 .then(argument("value", DoubleArgumentType.doubleArg())
                         .executes(context -> {
                             double value = DoubleArgumentType.getDouble(context, "value");
+                            BaritoneAPI.getSettings().blockPlacementPenalty.value = value;
                             ConfigManager.getConfig().setMobBlockPlacementPenalty(value);
                             context.getSource().sendFeedback(() -> Text.of("Setting mobBlockPlacementPenalty to: " + value), true);
                             // Add custom logic here

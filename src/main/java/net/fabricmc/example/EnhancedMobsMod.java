@@ -7,6 +7,7 @@ import net.fabricmc.example.bloodmoon.proxy.ClientProxy;
 import net.fabricmc.example.bloodmoon.proxy.CommonProxy;
 import net.fabricmc.example.bloodmoon.reference.Reference;
 import net.fabricmc.example.bloodmoon.server.CommandBloodmoon;
+import net.fabricmc.example.command.TrueDarknessEnforcedCommand;
 import net.fabricmc.example.command.mob.*;
 import net.fabricmc.example.command.mob.penalty.MobBlockBreakAdditionalPenaltyCommand;
 import net.fabricmc.example.command.mob.penalty.MobBlockPlacementPenaltyCommand;
@@ -51,24 +52,6 @@ public class EnhancedMobsMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		ConfigManager.loadConfig();
-		BaritoneAPI.getSettings().blockPlacementPenalty.value = ConfigManager.getConfig().getMobBlockPlacementPenalty();
-		BaritoneAPI.getSettings().blockBreakAdditionalPenalty.value = ConfigManager.getConfig().getMobBlockBreakAdditionalPenalty();
-		BaritoneAPI.getSettings().jumpPenalty.value = ConfigManager.getConfig().getMobJumpPenalty();
-		BaritoneAPI.getSettings().allowPlace.value = ConfigManager.getConfig().isAllowPlace();
-		BaritoneAPI.getSettings().allowBreak.value = ConfigManager.getConfig().isAllowBreak();
-		CommandRegistrationCallback.EVENT.register((dispatcher, dedicated, registryAccess) -> {
-			AllowPlaceCommand.register(dispatcher);
-			AllowBreakCommand.register(dispatcher);
-			CreepersExplodeObstructionsCommand.register(dispatcher);
-			RaidersBreakBlocksCommand.register(dispatcher);
-			SkeletonsBreakBlocksCommand.register(dispatcher);
-			WitchesBreakBlocksCommand.register(dispatcher);
-			ZombiesBreakAndPlaceBlocksCommand.register(dispatcher);
-			MobBlockBreakAdditionalPenaltyCommand.register(dispatcher);
-			MobBlockPlacementPenaltyCommand.register(dispatcher);
-			MobJumpPenaltyCommand.register(dispatcher);
-		});
  		ServerEntityEvents.ENTITY_LOAD.register(this::onEntityLoad);
 		ServerEntityEvents.ENTITY_LOAD.register((entity, serverWorld) -> {
 			if (entity instanceof ZombieEntity) {
@@ -99,11 +82,28 @@ public class EnhancedMobsMod implements ModInitializer {
 		// Register Bloodmoon command
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			CommandBloodmoon.register(dispatcher);
+			AllowPlaceCommand.register(dispatcher);
+			AllowBreakCommand.register(dispatcher);
+			CreepersExplodeObstructionsCommand.register(dispatcher);
+			RaidersBreakBlocksCommand.register(dispatcher);
+			SkeletonsBreakBlocksCommand.register(dispatcher);
+			WitchesBreakBlocksCommand.register(dispatcher);
+			ZombiesBreakAndPlaceBlocksCommand.register(dispatcher);
+			MobBlockBreakAdditionalPenaltyCommand.register(dispatcher);
+			MobBlockPlacementPenaltyCommand.register(dispatcher);
+			MobJumpPenaltyCommand.register(dispatcher);
+			TrueDarknessEnforcedCommand.register(dispatcher);
 		});
 
 		// Server starting event
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> {
 			MinecraftServerUtil.setMinecraftServer(server);
+			ConfigManager.loadConfig();
+			BaritoneAPI.getSettings().blockPlacementPenalty.value = ConfigManager.getConfig().getMobBlockPlacementPenalty();
+			BaritoneAPI.getSettings().blockBreakAdditionalPenalty.value = ConfigManager.getConfig().getMobBlockBreakAdditionalPenalty();
+			BaritoneAPI.getSettings().jumpPenalty.value = ConfigManager.getConfig().getMobJumpPenalty();
+			BaritoneAPI.getSettings().allowPlace.value = ConfigManager.getConfig().isAllowPlace();
+			BaritoneAPI.getSettings().allowBreak.value = ConfigManager.getConfig().isAllowBreak();
 			LOGGER.info("Server is starting");
 		});
 

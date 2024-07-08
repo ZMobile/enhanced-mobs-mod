@@ -30,12 +30,15 @@ public abstract class CreeperEntityMixin extends PathAwareEntity {
         CreeperEntity creeperEntity = (CreeperEntity) (Object) this;
         //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
         if (ConfigManager.getConfig().isCreepersExplodeObstructions()) {
-            MobitoneServiceImpl.addMobitone(this);
-            MobitoneServiceImpl.fillInQueue();
+            if (!ConfigManager.getConfig().isOptimizedMobitone()) {
+                MobitoneServiceImpl.addMobitone(this);
+                MobitoneServiceImpl.fillInQueue();
+            }
+
+            //}
+            //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(), creeperEntity);
+            this.goalSelector.add(1, new ExplodeBlockAndChaseGoal(creeperEntity));
         }
-        //}
-        //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(), creeperEntity);
-        this.goalSelector.add(1, new ExplodeBlockAndChaseGoal(creeperEntity));
         this.goalSelector.add(6, new CustomCreeperTargetGoal(this));
         //System.out.println("Baritone goal successfully added to CreeperEntity");
     }

@@ -30,14 +30,16 @@ public abstract class ZombieEntityMixin extends PathAwareEntity {
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void addCustomGoals(CallbackInfo info) {
         //GoalBlock goal = new GoalBlock(0, 60, 200);
-        //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(),  this);
+        //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(),  this);v
         //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
         if (ConfigManager.getConfig().isZombiesBreakAndPlaceBlocks()) {
-            MobitoneServiceImpl.addMobitone(this);
-            MobitoneServiceImpl.fillInQueue();
+            if (!ConfigManager.getConfig().isOptimizedMobitone()) {
+                MobitoneServiceImpl.addMobitone(this);
+                MobitoneServiceImpl.fillInQueue();
+            }
+            //}
+            this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this));
         }
-        //}
-        this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this));
         this.goalSelector.add(6, new CustomTargetGoal(this));
         // BaritoneAPI.getProvider().getBaritoneForEntity(this).getCustomGoalProcess().setGoalAndPath(goal);
         System.out.println("Baritone goal successfully added to ZombieEntity");

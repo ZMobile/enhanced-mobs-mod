@@ -34,11 +34,13 @@ public class WitchEntityMixin extends PathAwareEntity {
         //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(),  this);
         //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
         if (ConfigManager.getConfig().isWitchesBreakBlocks()) {
-            MobitoneServiceImpl.addMobitone(this);
-            MobitoneServiceImpl.fillInQueue();
+            if (!ConfigManager.getConfig().isOptimizedMobitone()) {
+                MobitoneServiceImpl.addMobitone(this);
+                MobitoneServiceImpl.fillInQueue();
+            }
+            //}
+            this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this));
         }
-        //}
-        this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this ));
         this.goalSelector.add(6, new CustomTargetGoal(this));
         // BaritoneAPI.getProvider().getBaritoneForEntity(this).getCustomGoalProcess().setGoalAndPath(goal);
         //System.out.println("Baritone goal successfully added to WitchEntity");

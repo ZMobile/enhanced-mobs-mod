@@ -9,6 +9,31 @@ archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 
+configurations {
+	mobitone
+}
+
+task downloadMobitone {
+	doLast {
+		def url = 'https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone/mobitone1.20.4-server.jar'
+		def outputFile = file(files('lib/mobitone1.20.4-server.jar').getAsPath())
+
+		if (!outputFile.exists()) {
+			println "Downloading mobitone1.20.4-server.jar..."
+			outputFile.parentFile.mkdirs()  // Ensure the directory exists
+			new URL(url).withInputStream { inputStream ->
+				outputFile.withOutputStream { outputStream ->
+					outputStream << inputStream
+				}
+			}
+			println "Download completed."
+		} else {
+			println "mobitone1.20.4-server.jar already exists. Skipping download."
+		}
+	}
+}
+
+
 repositories {
 	// Add repositories to retrieve artifacts from in here.
 	// You should only use this when depending on other mods because
@@ -49,10 +74,12 @@ dependencies {
 	implementation "dev.babbaj:nether-pathfinder:1.4.1"
 
 	//modImplementation files('lib/cloth-config-13.0.121-fabric.jar')
-	//modImplementation files('lib/mobitone1.20.4-server.jar')
 	//implementation 'com.typesafe:config:1.4.1'
+	//modImplementation configurations.mobitone
+	modImplementation files('lib/mobitone1.20.4-server.jar')
 
-	modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone/mobitone1.20.4-server.jar", 'mobitone', '1.20.4-Server')
+
+	//modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone/mobitone1.20.4-server.jar", 'mobitone', '1.20.4-server')
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
 	// You may need to force-disable transitiveness on them.
 }

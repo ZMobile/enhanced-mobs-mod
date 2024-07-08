@@ -8,6 +8,8 @@ import baritone.api.pathing.goals.GoalBlock;
 import baritone.api.pathing.path.IPathExecutor;
 import baritone.api.utils.BetterBlockPos;
 import baritone.api.utils.MinecraftServerUtil;
+import net.fabricmc.example.config.ConfigManager;
+import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.mob.CreeperEntity;
@@ -77,6 +79,9 @@ public class ExplodeBlockAndChaseGoal extends Goal {
             if (mob.getEntityWorld().getBlockState(targetPos.down()).isAir()) {
                 //System.out.println("Player is standing on air. Cannot calculate path.");
                 return;
+            }
+            if (ConfigManager.getConfig().isOptimizedMobitone()) {
+                MobitoneServiceImpl.addMobitone(mob);
             }
             IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(mob);
             if (goalBaritone != null) {

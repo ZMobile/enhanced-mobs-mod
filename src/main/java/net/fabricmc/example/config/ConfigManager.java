@@ -29,6 +29,12 @@ public class ConfigManager {
         // Load the config
         try (FileReader reader = new FileReader(configFile)) {
             config = new Gson().fromJson(reader, ModConfig.class);
+            if (config.isInfiniteZombieBlocks() == null) {
+                config.setInfiniteZombieBlocks(true);
+            }
+            if (config.isOptimizedMobitone() == null) {
+                config.setOptimizedMobitone(true);
+            }
         } catch (JsonIOException | JsonSyntaxException | IOException e) {
             config = new ModConfig();
             saveConfig();

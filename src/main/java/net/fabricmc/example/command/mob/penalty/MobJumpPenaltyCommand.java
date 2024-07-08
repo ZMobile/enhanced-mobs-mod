@@ -1,5 +1,6 @@
 package net.fabricmc.example.command.mob.penalty;
 
+import baritone.api.BaritoneAPI;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
@@ -19,6 +20,7 @@ public class MobJumpPenaltyCommand {
                 .then(argument("value", DoubleArgumentType.doubleArg())
                         .executes(context -> {
                             double value = DoubleArgumentType.getDouble(context, "value");
+                            BaritoneAPI.getSettings().jumpPenalty.value = value;
                             ConfigManager.getConfig().setMobJumpPenalty(value);
                             context.getSource().sendFeedback(() -> Text.of("Setting mobJumpPenalty to: " + value), true);
                             // Add custom logic here
