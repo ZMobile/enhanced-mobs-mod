@@ -14,34 +14,34 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 
 public class PacketHandler {
-	public static final Identifier BLOODMOON_STATUS_PACKET_ID = new Identifier("modid", "bloodmoon_status");
+	//public static final Identifier BLOODMOON_STATUS_PACKET_ID = new Identifier("modid", "bloodmoon_status");
 
 	public static void init() {
 		// Register the server-side packet handler
-		ServerPlayNetworking.registerGlobalReceiver(BLOODMOON_STATUS_PACKET_ID, (server, player, handler, buf, responseSender) -> {
+		/*ServerPlayNetworking.registerGlobalReceiver(BLOODMOON_STATUS_PACKET_ID, (server, player, handler, buf, responseSender) -> {
 			MessageBloodmoonStatus message = new MessageBloodmoonStatus(buf);
 			server.execute(() -> HandleBloodmoonStatus.handle(message, player));
-		});
+		});*/
 	}
 
 	@Environment(EnvType.CLIENT)
 	public static void initClient() {
 		// Register the client-side packet handler
-		ClientPlayNetworking.registerGlobalReceiver(BLOODMOON_STATUS_PACKET_ID, (client, handler, buf, responseSender) -> {
+		/*ClientPlayNetworking.registerGlobalReceiver(BLOODMOON_STATUS_PACKET_ID, (client, handler, buf, responseSender) -> {
 			MessageBloodmoonStatus message = new MessageBloodmoonStatus(buf);
 			client.execute(() -> HandleBloodmoonStatus.handle(message, client.player));
-		});
+		});*/
 	}
 
 	public static void sendToAll(ServerWorld world, MessageBloodmoonStatus message) {
 		PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
 		message.toBytes(buf);
-		world.getPlayers().forEach(player -> ServerPlayNetworking.send(player, BLOODMOON_STATUS_PACKET_ID, buf));
+		//world.getPlayers().forEach(player -> ServerPlayNetworking.send(player, BLOODMOON_STATUS_PACKET_ID, buf));
 	}
 
 	public static void sendTo(ServerPlayerEntity player, MessageBloodmoonStatus message) {
 		PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
 		message.toBytes(buf);
-		ServerPlayNetworking.send(player, BLOODMOON_STATUS_PACKET_ID, buf);
+		//ServerPlayNetworking.send(player, BLOODMOON_STATUS_PACKET_ID, buf);
 	}
 }

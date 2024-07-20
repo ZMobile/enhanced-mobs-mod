@@ -35,6 +35,9 @@ public class ConfigManager {
             if (config.isOptimizedMobitone() == null) {
                 config.setOptimizedMobitone(true);
             }
+            if (config.getMobBlockBreakSpeed() == null) {
+                config.setMobBlockBreakSpeed(1.0);
+            }
         } catch (JsonIOException | JsonSyntaxException | IOException e) {
             config = new ModConfig();
             saveConfig();

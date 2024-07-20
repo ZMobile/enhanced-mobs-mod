@@ -2,7 +2,7 @@ package net.fabricmc.example.service;
 
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
-import net.fabricmc.example.bloodmoon.client.PathUpdateListener;
+import net.fabricmc.example.client.path.PathUpdateListener;
 import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.model.MobitoneProvision;
 import net.fabricmc.example.util.MinecraftServerUtil;

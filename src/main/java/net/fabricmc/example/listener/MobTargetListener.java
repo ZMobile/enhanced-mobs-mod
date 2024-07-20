@@ -1,6 +1,7 @@
 package net.fabricmc.example.listener;
 
 import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
+import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.entity.Entity;
@@ -43,15 +44,18 @@ public class MobTargetListener {
         }
         // Implement your custom functionality here
         // For example, print a message to the console
-        if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
-            if (mob instanceof CreeperEntity || mob instanceof ZombieEntity) {
+        if (!ConfigManager.getConfig().isOptimizedMobitone()) {
+            if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+                if (mob instanceof CreeperEntity || mob instanceof ZombieEntity) {
+                    MobitoneServiceImpl.addMobitone(mob);
+                    MobitoneServiceImpl.fillInQueue();
+                }
+            } else {
                 MobitoneServiceImpl.addMobitone(mob);
                 MobitoneServiceImpl.fillInQueue();
             }
-        } else {
-            MobitoneServiceImpl.addMobitone(mob);
-            MobitoneServiceImpl.fillInQueue();
         }
+
         //System.out.println(mob.getName().asString() + " is targeting " + targetPlayer.getName().asString());
 
         // Add your desired functionality here

@@ -1,4 +1,4 @@
-package net.fabricmc.example.bloodmoon.client;
+package net.fabricmc.example.client.path;
 
 import baritone.api.utils.BetterBlockPos;
 import com.google.gson.*;

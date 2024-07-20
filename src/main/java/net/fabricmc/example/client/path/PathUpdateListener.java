@@ -1,17 +1,16 @@
-package net.fabricmc.example.bloodmoon.client;
+package net.fabricmc.example.client.path;
 
 import baritone.api.BaritoneAPI;
 import baritone.api.behavior.IPathingBehavior;
 import baritone.api.event.events.*;
-import baritone.api.event.listener.AbstractGameEventListener;
 import baritone.api.event.listener.IGameEventListener;
 import baritone.api.pathing.path.IPathExecutor;
 import baritone.api.utils.BetterBlockPos;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.PacketByteBuf;
-import io.netty.buffer.Unpooled;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
@@ -23,7 +22,7 @@ public class PathUpdateListener implements IGameEventListener {
     private static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(BetterBlockPos.class, new BetterBlockPosSerializer())
             .create();
-    private static final Identifier BARITONE_PACKET_ID = new Identifier("modid", "baritone_packet");
+    private static final Identifier BARITONE_PACKET_ID = Identifier.of("modid", "baritone_packet");
 
     private final UUID mobUuid;
     private final IPathingBehavior behavior;
@@ -116,15 +115,17 @@ public class PathUpdateListener implements IGameEventListener {
             PathingData pathingData = new PathingData(mobUuid, pathPositions);
 
             String json = GSON.toJson(pathingData);
+            BaritoneCustomPayload customPayload = new BaritoneCustomPayload(json);
 
-            PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-            buf.writeString(json);
+            // Encode the custom payload into a PacketByteBuf
+            PacketByteBuf buf = PacketByteBufs.create();
+            customPayload.write(buf);
 
             // Send the packet to all online players
             MinecraftServer server = BaritoneAPI.getProvider().getPrimaryBaritone().getPlayerContext().world().getServer();
             if (server != null) {
                 for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                    ServerPlayNetworking.send(player, BARITONE_PACKET_ID, buf);
+                    ServerPlayNetworking.send(player, customPayload);
                 }
             }
         }

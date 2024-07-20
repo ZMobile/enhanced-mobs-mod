@@ -1,7 +1,7 @@
 package net.fabricmc.example.mixin;
 
-import net.fabricmc.example.enforcement.ModPlayerData;
-import net.fabricmc.example.enforcement.ModPlayerDataImpl;
+import net.fabricmc.example.client.darkness.ModPlayerData;
+import net.fabricmc.example.client.darkness.ModPlayerDataImpl;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;

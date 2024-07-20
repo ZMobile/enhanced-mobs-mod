@@ -7,18 +7,22 @@ import net.fabricmc.example.bloodmoon.proxy.ClientProxy;
 import net.fabricmc.example.bloodmoon.proxy.CommonProxy;
 import net.fabricmc.example.bloodmoon.reference.Reference;
 import net.fabricmc.example.bloodmoon.server.CommandBloodmoon;
+import net.fabricmc.example.client.path.BaritoneCustomPayload;
+import net.fabricmc.example.command.OptimizedMobitoneCommand;
 import net.fabricmc.example.command.TrueDarknessEnforcedCommand;
 import net.fabricmc.example.command.mob.*;
 import net.fabricmc.example.command.mob.penalty.MobBlockBreakAdditionalPenaltyCommand;
 import net.fabricmc.example.command.mob.penalty.MobBlockPlacementPenaltyCommand;
 import net.fabricmc.example.command.mob.penalty.MobJumpPenaltyCommand;
+import net.fabricmc.example.command.mob.speed.MobBlockBreakSpeedCommand;
 import net.fabricmc.example.config.ConfigManager;
-import net.fabricmc.example.enforcement.ClientModPacket;
-import net.fabricmc.example.enforcement.ModPlayerData;
+import net.fabricmc.example.client.darkness.ClientModPacket;
+import net.fabricmc.example.client.darkness.ModPlayerData;
 import net.fabricmc.example.util.MinecraftServerUtil;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.Entity;
@@ -52,7 +56,8 @@ public class EnhancedMobsMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
- 		ServerEntityEvents.ENTITY_LOAD.register(this::onEntityLoad);
+		PayloadTypeRegistry.playS2C().register(BaritoneCustomPayload.ID, BaritoneCustomPayload.CODEC);
+		ServerEntityEvents.ENTITY_LOAD.register(this::onEntityLoad);
 		ServerEntityEvents.ENTITY_LOAD.register((entity, serverWorld) -> {
 			if (entity instanceof ZombieEntity) {
 				World world = entity.getWorld();
@@ -61,7 +66,7 @@ public class EnhancedMobsMod implements ModInitializer {
 				Random random = new Random();
 				if (random.nextInt(10) < 3) { // 30% chance to have blocks
 					ItemStack stack = getRandomBlockStack(biome, random);
-					entity.equipStack(EquipmentSlot.MAINHAND, stack);
+					((ZombieEntity) entity).equipStack(EquipmentSlot.MAINHAND, stack);
 				}
 			}
 		});
@@ -93,6 +98,9 @@ public class EnhancedMobsMod implements ModInitializer {
 			MobBlockPlacementPenaltyCommand.register(dispatcher);
 			MobJumpPenaltyCommand.register(dispatcher);
 			TrueDarknessEnforcedCommand.register(dispatcher);
+			OptimizedMobitoneCommand.register(dispatcher);
+			InfiniteZombieBlocksCommand.register(dispatcher);
+			MobBlockBreakSpeedCommand.register(dispatcher);
 		});
 
 		// Server starting event
@@ -135,7 +143,7 @@ public class EnhancedMobsMod implements ModInitializer {
 			//}
 		});*/
 
-		ClientModPacket.register();
+		//ClientModPacket.register();
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			((ModPlayerData) handler.getPlayer()).setHasMod(false);
 

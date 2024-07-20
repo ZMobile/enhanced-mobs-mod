@@ -34,7 +34,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
     private BlockPos previousPos;
     private Entity targetEntity;
     private IPathingBehavior pathingBehavior;
-    private IPath currentPath;
+    private List<BetterBlockPos> currentPath;
     private int breakingTicks;
     private int standingStillTicks = 0;
     private BlockPos breakingPos;
@@ -42,6 +42,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
     private BlockPos placingTargetPos;
     private static final int BREAKING_TIME = 50; // Faster breaking time in ticks (2.5 seconds)
     private final Map<BlockPos, Integer> blockDamageProgress = new HashMap<>();
+    private List<BetterBlockPos> savedPath;
 
     public BreakPlaceAndChaseGoal(PathAwareEntity mob) {
         this.mob = mob;
@@ -53,6 +54,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
         BaritoneAPI.getSettings().assumeExternalAutoTool.value = true; // Assume tool is externally managed
         BaritoneAPI.getSettings().assumeWalkOnWater.value = false;
         BaritoneAPI.getSettings().walkOnWaterOnePenalty.value = 5.0D;
+        savedPath = null;
     }
 
     @Override
@@ -68,6 +70,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
     @Override
     public void start() {
+        System.out.println("Starting BreakPlaceAndChaseGoal for mob id: " + mob.getId());
          //calculatePath();
     }
 
@@ -91,22 +94,30 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 return;
             }
             if (ConfigManager.getConfig().isOptimizedMobitone()) {
-                MobitoneServiceImpl.addMobitone(mob);
+                if (savedPath == null) {
+                    MobitoneServiceImpl.addMobitone(mob);
+                }
             }
             IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(mob);
             if (goalBaritone != null) {
                 pathingBehavior = goalBaritone.getPathingBehavior();
                 goalBaritone.getCustomGoalProcess().setGoalAndPath(goal);
                 if (goalBaritone.getPathingBehavior().getCurrent() != null) {
-                    currentPath = goalBaritone.getPathingBehavior().getCurrent().getPath();
+                    currentPath = goalBaritone.getPathingBehavior().getCurrent().getPath().positions();
                     breakingPos = null;
                     placingPos = null;
                     placingTargetPos = null;
-                     findBreakingOrPlacingBlock();
+                    findBreakingOrPlacingBlock();
                 } else {
                     currentPath = null;
                     //System.out.println("Failed to calculate path.");
                 }
+            } else if (ConfigManager.getConfig().isOptimizedMobitone() && savedPath != null) {
+                currentPath = new ArrayList<>(savedPath);
+                breakingPos = null;
+                placingPos = null;
+                placingTargetPos = null;
+                findBreakingOrPlacingBlock();
             }
         }
     }
@@ -119,20 +130,23 @@ public class BreakPlaceAndChaseGoal extends Goal {
             if (!getWorld(mob).getBlockState(blockPos.up()).isAir()) {
                 return false;
             }
-            if (pathIndex == currentPath.length() - 1) {
+            if (pathIndex == currentPath.size() - 1) {
                 return false;
             }
-            boolean isNextPosHigher = currentPath.positions().get(pathIndex + 1).getY() > currentPath.positions().get(pathIndex).getY();
-            BlockPos pos = currentPath.positions().get(pathIndex);
-            BlockPos nextPos = currentPath.positions().get(pathIndex + 1);
+            boolean isNextPosHigher = currentPath.get(pathIndex + 1).getY() > currentPath.get(pathIndex).getY();
+            BlockPos pos = currentPath.get(pathIndex);
+            BlockPos nextPos = currentPath.get(pathIndex + 1);
             return blockPos.equals(pos.down()) && nextPos.getY() > pos.getY() && !getWorld(mob).getBlockState(nextPos.down()).isOf(Blocks.WATER);
         }
         return false;
     }
 
     private void findBreakingOrPlacingBlock() {
+        System.out.println("Mob: " + mob.getId() + " Finding block to break or place.");
         if (currentPath != null) {
-            List<BetterBlockPos> positions = currentPath.positions();
+            BetterBlockPos destination = currentPath.get(currentPath.size() - 1);
+            System.out.println("Mob: " + mob.getId() + " destination: " + destination);
+            List<BetterBlockPos> positions = currentPath;
             for (int i = 0; i < positions.size(); i++) {
                 BlockPos targetBlockPos;
                 if (i == 0) {
@@ -144,7 +158,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 //System.out.println("Checking block at: " + pos);
                 if (isBreakable(pos) || isBreakable(pos.up())) {
                     breakingPos = isBreakable(pos) ? pos : pos.up();
-                     //System.out.println("Identified block to break at: " + breakingPos);
+                     System.out.println("Mob: " + mob.getId() + "Identified block to break at: " + breakingPos);
                     BlockPos adjacentPos;
                     if (i == 0) {
                         adjacentPos = mob.getBlockPos();
@@ -156,6 +170,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
                         return;
                     }
                     if (ConfigManager.getConfig().isOptimizedMobitone()) {
+                        savedPath = new ArrayList<>(currentPath);
                         MobitoneServiceImpl.removeMobitone(mob);
                     }
                 } else {
@@ -172,9 +187,10 @@ public class BreakPlaceAndChaseGoal extends Goal {
                                     //continue;
                                 } else {
                                     breakingPos = isBreakable(diagonalBlockPos1) ? diagonalBlockPos1 : diagonalBlockPos1.up();
-                                    //System.out.println("Identified block to break at: " + breakingPos);
+                                    System.out.println("Mob:" + mob.getId() + "Identified block to break at: " + breakingPos);
                                     mob.getNavigation().startMovingTo(pos.getX(), pos.getY(), pos.getZ(), 1.0);
                                     if (ConfigManager.getConfig().isOptimizedMobitone()) {
+                                        savedPath = new ArrayList<>(currentPath);
                                         MobitoneServiceImpl.removeMobitone(mob);
                                     }
                                     return;
@@ -186,9 +202,10 @@ public class BreakPlaceAndChaseGoal extends Goal {
                                     //continue;
                                 } else {
                                     breakingPos = isBreakable(diagonalBlockPos2) ? diagonalBlockPos2 : diagonalBlockPos2.up();
-                                    //System.out.println("Identified block to break at: " + breakingPos);
+                                    System.out.println("Mob: " + mob.getId() + "Identified block to break at: " + breakingPos);
                                     mob.getNavigation().startMovingTo(pos.getX(), pos.getY(), pos.getZ(), 1.0);
                                     if (ConfigManager.getConfig().isOptimizedMobitone()) {
+                                        savedPath = new ArrayList<>(currentPath);
                                         MobitoneServiceImpl.removeMobitone(mob);
                                     }
                                     return;
@@ -204,9 +221,10 @@ public class BreakPlaceAndChaseGoal extends Goal {
                             }
                             if (isBreakable(twoBlocksUp)) {
                                 breakingPos = twoBlocksUp;
-                                //System.out.println("Identified block to break at: " + breakingPos);
+                                System.out.println("Mob: " + mob.getId() + "Identified block to break at: " + breakingPos);
                                 mob.getNavigation().startMovingTo(pos.getX(), pos.getY(), pos.getZ(), 1.0);
                                 if (ConfigManager.getConfig().isOptimizedMobitone()) {
+                                    savedPath = new ArrayList<>(currentPath);
                                     MobitoneServiceImpl.removeMobitone(mob);
                                 }
                                 return;
@@ -215,7 +233,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
                         //Now to check if placement needed:
                         BetterBlockPos floorUnderBlockPos = new BetterBlockPos(pos.x, pos.y - 1, pos.z);
-                        if (isPlacementNeeded(floorUnderBlockPos, i) && !isSolidBlock(floorUnderBlockPos) && mob.getMainHandStack().getItem() instanceof BlockItem) {
+                        if (isPlacementNeeded(floorUnderBlockPos, i) && mob.getMainHandStack().getItem() instanceof BlockItem) {
                             // Ensure breakingPos is null
                             if (!hasAdjacentBlockIncludingBelow(floorUnderBlockPos)) {
                                 placingPos = floorUnderBlockPos.down();
@@ -230,8 +248,10 @@ public class BreakPlaceAndChaseGoal extends Goal {
                                 mob.getNavigation().startMovingTo(placingTargetPos.getX(), placingTargetPos.getY(), placingTargetPos.getZ(), 1.0);
                             }
                             if (ConfigManager.getConfig().isOptimizedMobitone()) {
+                                savedPath = new ArrayList<>(currentPath);
                                 MobitoneServiceImpl.removeMobitone(mob);
                             }
+                            System.out.println("Mob: " + mob.getId() + "Found block to place at: " + placingPos);
                             return;
                         } else {
                     /*if (mob.getMainHandStack().getItem() instanceof BlockItem) {
@@ -382,7 +402,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
                     }
                     if (standingStillTicks> 200 || !isSolidBlock(breakingPos))
                     {
-                        resetGoal();
+                        resetGoal(true);
                     }
                 }
                 //System.out.println("Block is not within distance to break. Moving to block.");
@@ -414,7 +434,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
                         standingStillTicks++;
                     }
                     if (standingStillTicks > 200 || isSolidBlock(placingPos)) {
-                        resetGoal();
+                        resetGoal(true);
                     }
                 }
             } else {
@@ -491,7 +511,20 @@ public class BreakPlaceAndChaseGoal extends Goal {
                     }
                 }
             }
-            resetGoal();
+            boolean resetSavedPath = true;
+            if (ConfigManager.getConfig().isOptimizedMobitone() && savedPath != null) {
+                for (BetterBlockPos betterBlockPos : savedPath) {
+                    if (betterBlockPos.equals(placingPos)) {
+                        int index = savedPath.indexOf(betterBlockPos);
+                        if (index >= 0) {
+                            savedPath.subList(0, index + 1).clear();
+                        }
+                        break;
+                    }
+                }
+                resetSavedPath = savedPath.isEmpty();
+            }
+            resetGoal(resetSavedPath);
         }
     }
 
@@ -524,7 +557,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
         world.setBlockBreakingInfo(mob.getId(), breakingPos, progress);
         blockDamageProgress.put(breakingPos, progress);
 
-        if (progress >= 10) {
+        if (progress >= 10 / ConfigManager.getConfig().getMobBlockBreakSpeed()) {
             //System.out.println("Breaking block at: " + breakingPos);
             boolean success = world.breakBlock(breakingPos, true, mob);
             //System.out.println("Block broken: " + success);
@@ -535,29 +568,52 @@ public class BreakPlaceAndChaseGoal extends Goal {
             blockDamageProgress.remove(breakingPos);
             breakingTicks = 0;
             breakingPos = null;
+            if (ConfigManager.getConfig().isOptimizedMobitone() && savedPath != null) {
+                for (BetterBlockPos betterBlockPos : savedPath) {
+                    if (betterBlockPos.equals(placingPos)) {
+                        int index = savedPath.indexOf(betterBlockPos);
+                        if (index >= 0) {
+                            savedPath.subList(0, index + 1).clear();
+                        }
+                        break;
+                    }
+                }
+                if (savedPath.isEmpty()) {
+                    savedPath = null;
+                }
+            }
         }
     }
 
     @Override
     public boolean shouldContinue() {
-        if (currentPath != null) {
-            return areSolidBlocksSeparatingPlayerFromMob();
+        if (currentPath != null || savedPath != null) {
+            if (currentPath == null) {
+                currentPath = new ArrayList<>(savedPath);
+            }
+            boolean areSolidBlocksSeparatingPlayerFromMob = areSolidBlocksSeparatingPlayerFromMob();
+            if (!areSolidBlocksSeparatingPlayerFromMob) {
+               for (BetterBlockPos pos : currentPath) {
+                   System.out.println("Are solid blocks separating player from mob id: " + mob.getId() + ": " + areSolidBlocksSeparatingPlayerFromMob);
+                   System.out.println("Mob " + mob.getId() + " Path: " + pos);
+               }
+            }
+            return areSolidBlocksSeparatingPlayerFromMob;
         }
         return true;
     }
 
     public boolean areSolidBlocksSeparatingPlayerFromMob() {
-        List<BetterBlockPos> positions = currentPath.positions();
-        for (int i = 0; i < positions.size(); i++) {
-            BetterBlockPos pos = positions.get(i);
+        for (int i = 0; i < currentPath.size(); i++) {
+            BetterBlockPos pos = currentPath.get(i);
             //System.out.println("Checking block at: " + pos);
             BlockPos blockPos = new BlockPos(pos.x, pos.y, pos.z);
             if (isBreakable(blockPos) || isBreakable(blockPos.up()) || isPlacementNeeded(blockPos.down(), i)) {
                 return true;
             } else {
                 //System.out.println("Check diagonals between positions.");
-                if (i != positions.size() - 1) {
-                    BetterBlockPos nextPos = positions.get(i + 1);
+                if (i != currentPath.size() - 1) {
+                    BetterBlockPos nextPos = currentPath.get(i + 1);
                     if (nextPos.x != pos.x && nextPos.z != pos.z) {
                         BlockPos diagonalBlockPos1 = new BlockPos(pos.x, pos.y, nextPos.z);
                         BlockPos diagonalBlockPos2 = new BlockPos(nextPos.x, pos.y, pos.z);
@@ -595,10 +651,11 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
     @Override
     public void stop() {
-        resetGoal();
+        resetGoal(true);
+        System.out.println("Stopping BreakPlaceAndChaseGoal for mob id: " + mob.getId());
     }
 
-    private void resetGoal() {
+    private void resetGoal(boolean removePath) {
         currentPath = null;
         breakingTicks = 0;
         standingStillTicks = 0;
@@ -607,5 +664,11 @@ public class BreakPlaceAndChaseGoal extends Goal {
         breakingPos = null;
         previousPos = null;
         mob.getNavigation().stop();
+        if (ConfigManager.getConfig().isOptimizedMobitone()) {
+            //MobitoneServiceImpl.removeMobitone(mob);
+            if (removePath) {
+                savedPath = null;
+            }
+        }
     }
 }

@@ -10,23 +10,12 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.world.*;
 
-import net.fabricmc.example.bloodmoon.config.BloodmoonConfig;
-import net.fabricmc.example.bloodmoon.network.PacketHandler;
-import net.fabricmc.example.bloodmoon.network.messages.MessageBloodmoonStatus;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.datafixer.DataFixTypes;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.PersistentState;
@@ -53,8 +42,8 @@ public class BloodmoonHandler extends PersistentState {
 
 	public static final PersistentState.Type<BloodmoonHandler> BLOODMOON_HANDLER_TYPE = new PersistentState.Type<>(
 			BloodmoonHandler::new,
-			BloodmoonHandler::readNbt,
-			DataFixTypes.WORLD_GEN_SETTINGS // Adjust the DataFixTypes as needed
+            BloodmoonHandler::readNbt,
+			DataFixTypes.WORLD_GEN_SETTINGS // Adjust as needed
 	);
 
 	public static void initialize(ServerWorld serverWorld) {
@@ -147,7 +136,7 @@ public class BloodmoonHandler extends PersistentState {
 		return bloodMoon;
 	}
 
-	public static BloodmoonHandler readNbt(NbtCompound nbt) {
+	public static BloodmoonHandler readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
 		BloodmoonHandler handler = new BloodmoonHandler();
 		handler.bloodMoon = nbt.getBoolean("bloodMoon");
 		handler.forceBloodMoon = nbt.getBoolean("forceBloodMoon");
@@ -156,7 +145,7 @@ public class BloodmoonHandler extends PersistentState {
 	}
 
 	@Override
-	public NbtCompound writeNbt(NbtCompound nbt) {
+	public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
 		nbt.putBoolean("bloodMoon", bloodMoon);
 		nbt.putBoolean("forceBloodMoon", forceBloodMoon);
 		nbt.putInt("nightCounter", nightCounter);

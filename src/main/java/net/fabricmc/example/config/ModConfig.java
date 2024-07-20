@@ -15,6 +15,7 @@ public class  ModConfig {
     private double mobJumpPenalty;
     private Boolean optimizedMobitone;
     private Boolean infiniteZombieBlocks;
+    private Double mobBlockBreakSpeed;
 
     public ModConfig() {
         allowBreak = true;
@@ -31,6 +32,7 @@ public class  ModConfig {
         mobJumpPenalty = 2.0;
         optimizedMobitone = true;
         infiniteZombieBlocks = true;
+        mobBlockBreakSpeed = 1.0;
     }
 
     public boolean isAllowBreak() {
@@ -143,5 +145,13 @@ public class  ModConfig {
 
     public void setInfiniteZombieBlocks(Boolean infiniteZombieBlocks) {
         this.infiniteZombieBlocks = infiniteZombieBlocks;
+    }
+
+    public Double getMobBlockBreakSpeed() {
+        return mobBlockBreakSpeed;
+    }
+
+    public void setMobBlockBreakSpeed(Double mobBlockBreakSpeed) {
+        this.mobBlockBreakSpeed = mobBlockBreakSpeed;
     }
 }

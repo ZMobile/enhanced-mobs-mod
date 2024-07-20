@@ -16,7 +16,7 @@ configurations {
 task downloadMobitone {
 	doLast {
 		def url = 'https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone/mobitone1.20.4-server.jar'
-		def outputFile = file(files('lib/mobitone1.20.4-server.jar').getAsPath())
+		def outputFile = file(files('lib/mobitone1.21-server.jar').getAsPath())
 
 		if (!outputFile.exists()) {
 			println "Downloading mobitone1.20.4-server.jar..."
@@ -76,7 +76,7 @@ dependencies {
 	//modImplementation files('lib/cloth-config-13.0.121-fabric.jar')
 	//implementation 'com.typesafe:config:1.4.1'
 	//modImplementation configurations.mobitone
-	modImplementation files('lib/mobitone1.20.4-server.jar')
+	modImplementation files('lib/mobitone1.21-server.jar')
 
 
 	//modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone/mobitone1.20.4-server.jar", 'mobitone', '1.20.4-server')
