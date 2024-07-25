@@ -6,19 +6,19 @@ import java.util.List;
 import java.util.UUID;
 
 public class PathingData {
-    @SerializedName("mob_uuid")
-    private UUID mobUuid;
+    @SerializedName("mob_id")
+    private int mobId;
 
     @SerializedName("path_positions")
     private List<BetterBlockPos> pathPositions;
 
-    public PathingData(UUID mobUuid, List<BetterBlockPos> pathPositions) {
-        this.mobUuid = mobUuid;
+    public PathingData(int mobId, List<BetterBlockPos> pathPositions) {
+        this.mobId = mobId;
         this.pathPositions = pathPositions;
     }
 
-    public UUID getMobUuid() {
-        return mobUuid;
+    public int getMobId() {
+        return mobId;
     }
 
     public List<BetterBlockPos> getPathPositions() {

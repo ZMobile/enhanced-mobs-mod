@@ -7,16 +7,19 @@ import net.fabricmc.example.bloodmoon.proxy.ClientProxy;
 import net.fabricmc.example.bloodmoon.proxy.CommonProxy;
 import net.fabricmc.example.bloodmoon.reference.Reference;
 import net.fabricmc.example.bloodmoon.server.CommandBloodmoon;
-import net.fabricmc.example.client.path.BaritoneCustomPayload;
+import net.fabricmc.example.client.payload.BaritoneCustomPayload;
 import net.fabricmc.example.command.OptimizedMobitoneCommand;
 import net.fabricmc.example.command.TrueDarknessEnforcedCommand;
 import net.fabricmc.example.command.mob.*;
+import net.fabricmc.example.command.mob.debug.GoalInfoCommand;
+import net.fabricmc.example.command.mob.debug.IsolatePathCommand;
+import net.fabricmc.example.command.mob.debug.ResetPathsCommand;
+import net.fabricmc.example.command.mob.debug.UndoIsolatedPathCommand;
 import net.fabricmc.example.command.mob.penalty.MobBlockBreakAdditionalPenaltyCommand;
 import net.fabricmc.example.command.mob.penalty.MobBlockPlacementPenaltyCommand;
 import net.fabricmc.example.command.mob.penalty.MobJumpPenaltyCommand;
 import net.fabricmc.example.command.mob.speed.MobBlockBreakSpeedCommand;
 import net.fabricmc.example.config.ConfigManager;
-import net.fabricmc.example.client.darkness.ClientModPacket;
 import net.fabricmc.example.client.darkness.ModPlayerData;
 import net.fabricmc.example.util.MinecraftServerUtil;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -101,6 +104,10 @@ public class EnhancedMobsMod implements ModInitializer {
 			OptimizedMobitoneCommand.register(dispatcher);
 			InfiniteZombieBlocksCommand.register(dispatcher);
 			MobBlockBreakSpeedCommand.register(dispatcher);
+			IsolatePathCommand.register(dispatcher);
+			UndoIsolatedPathCommand.register(dispatcher);
+			ResetPathsCommand.register(dispatcher);
+			GoalInfoCommand.register(dispatcher);
 		});
 
 		// Server starting event

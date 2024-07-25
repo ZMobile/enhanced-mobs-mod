@@ -1,4 +1,4 @@
-package net.fabricmc.example.client.path;
+package net.fabricmc.example.client.payload;
 
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;

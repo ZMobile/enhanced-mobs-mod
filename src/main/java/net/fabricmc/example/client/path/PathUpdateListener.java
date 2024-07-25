@@ -8,6 +8,8 @@ import baritone.api.pathing.path.IPathExecutor;
 import baritone.api.utils.BetterBlockPos;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.fabricmc.example.client.payload.BaritoneCustomPayload;
+import net.fabricmc.example.client.payload.ClientPayloadData;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
@@ -19,16 +21,16 @@ import java.util.List;
 import java.util.UUID;
 
 public class PathUpdateListener implements IGameEventListener {
-    private static final Gson GSON = new GsonBuilder()
+    private static final Gson gson = new GsonBuilder()
             .registerTypeAdapter(BetterBlockPos.class, new BetterBlockPosSerializer())
             .create();
     private static final Identifier BARITONE_PACKET_ID = Identifier.of("modid", "baritone_packet");
 
-    private final UUID mobUuid;
+    private final int mobId;
     private final IPathingBehavior behavior;
 
-    public PathUpdateListener(UUID mobUuid, IPathingBehavior behavior) {
-        this.mobUuid = mobUuid;
+    public PathUpdateListener(int mobId, IPathingBehavior behavior) {
+        this.mobId = mobId;
         this.behavior = behavior;
     }
 
@@ -112,9 +114,10 @@ public class PathUpdateListener implements IGameEventListener {
         IPathExecutor executor = behavior.getCurrent();
         if (executor != null && executor.getPath() != null) {
             List<BetterBlockPos> pathPositions = executor.getPath().positions();
-            PathingData pathingData = new PathingData(mobUuid, pathPositions);
+            PathingData pathingData = new PathingData(mobId, pathPositions);
+            ClientPayloadData payloadData = new ClientPayloadData("path", pathingData);
 
-            String json = GSON.toJson(pathingData);
+            String json = gson.toJson(payloadData);
             BaritoneCustomPayload customPayload = new BaritoneCustomPayload(json);
 
             // Encode the custom payload into a PacketByteBuf

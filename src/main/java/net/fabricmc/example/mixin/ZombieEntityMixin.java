@@ -5,6 +5,7 @@ import baritone.api.IBaritone;
 import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.example.mobai.BreakPlaceAndChaseGoal;
+import net.fabricmc.example.mobai.BreakPlaceAndChaseGoalTracker;
 import net.fabricmc.example.mobai.CustomTargetGoal;
 import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.fabricmc.example.util.MinecraftServerUtil;
@@ -39,7 +40,9 @@ public abstract class ZombieEntityMixin extends PathAwareEntity {
                 MobitoneServiceImpl.fillInQueue();
             }
             //}
-            this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this));
+            BreakPlaceAndChaseGoal goal = new BreakPlaceAndChaseGoal(this);
+            this.goalSelector.add(1, goal);
+            BreakPlaceAndChaseGoalTracker.addGoal(this.getId(), goal);
         }
         this.goalSelector.add(6, new CustomTargetGoal(this));
         this.setCustomName(Text.of(String.valueOf(this.getId())));
@@ -72,6 +75,8 @@ public abstract class ZombieEntityMixin extends PathAwareEntity {
                 //System.out.println("Baritone instance successfully removed for ZombieEntity on despawn");
             }*/
             MobitoneServiceImpl.removeMobitone(this);
+            BreakPlaceAndChaseGoalTracker.removeGoal(this.getId());
+
         }
     }
 }
