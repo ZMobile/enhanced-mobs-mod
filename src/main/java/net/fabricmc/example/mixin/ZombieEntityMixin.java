@@ -7,6 +7,7 @@ import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.example.mobai.BreakPlaceAndChaseGoal;
 import net.fabricmc.example.mobai.BreakPlaceAndChaseGoalTracker;
 import net.fabricmc.example.mobai.CustomTargetGoal;
+import net.fabricmc.example.mobai.tracker.MobPathTracker;
 import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.fabricmc.example.util.MinecraftServerUtil;
 import net.minecraft.client.MinecraftClient;
@@ -45,8 +46,6 @@ public abstract class ZombieEntityMixin extends PathAwareEntity {
             BreakPlaceAndChaseGoalTracker.addGoal(this.getId(), goal);
         }
         this.goalSelector.add(6, new CustomTargetGoal(this));
-        this.setCustomName(Text.of(String.valueOf(this.getId())));
-        this.setCustomNameVisible(true);
         // BaritoneAPI.getProvider().getBaritoneForEntity(this).getCustomGoalProcess().setGoalAndPath(goal);
 
     }
@@ -76,7 +75,7 @@ public abstract class ZombieEntityMixin extends PathAwareEntity {
             }*/
             MobitoneServiceImpl.removeMobitone(this);
             BreakPlaceAndChaseGoalTracker.removeGoal(this.getId());
-
+            MobPathTracker.removePath(this.getUuidAsString());
         }
     }
 }

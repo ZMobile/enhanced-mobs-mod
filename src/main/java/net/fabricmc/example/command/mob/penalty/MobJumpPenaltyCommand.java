@@ -22,6 +22,7 @@ public class MobJumpPenaltyCommand {
                             double value = DoubleArgumentType.getDouble(context, "value");
                             BaritoneAPI.getSettings().jumpPenalty.value = value;
                             ConfigManager.getConfig().setMobJumpPenalty(value);
+                            ConfigManager.saveConfig();
                             context.getSource().sendFeedback(() -> Text.of("Setting mobJumpPenalty to: " + value), true);
                             // Add custom logic here
                             return 1;

@@ -20,6 +20,7 @@ public class MobBlockBreakAdditionalPenaltyCommand {
                             double value = DoubleArgumentType.getDouble(context, "value");
                             BaritoneAPI.getSettings().blockBreakAdditionalPenalty.value = value;
                             ConfigManager.getConfig().setMobBlockBreakAdditionalPenalty(value);
+                            ConfigManager.saveConfig();
                             context.getSource().sendFeedback(() -> Text.of("Setting mobBlockBreakAdditionalPenalty to: " + value), true);
                             // Add custom logic here
                             return 1;

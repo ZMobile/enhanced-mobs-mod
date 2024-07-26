@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import net.fabricmc.example.bloodmoon.config.BloodmoonConfig;
+import net.fabricmc.example.config.ConfigManager;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -42,7 +43,6 @@ public final class BloodmoonSpawner implements Spawner {
 	private static final int MOB_COUNT_DIV = (int) Math.pow(17.0D, 2.0D);
 	private final Set<ChunkPos> eligibleChunksForSpawning = Sets.newHashSet();
 	int witchCount = 0; // Counter for witches
-
 
 	public void triggerBloodmoonSpawning(ServerWorld world, boolean spawnHostileMobs, boolean spawnPeacefulMobs) {
 		if (!spawnHostileMobs && !spawnPeacefulMobs) {
@@ -115,7 +115,7 @@ public final class BloodmoonSpawner implements Spawner {
 									RegistryEntry<Biome> biome = world.getBiome(mutablePos);
 									Pool<SpawnSettings.SpawnEntry> spawnList = world.getChunkManager().getChunkGenerator().getEntitySpawnList(biome, world.getStructureAccessor(), spawnGroup, mutablePos);
 
-									if (!spawnList.isEmpty()) {
+									if (!spawnList.isEmpty() && Math.random() < ConfigManager.getConfig().getBloodmoonSpawnPercentage()) {
 										int spawnIndex = world.random.nextInt(spawnList.getEntries().size());
 										SpawnSettings.SpawnEntry spawnEntry = spawnList.getEntries().get(spawnIndex);
 

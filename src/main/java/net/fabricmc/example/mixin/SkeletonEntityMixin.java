@@ -30,7 +30,7 @@ public abstract class SkeletonEntityMixin extends PathAwareEntity {
     private void addCustomGoals(CallbackInfo info) {
         //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(), (SkeletonEntity) (Object) this);
         //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
-        if (ConfigManager.getConfig().isSkeletonsBreakBlocks()) {
+        if (ConfigManager.getConfig().isSkeletonsBreakBlocks() && !(BloodmoonHandler.INSTANCE.isBloodmoonActive() && !ConfigManager.getConfig().isSkeletonsBreakBlocksDuringBloodmoon())) {
             if (!ConfigManager.getConfig().isOptimizedMobitone()) {
                 MobitoneServiceImpl.addMobitone(this);
                 MobitoneServiceImpl.fillInQueue();

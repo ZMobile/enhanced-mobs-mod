@@ -10,6 +10,7 @@ import net.fabricmc.example.bloodmoon.server.CommandBloodmoon;
 import net.fabricmc.example.client.payload.BaritoneCustomPayload;
 import net.fabricmc.example.command.OptimizedMobitoneCommand;
 import net.fabricmc.example.command.TrueDarknessEnforcedCommand;
+import net.fabricmc.example.command.bloodmoon.BloodmoonSpawnRatePercentageCommand;
 import net.fabricmc.example.command.mob.*;
 import net.fabricmc.example.command.mob.debug.GoalInfoCommand;
 import net.fabricmc.example.command.mob.debug.IsolatePathCommand;
@@ -19,6 +20,7 @@ import net.fabricmc.example.command.mob.penalty.MobBlockBreakAdditionalPenaltyCo
 import net.fabricmc.example.command.mob.penalty.MobBlockPlacementPenaltyCommand;
 import net.fabricmc.example.command.mob.penalty.MobJumpPenaltyCommand;
 import net.fabricmc.example.command.mob.speed.MobBlockBreakSpeedCommand;
+import net.fabricmc.example.command.performance.TpsCommand;
 import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.example.client.darkness.ModPlayerData;
 import net.fabricmc.example.util.MinecraftServerUtil;
@@ -108,6 +110,8 @@ public class EnhancedMobsMod implements ModInitializer {
 			UndoIsolatedPathCommand.register(dispatcher);
 			ResetPathsCommand.register(dispatcher);
 			GoalInfoCommand.register(dispatcher);
+			TpsCommand.register(dispatcher);
+			BloodmoonSpawnRatePercentageCommand.register(dispatcher);
 		});
 
 		// Server starting event

@@ -10,6 +10,7 @@ import baritone.api.utils.BetterBlockPos;
 import baritone.api.utils.MinecraftServerUtil;
 import net.fabricmc.example.client.block.ClientRenderedBlockUpdateServiceImpl;
 import net.fabricmc.example.config.ConfigManager;
+import net.fabricmc.example.mobai.tracker.MobPathTracker;
 import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -56,6 +57,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
         BaritoneAPI.getSettings().assumeWalkOnWater.value = false;
         BaritoneAPI.getSettings().walkOnWaterOnePenalty.value = 5.0D;
         savedPath = null;
+        MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
     }
 
     @Override
@@ -155,8 +157,10 @@ public class BreakPlaceAndChaseGoal extends Goal {
                         navigateMobToTargetPos(adjacentPos);
                         return;
                     }
+                    savedPath = new ArrayList<>(currentPath);
+                    MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
+                    MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
                     if (ConfigManager.getConfig().isOptimizedMobitone()) {
-                        savedPath = new ArrayList<>(currentPath);
                         MobitoneServiceImpl.removeMobitone(mob);
                     }
                 } else {
@@ -175,8 +179,9 @@ public class BreakPlaceAndChaseGoal extends Goal {
                                     breakingPos = isBreakable(diagonalBlockPos1) ? diagonalBlockPos1 : diagonalBlockPos1.up();
                                     System.out.println("Mob:" + mob.getId() + "Identified block to break at: " + breakingPos);
                                     navigateMobToTargetPos(pos);
+                                    savedPath = new ArrayList<>(currentPath);
+                                    MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
                                     if (ConfigManager.getConfig().isOptimizedMobitone()) {
-                                        savedPath = new ArrayList<>(currentPath);
                                         MobitoneServiceImpl.removeMobitone(mob);
                                     }
                                     return;
@@ -190,8 +195,9 @@ public class BreakPlaceAndChaseGoal extends Goal {
                                     breakingPos = isBreakable(diagonalBlockPos2) ? diagonalBlockPos2 : diagonalBlockPos2.up();
                                     System.out.println("Mob: " + mob.getId() + "Identified block to break at: " + breakingPos);
                                     navigateMobToTargetPos(pos);
+                                    savedPath = new ArrayList<>(currentPath);
+                                    MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
                                     if (ConfigManager.getConfig().isOptimizedMobitone()) {
-                                        savedPath = new ArrayList<>(currentPath);
                                         MobitoneServiceImpl.removeMobitone(mob);
                                     }
                                     return;
@@ -209,8 +215,9 @@ public class BreakPlaceAndChaseGoal extends Goal {
                                 breakingPos = twoBlocksUp;
                                 System.out.println("Mob: " + mob.getId() + "Identified block to break at: " + breakingPos);
                                 navigateMobToTargetPos(pos);
+                                savedPath = new ArrayList<>(currentPath);
+                                MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
                                 if (ConfigManager.getConfig().isOptimizedMobitone()) {
-                                    savedPath = new ArrayList<>(currentPath);
                                     MobitoneServiceImpl.removeMobitone(mob);
                                 }
                                 return;
@@ -231,8 +238,9 @@ public class BreakPlaceAndChaseGoal extends Goal {
                             breakingPos = null; // Ensure breakingPos is null
                             placingTargetPos = findSuitableAdjacentBlock(placingPos);
                             navigateMobToTargetPos(placingPos);
+                            savedPath = new ArrayList<>(currentPath);
+                            MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
                             if (ConfigManager.getConfig().isOptimizedMobitone()) {
-                                savedPath = new ArrayList<>(currentPath);
                                 MobitoneServiceImpl.removeMobitone(mob);
                             }
                             System.out.println("Mob: " + mob.getId() + "Found block to place at: " + placingPos);
@@ -331,7 +339,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.RED_BED)
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.BLACK_BED)
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.DRIPSTONE_BLOCK);
-        return getWorld(mob).getBlockState(blockPos).isSolidBlock(getWorld(mob), blockPos) || isLadderVineOrDoor ;
+        return getWorld(mob).getBlockState(blockPos).isSolidBlock(getWorld(mob), blockPos) || isLadderVineOrDoor;
     }
 
     private boolean isSolidBlock(BlockPos blockPos) {
@@ -528,6 +536,14 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 }
                 resetSavedPath = savedPath.isEmpty();
             }
+            if (MobPathTracker.placingPosLiesInPath(placingPos)) {
+                MobitoneServiceImpl.addMobitone(mob);
+                IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(mob);
+                if (goalBaritone != null) {
+                    pathingBehavior = goalBaritone.getPathingBehavior();
+                    goalBaritone.getCustomGoalProcess().setGoalAndPath(getTargetGoal());
+                }
+            }
             resetGoal(resetSavedPath);
         }
     }
@@ -571,6 +587,14 @@ public class BreakPlaceAndChaseGoal extends Goal {
             }
             blockDamageProgress.remove(breakingPos);
             breakingTicks = 0;
+            if (MobPathTracker.breakingPosLiesInPath(breakingPos)) {
+                MobitoneServiceImpl.addMobitone(mob);
+                IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(mob);
+                if (goalBaritone != null) {
+                    pathingBehavior = goalBaritone.getPathingBehavior();
+                    goalBaritone.getCustomGoalProcess().setGoalAndPath(getTargetGoal());
+                }
+            }
             breakingPos = null;
             if (ConfigManager.getConfig().isOptimizedMobitone() && savedPath != null) {
                 for (BetterBlockPos betterBlockPos : savedPath) {
@@ -584,6 +608,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 }
                 if (savedPath.isEmpty()) {
                     savedPath = null;
+                    MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
                 }
             }
         }
@@ -665,6 +690,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
             //MobitoneServiceImpl.removeMobitone(mob);
             if (removePath) {
                 savedPath = null;
+                MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
             }
         }
     }

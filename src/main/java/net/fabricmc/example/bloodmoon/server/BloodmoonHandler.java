@@ -57,6 +57,13 @@ public class BloodmoonHandler extends PersistentState {
 		});
 	}
 
+	public static BloodmoonHandler getInstance() {
+		if (INSTANCE == null) {
+			return INSTANCE;
+		}
+		return INSTANCE;
+	}
+
 	public void playerJoinedWorld(ServerPlayerEntity player) {
 		if (bloodMoon) {
 			PacketHandler.sendTo(player, new MessageBloodmoonStatus(bloodMoon));
@@ -115,7 +122,7 @@ public class BloodmoonHandler extends PersistentState {
 		}
 	}
 
-	private void setBloodmoon(boolean bloodMoon) {
+	public void setBloodmoon(boolean bloodMoon) {
 		if (this.bloodMoon != bloodMoon) {
 			PacketHandler.sendToAll(world, new MessageBloodmoonStatus(bloodMoon));
 			this.markDirty();

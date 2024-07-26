@@ -18,6 +18,7 @@ public class MobBlockBreakSpeedCommand {
                         .executes(context -> {
                             double value = DoubleArgumentType.getDouble(context, "value");
                             ConfigManager.getConfig().setMobBlockBreakSpeed(value);
+                            ConfigManager.saveConfig();
                             context.getSource().sendFeedback(() -> Text.of("Setting mobBlockBreakSpeed to: " + value), true);
                             // Add custom logic here
                             return 1;

@@ -38,6 +38,12 @@ public class ConfigManager {
             if (config.getMobBlockBreakSpeed() == null) {
                 config.setMobBlockBreakSpeed(1.0);
             }
+            if (config.getBloodmoonSpawnPercentage() == null) {
+                config.setBloodmoonSpawnPercentage(0.0001);
+            }
+            if (config.isSkeletonsBreakBlocksDuringBloodmoon() == null) {
+                config.setSkeletonsBreakBlocksDuringBloodmoon(false);
+            }
         } catch (JsonIOException | JsonSyntaxException | IOException e) {
             config = new ModConfig();
             saveConfig();
