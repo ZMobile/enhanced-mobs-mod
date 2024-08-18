@@ -9,21 +9,21 @@ import net.minecraft.text.Text;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
-public class CreepersExplodeObstructionsCommand {
+public class InfiniteZombieBlocksCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(literal("creepersExplodeObstructions")
+        dispatcher.register(literal("infiniteZombieBlocks")
                 .requires(source -> source.hasPermissionLevel(2)) // Requires OP level 2 (default OP level)
                 .then(argument("state", BoolArgumentType.bool())
                         .executes(context -> {
                             boolean state = BoolArgumentType.getBool(context, "state");
-                            ConfigManager.getConfig().setCreepersExplodeObstructions(state);
+                            ConfigManager.getConfig().setInfiniteZombieBlocks(state);
                             ConfigManager.saveConfig();
-                            context.getSource().sendFeedback(() -> Text.of("Setting creepersExplodeObstructions to: " + state), true);
+                            context.getSource().sendFeedback(() -> Text.of("Setting infiniteZombieBlocks to: " + state), true);
                             // Add custom logic here
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /creepersExplodeObstructions <true/false>"), true);
+                    context.getSource().sendFeedback(() -> Text.of("Usage: /infiniteZombieBlocks <true/false>"), true);
                     return 0;
                 }));
     }

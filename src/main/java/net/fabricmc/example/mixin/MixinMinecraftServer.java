@@ -1,6 +1,5 @@
 package net.fabricmc.example.mixin;
 
-import baritone.api.utils.MinecraftServerUtil;
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

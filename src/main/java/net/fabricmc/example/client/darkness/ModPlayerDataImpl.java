@@ -1,4 +1,4 @@
-package net.fabricmc.example.enforcement;
+package net.fabricmc.example.client.darkness;
 
 public class ModPlayerDataImpl implements ModPlayerData {
     private boolean hasMod = false;

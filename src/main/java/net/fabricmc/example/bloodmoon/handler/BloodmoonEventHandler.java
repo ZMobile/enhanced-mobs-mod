@@ -26,16 +26,15 @@ public class BloodmoonEventHandler {
 
 	public void loadWorld(MinecraftServer server, ServerWorld world) {
 		BloodmoonHandler.initialize(world);
+
 		if (!world.isClient && world.getRegistryKey() == World.OVERWORLD) {
 			BloodmoonHandler.INSTANCE = world.getPersistentStateManager().getOrCreate(
-					BloodmoonHandler.BLOODMOON_HANDLER_TYPE, Reference.MOD_ID
+					BloodmoonHandler::readNbt, // The function that reads from NBT
+					BloodmoonHandler::new, // Supplier that provides a new instance
+					"bloodmoon_handler" // ID used for storage
 			);
 
-			if (BloodmoonHandler.INSTANCE == null) {
-				BloodmoonHandler.INSTANCE = new BloodmoonHandler();
-				BloodmoonHandler.INSTANCE.markDirty();
-			}
-
+			// This null check is no longer necessary, since `getOrCreate` ensures a valid instance is returned.
 			BloodmoonHandler.INSTANCE.updateClients();
 		}
 	}

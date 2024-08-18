@@ -6,6 +6,7 @@
   "mixins": [
     "MobSpawnerMixin",
     "ZombieEntityMixin",
+    "DrownedEntityMixin",
     "CreeperEntityMixin",
     "SpiderEntityMixin",
     "SkeletonEntityMixin",

@@ -10,23 +10,12 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.world.*;
 
-import net.fabricmc.example.bloodmoon.config.BloodmoonConfig;
-import net.fabricmc.example.bloodmoon.network.PacketHandler;
-import net.fabricmc.example.bloodmoon.network.messages.MessageBloodmoonStatus;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.datafixer.DataFixTypes;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.PersistentState;
@@ -51,21 +40,57 @@ public class BloodmoonHandler extends PersistentState {
 		forceBloodMoon = false;
 	}
 
-	public static final PersistentState.Type<BloodmoonHandler> BLOODMOON_HANDLER_TYPE = new PersistentState.Type<>(
-			BloodmoonHandler::new,
-			BloodmoonHandler::readNbt,
-			DataFixTypes.WORLD_GEN_SETTINGS // Adjust the DataFixTypes as needed
-	);
+	@Override
+	public NbtCompound writeNbt(NbtCompound nbt) {
+		nbt.putBoolean("bloodMoon", bloodMoon);
+		nbt.putBoolean("forceBloodMoon", forceBloodMoon);
+		nbt.putInt("nightCounter", nightCounter);
+		return nbt;
+	}
+
+	public static BloodmoonHandler readNbt(NbtCompound nbt) {
+		BloodmoonHandler handler = new BloodmoonHandler();
+		handler.bloodMoon = nbt.getBoolean("bloodMoon");
+		handler.forceBloodMoon = nbt.getBoolean("forceBloodMoon");
+		handler.nightCounter = nbt.getInt("nightCounter");
+		return handler;
+	}
+
+	public static BloodmoonHandler get(ServerWorld world) {
+		PersistentStateManager stateManager = world.getPersistentStateManager();
+		BloodmoonHandler handler = stateManager.getOrCreate(
+				BloodmoonHandler::readNbt,
+				BloodmoonHandler::new,
+				"bloodmoon_handler"
+		);
+		INSTANCE = handler;
+		return handler;
+	}
 
 	public static void initialize(ServerWorld serverWorld) {
 		PersistentStateManager persistentStateManager = serverWorld.getPersistentStateManager();
-		INSTANCE = persistentStateManager.getOrCreate(BLOODMOON_HANDLER_TYPE, "bloodmoon");
+
+		// Refactor: no need for BLOODMOON_HANDLER_TYPE
+		INSTANCE = persistentStateManager.getOrCreate(
+				BloodmoonHandler::readNbt,
+				BloodmoonHandler::new,
+				"bloodmoon"
+		);
+
 		world = serverWorld;
 
+		// Register event listeners
 		ServerTickEvents.END_WORLD_TICK.register(BloodmoonHandler::endWorldTick);
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			BloodmoonHandler.INSTANCE.playerJoinedWorld(handler.getPlayer());
 		});
+	}
+
+	public static BloodmoonHandler getInstance() {
+		if (INSTANCE == null) {
+			return INSTANCE;
+		}
+		return INSTANCE;
 	}
 
 	public void playerJoinedWorld(ServerPlayerEntity player) {
@@ -85,7 +110,7 @@ public class BloodmoonHandler extends PersistentState {
 			if (INSTANCE.isBloodmoonActive()) {
 				if (!BloodmoonConfig.GENERAL.RESPECT_GAMERULE || world.getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING)) {
 					for (int i = 0; i < BloodmoonConfig.SPAWNING.SPAWN_SPEED; i++) {
-						INSTANCE.bloodMoonSpawner.triggerBloodmoonSpawning(world, world.getDifficulty() != Difficulty.PEACEFUL, false);
+						INSTANCE.bloodMoonSpawner.spawn(world, world.getDifficulty() != Difficulty.PEACEFUL, false);
 					}
 				}
 
@@ -106,7 +131,7 @@ public class BloodmoonHandler extends PersistentState {
 
 					if (INSTANCE.forceBloodMoon || Math.random() < BloodmoonConfig.SCHEDULE.CHANCE || (BloodmoonConfig.SCHEDULE.FULLMOON && world.getMoonPhase() == 0) || (BloodmoonConfig.SCHEDULE.NTH_NIGHT != 0 && INSTANCE.nightCounter == 0)) {
 						INSTANCE.forceBloodMoon = false;
-						if (ConfigManager.getConfig().isBloodmoonEnabled()) {
+						if (ConfigManager.getConfig().isBloodmoonEnabled() && getElapsedDays(world) >= ConfigManager.getConfig().getDaysBeforeBloodmoonPossibility()){
 							INSTANCE.setBloodmoon(true);
 
 							if (BloodmoonConfig.GENERAL.SEND_MESSAGE) {
@@ -126,7 +151,11 @@ public class BloodmoonHandler extends PersistentState {
 		}
 	}
 
-	private void setBloodmoon(boolean bloodMoon) {
+	public static int getElapsedDays(ServerWorld world) {
+		return (int) (world.getTime() / 24000);
+	}
+
+	public void setBloodmoon(boolean bloodMoon) {
 		if (this.bloodMoon != bloodMoon) {
 			PacketHandler.sendToAll(world, new MessageBloodmoonStatus(bloodMoon));
 			this.markDirty();
@@ -147,20 +176,12 @@ public class BloodmoonHandler extends PersistentState {
 		return bloodMoon;
 	}
 
-	public static BloodmoonHandler readNbt(NbtCompound nbt) {
+	public static BloodmoonHandler readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
 		BloodmoonHandler handler = new BloodmoonHandler();
 		handler.bloodMoon = nbt.getBoolean("bloodMoon");
 		handler.forceBloodMoon = nbt.getBoolean("forceBloodMoon");
 		handler.nightCounter = nbt.getInt("nightCounter");
 		return handler;
-	}
-
-	@Override
-	public NbtCompound writeNbt(NbtCompound nbt) {
-		nbt.putBoolean("bloodMoon", bloodMoon);
-		nbt.putBoolean("forceBloodMoon", forceBloodMoon);
-		nbt.putInt("nightCounter", nightCounter);
-		return nbt;
 	}
 
 	public boolean isBloodmoonScheduled() {

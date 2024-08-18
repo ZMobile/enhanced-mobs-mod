@@ -4,12 +4,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import net.fabricmc.example.bloodmoon.config.BloodmoonConfig;
+import net.fabricmc.example.config.ConfigManager;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.entity.Spawner;
 import net.minecraft.entity.*;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.mob.Monster;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.world.ServerWorld;
@@ -33,9 +34,12 @@ import net.minecraft.entity.SpawnReason;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.spawner.Spawner;
+
 
 import java.util.Collections;
 
+import static com.mojang.text2speech.Narrator.LOGGER;
 import static net.minecraft.entity.EntityType.WITCH;
 
 public final class BloodmoonSpawner implements Spawner {
@@ -44,9 +48,9 @@ public final class BloodmoonSpawner implements Spawner {
 	int witchCount = 0; // Counter for witches
 
 
-	public void triggerBloodmoonSpawning(ServerWorld world, boolean spawnHostileMobs, boolean spawnPeacefulMobs) {
+	public int spawn(ServerWorld world, boolean spawnHostileMobs, boolean spawnPeacefulMobs) {
 		if (!spawnHostileMobs && !spawnPeacefulMobs) {
-			return;
+			return 0;
 		}
 
 		this.eligibleChunksForSpawning.clear();
@@ -110,40 +114,103 @@ public final class BloodmoonSpawner implements Spawner {
 								mutablePos.set(x, y, z);
 								float spawnX = (float) x + 0.5F;
 								float spawnZ = (float) z + 0.5F;
+								int blockLightLevel = world.getLightLevel(LightType.BLOCK, mutablePos);
 
-								if (world.isSkyVisible(mutablePos) && /*world.getClosestPlayer(spawnX, y, spawnZ, BloodmoonConfig.SPAWNING.SPAWN_RANGE, false) == null && worldSpawnPos.isWithinDistance(new Vec3d(spawnX, y, spawnZ), BloodmoonConfig.SPAWNING.SPAWN_DISTANCE)*/ isPlayerNearby(world, mutablePos, 200)) {
+								int waterLightThreshold = 7;
+								if (world.isSkyVisible(mutablePos) || (world.getBlockState(mutablePos).isOf(Blocks.WATER) && blockLightLevel <= waterLightThreshold) && /*world.getClosestPlayer(spawnX, y, spawnZ, BloodmoonConfig.SPAWNING.SPAWN_RANGE, false) == null && worldSpawnPos.isWithinDistance(new Vec3d(spawnX, y, spawnZ), BloodmoonConfig.SPAWNING.SPAWN_DISTANCE)*/ isPlayerNearby(world, mutablePos, 200)) {
 									RegistryEntry<Biome> biome = world.getBiome(mutablePos);
 									Pool<SpawnSettings.SpawnEntry> spawnList = world.getChunkManager().getChunkGenerator().getEntitySpawnList(biome, world.getStructureAccessor(), spawnGroup, mutablePos);
 
+									/* Check if the biome is an ocean and add Drowned to the spawn list
+									if (biome.isIn(BiomeTags.IS_OCEAN)) {
+										List<SpawnSettings.SpawnEntry> mutableSpawnList = new ArrayList<>(spawnList.getEntries());
+										mutableSpawnList.add(new SpawnSettings.SpawnEntry(EntityType.DROWNED, 1, 1, 1));
+										spawnList = Pool.of(mutableSpawnList);
+									}
+									 */
 									if (!spawnList.isEmpty()) {
 										int spawnIndex = world.random.nextInt(spawnList.getEntries().size());
 										SpawnSettings.SpawnEntry spawnEntry = spawnList.getEntries().get(spawnIndex);
 
-										if (spawnEntry.type == WITCH && Math.random() > 0.1) { // 10% chance to spawn a witch
-											continue;
-										}
+										Box searchBox = new Box(mutablePos).expand(50);
+										List<PlayerEntity> nearbyPlayers = world.getEntitiesByClass(PlayerEntity.class, searchBox, player -> true);
 
-										if (spawnEntry.type == WITCH) {
-											witchCount++;
-											if (witchCount > 5) { // Limit to 5 witches
+										double bloodmoonSpawnChance = ConfigManager.getConfig().getBloodmoonSpawnPercentage();
+
+										if (spawnEntry.type == EntityType.DROWNED) {
+											if (!nearbyPlayers.isEmpty()) {
+												for (PlayerEntity player : nearbyPlayers) {
+													Box monsterSearchBox = new Box(player.getBlockPos()).expand(40);
+													List<LivingEntity> nearbyMonsters = world.getEntitiesByClass(LivingEntity.class, monsterSearchBox, entity -> entity instanceof Monster);
+
+													if (nearbyMonsters.size() < 20) {
+														bloodmoonSpawnChance = Math.min(1, ConfigManager.getConfig().getBloodmoonSpawnPercentage() * 100);
+														break;
+													}
+												}
+											}
+											/*System.out.println("Drowned spawning 1: " + world.getBlockState(mutablePos));
+											if (world.getBlockState(mutablePos).isOf(Blocks.WATER) &&
+													(world.getBlockState(mutablePos.up()).isOf(Blocks.WATER)) &&
+													(world.getBlockState(mutablePos.up(2)).isOf(Blocks.WATER))) {
+												System.out.println("Drowned spawning 2");
+												if (!nearbyPlayers.isEmpty()) {
+													System.out.println("Drowned spawning 3");
+													for (PlayerEntity player : nearbyPlayers) {
+														Box monsterSearchBox = new Box(player.getBlockPos()).expand(40);
+														List<LivingEntity> nearbyMonsters = world.getEntitiesByClass(LivingEntity.class, monsterSearchBox, entity -> entity instanceof Monster);
+
+														if (nearbyMonsters.size() < 20) {
+															bloodmoonSpawnChance = 1;
+															break;
+														}
+													}
+												}
+											}*/
+										}
+										if (Math.random() < bloodmoonSpawnChance) {
+											if (spawnEntry.type == WITCH && Math.random() > 0.1) { // 10% chance to spawn a witch
 												continue;
 											}
-										}
-										if (BloodmoonConfig.canSpawn(spawnEntry.type.getBaseClass())) {
-											MobEntity mobEntity;
 
-											try {
-												mobEntity = (MobEntity) spawnEntry.type.create(world);
-											} catch (Exception e) {
-												e.printStackTrace();
-												return;
+											if (spawnEntry.type == EntityType.DROWNED) {
+												if (!(world.getBlockState(mutablePos).isOf(Blocks.WATER) &&
+														world.getBlockState(mutablePos.up()).isOf(Blocks.WATER) &&
+														world.getBlockState(mutablePos.up(2)).isOf(Blocks.WATER))) {
+													continue;
+												}
 											}
 
-											mobEntity.refreshPositionAndAngles(spawnX, y, spawnZ, world.random.nextFloat() * 360.0F, 0.0F);
+											if (spawnEntry.type == WITCH) {
+												witchCount++;
+												if (witchCount > 5) { // Limit to 5 witches
+													continue;
+												}
+											}
+											if (BloodmoonConfig.canSpawn(spawnEntry.type.getBaseClass())) {
+												MobEntity mobEntity;
 
-											if (world.tryLoadEntity(mobEntity) && mobEntity.canSpawn(world, SpawnReason.NATURAL) && mobEntity.canSpawn(world)) {
-												++spawnCount;
-												mobEntity.setPersistent();
+												try {
+													mobEntity = (MobEntity) spawnEntry.type.create(world);
+												} catch (Exception e) {
+													e.printStackTrace();
+													return 0;
+												}
+
+												mobEntity.refreshPositionAndAngles(spawnX, y, spawnZ, world.random.nextFloat() * 360.0F, 0.0F);
+
+												if (world.tryLoadEntity(mobEntity) && mobEntity.canSpawn(world, SpawnReason.NATURAL) && mobEntity.canSpawn(world)) {
+													++spawnCount;
+													mobEntity.setPersistent();
+
+													if (mobEntity.getType() == EntityType.DROWNED) {
+														LOGGER.info("Successfully spawned drowned at position: " + mutablePos);
+													}
+												} else {
+													if (mobEntity.getType() == EntityType.DROWNED) {
+														LOGGER.warn("Failed to spawn drowned at position: " + mutablePos);
+													}
+												}
 											}
 										}
 									}
@@ -154,6 +221,7 @@ public final class BloodmoonSpawner implements Spawner {
 				}
 			}
 		}
+		return spawnCount;
 	}
 
 	private boolean isPlayerNearby(ServerWorld world, BlockPos pos, double distance) {
@@ -249,11 +317,5 @@ public final class BloodmoonSpawner implements Spawner {
 				}
 			}
 		}
-	}
-
-
-	@Override
-	public void setEntityType(EntityType<?> type, net.minecraft.util.math.random.Random random) {
-		// TODO Auto-generated method stub
 	}
 }
