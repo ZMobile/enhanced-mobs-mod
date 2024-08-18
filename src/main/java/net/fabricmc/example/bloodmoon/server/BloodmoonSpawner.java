@@ -8,11 +8,16 @@ import net.fabricmc.example.config.ConfigManager;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.entity.Spawner;
 import net.minecraft.entity.*;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.mob.Monster;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.tag.BiomeTags;
+import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.collection.Pool;
 import net.minecraft.util.math.*;
@@ -24,9 +29,8 @@ import net.minecraft.world.biome.SpawnSettings;
 import net.minecraft.world.chunk.WorldChunk;
 
 
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
+
 
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
@@ -34,23 +38,21 @@ import net.minecraft.entity.SpawnReason;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.spawner.Spawner;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-
-import java.util.Collections;
-
-import static com.mojang.text2speech.Narrator.LOGGER;
+import static net.minecraft.entity.EntityType.DROWNED;
 import static net.minecraft.entity.EntityType.WITCH;
 
 public final class BloodmoonSpawner implements Spawner {
+	private static final Logger LOGGER = LogManager.getLogger();
 	private static final int MOB_COUNT_DIV = (int) Math.pow(17.0D, 2.0D);
 	private final Set<ChunkPos> eligibleChunksForSpawning = Sets.newHashSet();
 	int witchCount = 0; // Counter for witches
 
-
-	public int spawn(ServerWorld world, boolean spawnHostileMobs, boolean spawnPeacefulMobs) {
+	public void triggerBloodmoonSpawning(ServerWorld world, boolean spawnHostileMobs, boolean spawnPeacefulMobs) {
 		if (!spawnHostileMobs && !spawnPeacefulMobs) {
-			return 0;
+			return;
 		}
 
 		this.eligibleChunksForSpawning.clear();
@@ -194,7 +196,7 @@ public final class BloodmoonSpawner implements Spawner {
 													mobEntity = (MobEntity) spawnEntry.type.create(world);
 												} catch (Exception e) {
 													e.printStackTrace();
-													return 0;
+													return;
 												}
 
 												mobEntity.refreshPositionAndAngles(spawnX, y, spawnZ, world.random.nextFloat() * 360.0F, 0.0F);
@@ -221,7 +223,6 @@ public final class BloodmoonSpawner implements Spawner {
 				}
 			}
 		}
-		return spawnCount;
 	}
 
 	private boolean isPlayerNearby(ServerWorld world, BlockPos pos, double distance) {
@@ -257,7 +258,10 @@ public final class BloodmoonSpawner implements Spawner {
 			return false;
 		} else {
 			BlockState blockState = world.getBlockState(pos);
-
+			if (entityType == EntityType.DROWNED) {
+				// Allow drowned to spawn in water
+				return blockState.isOf(Blocks.WATER);
+			}
 			if (entityType.getSpawnGroup() == SpawnGroup.WATER_CREATURE) {
 				return blockState.getFluidState().isStill() && world.getBlockState(pos.down()).getFluidState().isStill() && !world.getBlockState(pos.up()).isSolidBlock(world, pos.up());
 			} else {
@@ -282,6 +286,9 @@ public final class BloodmoonSpawner implements Spawner {
 			while (random.nextFloat() < biome.getSpawnSettings().getCreatureSpawnProbability()) {
 				int spawnEntryIndex = random.nextInt(spawnEntries.getEntries().size());
 				SpawnSettings.SpawnEntry spawnEntry = spawnEntries.getEntries().get(spawnEntryIndex);
+				if (spawnEntry.type == DROWNED) {
+					LOGGER.info("Attempting to spawn drowned at position: " + x + ", " + z);
+				}
 				if (spawnEntry == null) {
 					continue;
 				}
@@ -317,5 +324,11 @@ public final class BloodmoonSpawner implements Spawner {
 				}
 			}
 		}
+	}
+
+
+	@Override
+	public void setEntityType(EntityType<?> type, net.minecraft.util.math.random.Random random) {
+		// TODO Auto-generated method stub
 	}
 }

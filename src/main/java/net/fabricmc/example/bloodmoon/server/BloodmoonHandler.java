@@ -48,38 +48,20 @@ public class BloodmoonHandler extends PersistentState {
 		return nbt;
 	}
 
-	public static BloodmoonHandler readNbt(NbtCompound nbt) {
-		BloodmoonHandler handler = new BloodmoonHandler();
-		handler.bloodMoon = nbt.getBoolean("bloodMoon");
-		handler.forceBloodMoon = nbt.getBoolean("forceBloodMoon");
-		handler.nightCounter = nbt.getInt("nightCounter");
-		return handler;
-	}
-
-	public static BloodmoonHandler get(ServerWorld world) {
-		PersistentStateManager stateManager = world.getPersistentStateManager();
-		BloodmoonHandler handler = stateManager.getOrCreate(
-				BloodmoonHandler::readNbt,
-				BloodmoonHandler::new,
-				"bloodmoon_handler"
-		);
-		INSTANCE = handler;
-		return handler;
-	}
+	public static final PersistentState.Type<BloodmoonHandler> BLOODMOON_HANDLER_TYPE = new PersistentState.Type<>(
+			BloodmoonHandler::new, // Supplier<BloodmoonHandler> for instance creation
+			nbt -> BloodmoonHandler.readNbt(nbt, null), // Function<NbtCompound, BloodmoonHandler> for reading NBT data
+			DataFixTypes.WORLD_GEN_SETTINGS // Adjust as needed
+	);
 
 	public static void initialize(ServerWorld serverWorld) {
 		PersistentStateManager persistentStateManager = serverWorld.getPersistentStateManager();
-
-		// Refactor: no need for BLOODMOON_HANDLER_TYPE
 		INSTANCE = persistentStateManager.getOrCreate(
-				BloodmoonHandler::readNbt,
-				BloodmoonHandler::new,
+				BLOODMOON_HANDLER_TYPE,
 				"bloodmoon"
 		);
-
 		world = serverWorld;
 
-		// Register event listeners
 		ServerTickEvents.END_WORLD_TICK.register(BloodmoonHandler::endWorldTick);
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			BloodmoonHandler.INSTANCE.playerJoinedWorld(handler.getPlayer());
@@ -110,7 +92,7 @@ public class BloodmoonHandler extends PersistentState {
 			if (INSTANCE.isBloodmoonActive()) {
 				if (!BloodmoonConfig.GENERAL.RESPECT_GAMERULE || world.getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING)) {
 					for (int i = 0; i < BloodmoonConfig.SPAWNING.SPAWN_SPEED; i++) {
-						INSTANCE.bloodMoonSpawner.spawn(world, world.getDifficulty() != Difficulty.PEACEFUL, false);
+						INSTANCE.bloodMoonSpawner.triggerBloodmoonSpawning(world, world.getDifficulty() != Difficulty.PEACEFUL, false);
 					}
 				}
 
