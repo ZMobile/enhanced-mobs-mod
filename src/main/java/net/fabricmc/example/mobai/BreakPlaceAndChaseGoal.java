@@ -15,7 +15,9 @@ import net.fabricmc.example.util.MinecraftServerUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.PointedDripstoneBlock;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.entity.mob.MobEntity;
@@ -400,7 +402,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.RED_BED)
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.BLACK_BED)
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.DRIPSTONE_BLOCK);
-        return getWorld(mob).getBlockState(blockPos).isSolidBlock(getWorld(mob), blockPos) || isLadderVineOrDoor;
+        return getWorld(mob).getBlockState(blockPos).isSolidBlock(getWorld(mob), blockPos) || isLadderVineOrDoor || isStalagmiteBlock(blockPos, getWorld(mob));
     }
 
     private boolean isSolidBlock(BlockPos blockPos) {
@@ -439,7 +441,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.JUNGLE_TRAPDOOR)
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.ACACIA_TRAPDOOR)
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.DARK_OAK_TRAPDOOR);
-        return getWorld(mob).getBlockState(blockPos).isSolidBlock(getWorld(mob), blockPos) || isLadderVineOrDoor;
+        return getWorld(mob).getBlockState(blockPos).isSolidBlock(getWorld(mob), blockPos) || isLadderVineOrDoor || isStalagmiteBlock(blockPos, getWorld(mob));
     }
 
     private boolean isAdjacentOrDiagonal(BlockPos pos1, BlockPos pos2) {
@@ -469,6 +471,20 @@ public class BreakPlaceAndChaseGoal extends Goal {
         }
         targetEntity = mob.getTarget();
         if (targetEntity != null) {
+            if (isEntityNotMoving(mob) && isEntityStuckInStalagmite(mob)) {
+                BlockPos feetPos = mob.getBlockPos();
+                BlockPos headPos = feetPos.up();
+                BlockPos facingPos = feetPos.offset(mob.getMovementDirection());
+
+                // Check if the block at the entity's feet, head, or in front is a stalagmite
+                if (isStalagmiteBlock(feetPos, mob.getWorld())) {
+                    breakingPos = feetPos;
+                } else if (isStalagmiteBlock(headPos, mob.getWorld())) {
+                    breakingPos = headPos;
+                } else if (isStalagmiteBlock(facingPos, mob.getWorld())) {
+                    breakingPos = facingPos;
+                }
+            }
             if (previousPos == null) {
                 previousPos = mob.getBlockPos();
             }
@@ -565,6 +581,29 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 calculatePath();
             }
         }
+    }
+
+    private boolean isEntityStuckInStalagmite(LivingEntity entity) {
+        BlockPos feetPos = entity.getBlockPos();
+        BlockPos headPos = feetPos.up();
+        BlockPos facingPos = feetPos.offset(entity.getMovementDirection());
+
+        boolean isFeetStalagmite = isStalagmiteBlock(feetPos, entity.getWorld());
+        boolean isHeadStalagmite = isStalagmiteBlock(headPos, entity.getWorld());
+        boolean isFacingStalagmite = isStalagmiteBlock(facingPos, entity.getWorld());
+
+        return (isFeetStalagmite || isHeadStalagmite || isFacingStalagmite) && isEntityNotMoving(entity);
+    }
+
+
+    private boolean isStalagmiteBlock(BlockPos pos, World world) {
+        BlockState blockState = world.getBlockState(pos);
+        return blockState.isOf(Blocks.POINTED_DRIPSTONE) && blockState.get(PointedDripstoneBlock.VERTICAL_DIRECTION) == Direction.UP;
+    }
+
+    private boolean isEntityNotMoving(LivingEntity entity) {
+        // Check if the entity's movement is minimal
+        return entity.getVelocity().lengthSquared() < 0.01;
     }
 
     private boolean isPlaceableBlock(ItemStack itemStack) {
