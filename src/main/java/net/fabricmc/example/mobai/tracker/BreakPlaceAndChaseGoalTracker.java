@@ -1,4 +1,6 @@
-package net.fabricmc.example.mobai;
+package net.fabricmc.example.mobai.tracker;
+
+import net.fabricmc.example.mobai.BreakPlaceAndChaseGoal;
 
 import java.util.HashMap;
 import java.util.Map;

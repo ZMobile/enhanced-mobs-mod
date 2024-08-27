@@ -1,21 +1,14 @@
 package net.fabricmc.example.mixin;
 
-import baritone.api.BaritoneAPI;
-import baritone.api.IBaritone;
-import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.example.mobai.BreakPlaceAndChaseGoal;
-import net.fabricmc.example.mobai.BreakPlaceAndChaseGoalTracker;
+import net.fabricmc.example.mobai.tracker.BreakPlaceAndChaseGoalTracker;
 import net.fabricmc.example.mobai.CustomTargetGoal;
 import net.fabricmc.example.mobai.tracker.MobPathTracker;
 import net.fabricmc.example.service.MobitoneServiceImpl;
-import net.fabricmc.example.util.MinecraftServerUtil;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.ZombieEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.Text;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 

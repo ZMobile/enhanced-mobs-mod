@@ -11,8 +11,13 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.Spawner;
 import net.minecraft.entity.*;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.mob.Monster;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.tag.BiomeTags;
+import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.collection.Pool;
 import net.minecraft.util.math.*;
@@ -24,9 +29,8 @@ import net.minecraft.world.biome.SpawnSettings;
 import net.minecraft.world.chunk.WorldChunk;
 
 
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
+
 
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
@@ -34,12 +38,14 @@ import net.minecraft.entity.SpawnReason;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.util.Collections;
-
+import static net.minecraft.entity.EntityType.DROWNED;
 import static net.minecraft.entity.EntityType.WITCH;
 
 public final class BloodmoonSpawner implements Spawner {
+	private static final Logger LOGGER = LogManager.getLogger();
 	private static final int MOB_COUNT_DIV = (int) Math.pow(17.0D, 2.0D);
 	private final Set<ChunkPos> eligibleChunksForSpawning = Sets.newHashSet();
 	int witchCount = 0; // Counter for witches
@@ -110,40 +116,103 @@ public final class BloodmoonSpawner implements Spawner {
 								mutablePos.set(x, y, z);
 								float spawnX = (float) x + 0.5F;
 								float spawnZ = (float) z + 0.5F;
+								int blockLightLevel = world.getLightLevel(LightType.BLOCK, mutablePos);
 
-								if (world.isSkyVisible(mutablePos) && /*world.getClosestPlayer(spawnX, y, spawnZ, BloodmoonConfig.SPAWNING.SPAWN_RANGE, false) == null && worldSpawnPos.isWithinDistance(new Vec3d(spawnX, y, spawnZ), BloodmoonConfig.SPAWNING.SPAWN_DISTANCE)*/ isPlayerNearby(world, mutablePos, 200)) {
+								int waterLightThreshold = 7;
+								if (world.isSkyVisible(mutablePos) || (world.getBlockState(mutablePos).isOf(Blocks.WATER) && blockLightLevel <= waterLightThreshold) && /*world.getClosestPlayer(spawnX, y, spawnZ, BloodmoonConfig.SPAWNING.SPAWN_RANGE, false) == null && worldSpawnPos.isWithinDistance(new Vec3d(spawnX, y, spawnZ), BloodmoonConfig.SPAWNING.SPAWN_DISTANCE)*/ isPlayerNearby(world, mutablePos, 200)) {
 									RegistryEntry<Biome> biome = world.getBiome(mutablePos);
 									Pool<SpawnSettings.SpawnEntry> spawnList = world.getChunkManager().getChunkGenerator().getEntitySpawnList(biome, world.getStructureAccessor(), spawnGroup, mutablePos);
 
-									if (!spawnList.isEmpty() && Math.random() < ConfigManager.getConfig().getBloodmoonSpawnPercentage()) {
+									/* Check if the biome is an ocean and add Drowned to the spawn list
+									if (biome.isIn(BiomeTags.IS_OCEAN)) {
+										List<SpawnSettings.SpawnEntry> mutableSpawnList = new ArrayList<>(spawnList.getEntries());
+										mutableSpawnList.add(new SpawnSettings.SpawnEntry(EntityType.DROWNED, 1, 1, 1));
+										spawnList = Pool.of(mutableSpawnList);
+									}
+									 */
+									if (!spawnList.isEmpty()) {
 										int spawnIndex = world.random.nextInt(spawnList.getEntries().size());
 										SpawnSettings.SpawnEntry spawnEntry = spawnList.getEntries().get(spawnIndex);
 
-										if (spawnEntry.type == WITCH && Math.random() > 0.1) { // 10% chance to spawn a witch
-											continue;
-										}
+										Box searchBox = new Box(mutablePos).expand(50);
+										List<PlayerEntity> nearbyPlayers = world.getEntitiesByClass(PlayerEntity.class, searchBox, player -> true);
 
-										if (spawnEntry.type == WITCH) {
-											witchCount++;
-											if (witchCount > 5) { // Limit to 5 witches
+										double bloodmoonSpawnChance = ConfigManager.getConfig().getBloodmoonSpawnPercentage();
+
+										if (spawnEntry.type == EntityType.DROWNED) {
+											if (!nearbyPlayers.isEmpty()) {
+												for (PlayerEntity player : nearbyPlayers) {
+													Box monsterSearchBox = new Box(player.getBlockPos()).expand(40);
+													List<LivingEntity> nearbyMonsters = world.getEntitiesByClass(LivingEntity.class, monsterSearchBox, entity -> entity instanceof Monster);
+
+													if (nearbyMonsters.size() < 20) {
+														bloodmoonSpawnChance = Math.min(1, ConfigManager.getConfig().getBloodmoonSpawnPercentage() * 100);
+														break;
+													}
+												}
+											}
+											/*System.out.println("Drowned spawning 1: " + world.getBlockState(mutablePos));
+											if (world.getBlockState(mutablePos).isOf(Blocks.WATER) &&
+													(world.getBlockState(mutablePos.up()).isOf(Blocks.WATER)) &&
+													(world.getBlockState(mutablePos.up(2)).isOf(Blocks.WATER))) {
+												System.out.println("Drowned spawning 2");
+												if (!nearbyPlayers.isEmpty()) {
+													System.out.println("Drowned spawning 3");
+													for (PlayerEntity player : nearbyPlayers) {
+														Box monsterSearchBox = new Box(player.getBlockPos()).expand(40);
+														List<LivingEntity> nearbyMonsters = world.getEntitiesByClass(LivingEntity.class, monsterSearchBox, entity -> entity instanceof Monster);
+
+														if (nearbyMonsters.size() < 20) {
+															bloodmoonSpawnChance = 1;
+															break;
+														}
+													}
+												}
+											}*/
+										}
+										if (Math.random() < bloodmoonSpawnChance) {
+											if (spawnEntry.type == WITCH && Math.random() > 0.1) { // 10% chance to spawn a witch
 												continue;
 											}
-										}
-										if (BloodmoonConfig.canSpawn(spawnEntry.type.getBaseClass())) {
-											MobEntity mobEntity;
 
-											try {
-												mobEntity = (MobEntity) spawnEntry.type.create(world);
-											} catch (Exception e) {
-												e.printStackTrace();
-												return;
+											if (spawnEntry.type == EntityType.DROWNED) {
+												if (!(world.getBlockState(mutablePos).isOf(Blocks.WATER) &&
+														world.getBlockState(mutablePos.up()).isOf(Blocks.WATER) &&
+														world.getBlockState(mutablePos.up(2)).isOf(Blocks.WATER))) {
+													continue;
+												}
 											}
 
-											mobEntity.refreshPositionAndAngles(spawnX, y, spawnZ, world.random.nextFloat() * 360.0F, 0.0F);
+											if (spawnEntry.type == WITCH) {
+												witchCount++;
+												if (witchCount > 5) { // Limit to 5 witches
+													continue;
+												}
+											}
+											if (BloodmoonConfig.canSpawn(spawnEntry.type.getBaseClass())) {
+												MobEntity mobEntity;
 
-											if (world.tryLoadEntity(mobEntity) && mobEntity.canSpawn(world, SpawnReason.NATURAL) && mobEntity.canSpawn(world)) {
-												++spawnCount;
-												mobEntity.setPersistent();
+												try {
+													mobEntity = (MobEntity) spawnEntry.type.create(world);
+												} catch (Exception e) {
+													e.printStackTrace();
+													return;
+												}
+
+												mobEntity.refreshPositionAndAngles(spawnX, y, spawnZ, world.random.nextFloat() * 360.0F, 0.0F);
+
+												if (world.tryLoadEntity(mobEntity) && mobEntity.canSpawn(world, SpawnReason.NATURAL) && mobEntity.canSpawn(world)) {
+													++spawnCount;
+													mobEntity.setPersistent();
+
+													if (mobEntity.getType() == EntityType.DROWNED) {
+														LOGGER.info("Successfully spawned drowned at position: " + mutablePos);
+													}
+												} else {
+													if (mobEntity.getType() == EntityType.DROWNED) {
+														LOGGER.warn("Failed to spawn drowned at position: " + mutablePos);
+													}
+												}
 											}
 										}
 									}
@@ -189,7 +258,10 @@ public final class BloodmoonSpawner implements Spawner {
 			return false;
 		} else {
 			BlockState blockState = world.getBlockState(pos);
-
+			if (entityType == EntityType.DROWNED) {
+				// Allow drowned to spawn in water
+				return blockState.isOf(Blocks.WATER);
+			}
 			if (entityType.getSpawnGroup() == SpawnGroup.WATER_CREATURE) {
 				return blockState.getFluidState().isStill() && world.getBlockState(pos.down()).getFluidState().isStill() && !world.getBlockState(pos.up()).isSolidBlock(world, pos.up());
 			} else {
@@ -214,6 +286,9 @@ public final class BloodmoonSpawner implements Spawner {
 			while (random.nextFloat() < biome.getSpawnSettings().getCreatureSpawnProbability()) {
 				int spawnEntryIndex = random.nextInt(spawnEntries.getEntries().size());
 				SpawnSettings.SpawnEntry spawnEntry = spawnEntries.getEntries().get(spawnEntryIndex);
+				if (spawnEntry.type == DROWNED) {
+					LOGGER.info("Attempting to spawn drowned at position: " + x + ", " + z);
+				}
 				if (spawnEntry == null) {
 					continue;
 				}

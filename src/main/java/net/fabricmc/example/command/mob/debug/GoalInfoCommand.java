@@ -1,19 +1,11 @@
 package net.fabricmc.example.command.mob.debug;
 
-import baritone.api.BaritoneAPI;
 import com.google.gson.Gson;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import net.fabricmc.example.client.payload.BaritoneCustomPayload;
-import net.fabricmc.example.client.payload.ClientPayloadData;
 import net.fabricmc.example.mobai.BreakPlaceAndChaseGoal;
-import net.fabricmc.example.mobai.BreakPlaceAndChaseGoalTracker;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.server.MinecraftServer;
+import net.fabricmc.example.mobai.tracker.BreakPlaceAndChaseGoalTracker;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 import static net.minecraft.server.command.CommandManager.argument;

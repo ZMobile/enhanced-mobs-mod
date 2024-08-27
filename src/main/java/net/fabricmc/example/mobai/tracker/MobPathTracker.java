@@ -28,6 +28,10 @@ public class MobPathTracker {
       mobIdToPathMap.remove(mobId);
    }
 
+   public static List<BetterBlockPos> getPath(String mobId) {
+      return mobIdToPathMap.get(mobId);
+   }
+
    public static boolean breakingPosLiesInPath(BlockPos breakingPos) {
        //Checks if this breaking block is another mobs breaking block.
        for (List<BetterBlockPos> positions : mobIdToPathMap.values()) {

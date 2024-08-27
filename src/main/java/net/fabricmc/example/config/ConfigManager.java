@@ -39,10 +39,14 @@ public class ConfigManager {
                 config.setMobBlockBreakSpeed(1.0);
             }
             if (config.getBloodmoonSpawnPercentage() == null) {
-                config.setBloodmoonSpawnPercentage(0.0001);
+                config.setBloodmoonSpawnPercentage(
+                        0.00001);
             }
             if (config.isSkeletonsBreakBlocksDuringBloodmoon() == null) {
                 config.setSkeletonsBreakBlocksDuringBloodmoon(false);
+            }
+            if (config.getDaysBeforeBloodmoonPossibility() == null) {
+                config.setDaysBeforeBloodmoonPossibility(3);
             }
         } catch (JsonIOException | JsonSyntaxException | IOException e) {
             config = new ModConfig();

@@ -16,7 +16,7 @@ configurations {
 task downloadMobitone {
 	doLast {
 		def url = 'https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone/mobitone1.20.4-server.jar'
-		def outputFile = file(files('lib/mobitone1.21-server.jar').getAsPath())
+		def outputFile = file(files('lib/renamed.jar').getAsPath())
 
 		if (!outputFile.exists()) {
 			println "Downloading mobitone1.20.4-server.jar..."
@@ -78,7 +78,7 @@ dependencies {
 	//modImplementation configurations.mobitone
 	//modImplementation files('lib/mobitone1.21-server.jar')
 
-
+	// Implementation has both of these uncommented:
 	modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.11.0-Mobitone/mobitone1.21-server.jar", 'mobitone', '1.21-server')
 	include urlFile("https://github.com/ZMobile/baritone/releases/download/v1.11.0-Mobitone/mobitone1.21-server.jar", 'mobitone', '1.21-server')
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.

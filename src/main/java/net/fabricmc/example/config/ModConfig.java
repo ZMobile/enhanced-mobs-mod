@@ -18,6 +18,7 @@ public class  ModConfig {
     private Boolean optimizedMobitone;
     private Boolean infiniteZombieBlocks;
     private Double mobBlockBreakSpeed;
+    private Integer daysBeforeBloodmoonPossibility;
 
     public ModConfig() {
         allowBreak = true;
@@ -37,6 +38,7 @@ public class  ModConfig {
         optimizedMobitone = true;
         infiniteZombieBlocks = true;
         mobBlockBreakSpeed = 1.0;
+        daysBeforeBloodmoonPossibility = 3;
     }
 
     public boolean isAllowBreak() {
@@ -173,5 +175,13 @@ public class  ModConfig {
 
     public void setMobBlockBreakSpeed(Double mobBlockBreakSpeed) {
         this.mobBlockBreakSpeed = mobBlockBreakSpeed;
+    }
+
+    public Integer getDaysBeforeBloodmoonPossibility() {
+        return daysBeforeBloodmoonPossibility;
+    }
+
+    public void setDaysBeforeBloodmoonPossibility(int daysBeforeBloodmoonPossibility) {
+        this.daysBeforeBloodmoonPossibility = daysBeforeBloodmoonPossibility;
     }
 }

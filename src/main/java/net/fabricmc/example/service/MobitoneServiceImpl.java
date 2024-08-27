@@ -41,7 +41,6 @@ public class MobitoneServiceImpl implements MobitoneService {
                 PathUpdateListener pathUpdateListener = new PathUpdateListener(livingEntity.getId(), baritone.getPathingBehavior());
                 baritone.getGameEventHandler().registerEventListener(pathUpdateListener);
             }
-            System.out.println("Baritone instance successfully added for " + livingEntity.getName().getString());
         /*} else {
             if (!queue.contains(livingEntity)) {
                 queue.add(livingEntity);
@@ -56,7 +55,6 @@ public class MobitoneServiceImpl implements MobitoneService {
         if (goalBaritone != null) {
             // Clean up Baritone instance for this entity
             BaritoneAPI.getProvider().destroyBaritone(goalBaritone);
-            System.out.println("Baritone instance successfully removed from " + livingEntity.getName().getString());
             // Debug log to verify cleanup
             //System.out.println("Baritone instance successfully removed for ZombieEntity on despawn");
         }

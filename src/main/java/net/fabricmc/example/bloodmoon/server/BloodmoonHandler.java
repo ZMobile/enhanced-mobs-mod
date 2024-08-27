@@ -102,7 +102,7 @@ public class BloodmoonHandler extends PersistentState {
 
 					if (INSTANCE.forceBloodMoon || Math.random() < BloodmoonConfig.SCHEDULE.CHANCE || (BloodmoonConfig.SCHEDULE.FULLMOON && world.getMoonPhase() == 0) || (BloodmoonConfig.SCHEDULE.NTH_NIGHT != 0 && INSTANCE.nightCounter == 0)) {
 						INSTANCE.forceBloodMoon = false;
-						if (ConfigManager.getConfig().isBloodmoonEnabled()) {
+						if (ConfigManager.getConfig().isBloodmoonEnabled() && getElapsedDays(world) >= ConfigManager.getConfig().getDaysBeforeBloodmoonPossibility()){
 							INSTANCE.setBloodmoon(true);
 
 							if (BloodmoonConfig.GENERAL.SEND_MESSAGE) {
@@ -120,6 +120,10 @@ public class BloodmoonHandler extends PersistentState {
 				}
 			}
 		}
+	}
+
+	public static int getElapsedDays(ServerWorld world) {
+		return (int) (world.getTime() / 24000);
 	}
 
 	public void setBloodmoon(boolean bloodMoon) {

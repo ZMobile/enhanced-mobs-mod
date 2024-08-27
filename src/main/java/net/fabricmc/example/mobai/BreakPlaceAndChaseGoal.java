@@ -15,8 +15,12 @@ import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.PointedDripstoneBlock;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.entity.ai.pathing.Path;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -27,6 +31,7 @@ import net.minecraft.item.Items;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import java.util.*;
@@ -73,8 +78,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
     @Override
     public void start() {
-        System.out.println("Starting BreakPlaceAndChaseGoal for mob id: " + mob.getId());
-         //calculatePath();
+        //calculatePath();
     }
 
     private void calculatePath() {
@@ -110,7 +114,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
         }
     }
 
-    private boolean isPlacementNeeded(BlockPos blockPos, int pathIndex) {
+    /*private boolean isPlacementNeeded(BlockPos blockPos, int pathIndex) {
         if (getWorld(mob).getBlockState(blockPos).isAir()) {
             return true;
         }
@@ -127,13 +131,37 @@ public class BreakPlaceAndChaseGoal extends Goal {
             return blockPos.equals(pos.down()) && nextPos.getY() > pos.getY() && !getWorld(mob).getBlockState(nextPos.down()).isOf(Blocks.WATER);
         }
         return false;
+    }*/
+
+    private boolean isPlacementNeeded(BlockPos blockPos, int pathIndex) {
+        BlockPos pos = null;
+        BlockPos nextPos = null;
+        if (pathIndex != -1 && pathIndex != currentPath.size() - 1) {
+            pos = currentPath.get(pathIndex);
+            nextPos = currentPath.get(pathIndex + 1);
+        }
+        if (getWorld(mob).getBlockState(blockPos).isAir()) {
+            if (nextPos != null && pos.equals(blockPos)) {
+                return !nextPos.equals(pos.down());
+            }
+            return true;
+        }
+        if (getWorld(mob).getBlockState(blockPos).isOf(Blocks.WATER)) {
+            if (!getWorld(mob).getBlockState(blockPos.up()).isAir()) {
+                return false;
+            }
+            if (pathIndex == -1 || pathIndex == currentPath.size() - 1) {
+                return false;
+            }
+            //boolean isNextPosHigher = currentPath.get(pathIndex + 1).getY() > currentPath.get(pathIndex).getY();
+            return !(nextPos.equals(pos.down()));
+        }
+        return false;
     }
 
     private void findBreakingOrPlacingBlock() {
-        System.out.println("Mob: " + mob.getId() + " Finding block to break or place.");
         if (currentPath != null) {
             BetterBlockPos destination = currentPath.get(currentPath.size() - 1);
-            System.out.println("Mob: " + mob.getId() + " destination: " + destination);
             List<BetterBlockPos> positions = currentPath;
             for (int i = 0; i < positions.size(); i++) {
                 BlockPos targetBlockPos;
@@ -146,7 +174,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 //System.out.println("Checking block at: " + pos);
                 if (isBreakable(pos) || isBreakable(pos.up())) {
                     breakingPos = isBreakable(pos) ? pos : pos.up();
-                     System.out.println("Mob: " + mob.getId() + "Identified block to break at: " + breakingPos);
                     BlockPos adjacentPos;
                     if (i == 0) {
                         adjacentPos = mob.getBlockPos();
@@ -177,7 +204,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                                     //continue;
                                 } else {
                                     breakingPos = isBreakable(diagonalBlockPos1) ? diagonalBlockPos1 : diagonalBlockPos1.up();
-                                    System.out.println("Mob:" + mob.getId() + "Identified block to break at: " + breakingPos);
                                     navigateMobToTargetPos(pos);
                                     savedPath = new ArrayList<>(currentPath);
                                     MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
@@ -193,7 +219,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                                     //continue;
                                 } else {
                                     breakingPos = isBreakable(diagonalBlockPos2) ? diagonalBlockPos2 : diagonalBlockPos2.up();
-                                    System.out.println("Mob: " + mob.getId() + "Identified block to break at: " + breakingPos);
                                     navigateMobToTargetPos(pos);
                                     savedPath = new ArrayList<>(currentPath);
                                     MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
@@ -205,15 +230,19 @@ public class BreakPlaceAndChaseGoal extends Goal {
                             }
                         }
                         if (nextPos.y != pos.y) {
-                            BlockPos twoBlocksUp;
+                            BlockPos twoBlocksUp = null;
                             if (nextPos.y < pos.y) {
-                                twoBlocksUp = new BlockPos(nextPos.x, nextPos.y + 2, nextPos.z);
+                                for (int j = pos.y + 1; j >= nextPos.y + 1; j--) {
+                                    twoBlocksUp = new BlockPos(nextPos.x, j, nextPos.z);
+                                    if (isBreakable(twoBlocksUp)) {
+                                        break;
+                                    }
+                                }
                             } else {
                                 twoBlocksUp = new BlockPos(pos.x, pos.y + 2, pos.z);
                             }
                             if (isBreakable(twoBlocksUp)) {
                                 breakingPos = twoBlocksUp;
-                                System.out.println("Mob: " + mob.getId() + "Identified block to break at: " + breakingPos);
                                 navigateMobToTargetPos(pos);
                                 savedPath = new ArrayList<>(currentPath);
                                 MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
@@ -226,7 +255,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
                         //Now to check if placement needed:
                         BetterBlockPos floorUnderBlockPos = new BetterBlockPos(pos.x, pos.y - 1, pos.z);
-                        if (isPlacementNeeded(floorUnderBlockPos, i) && mob.getMainHandStack().getItem() instanceof BlockItem) {
+                        if (isPlacementNeeded(floorUnderBlockPos, i) && mob.getMainHandStack().getItem() instanceof BlockItem && !nextPos.equals(floorUnderBlockPos)) {
                             // Ensure breakingPos is null
                             if (!hasAdjacentBlockIncludingBelow(floorUnderBlockPos)) {
                                 placingPos = floorUnderBlockPos.down();
@@ -243,7 +272,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                             if (ConfigManager.getConfig().isOptimizedMobitone()) {
                                 MobitoneServiceImpl.removeMobitone(mob);
                             }
-                            System.out.println("Mob: " + mob.getId() + "Found block to place at: " + placingPos);
                             return;
                         } else {
                             /*if (mob.getMainHandStack().getItem() instanceof BlockItem) {
@@ -268,16 +296,51 @@ public class BreakPlaceAndChaseGoal extends Goal {
     }
 
     private BlockPos findSuitableAdjacentBlock(BlockPos blockPos) {
+        if (getWorld(mob).getBlockState(blockPos).isSolidBlock(getWorld(mob), blockPos) && !getWorld(mob).getBlockState(blockPos.up()).isSolidBlock(getWorld(mob), blockPos.up())) {
+            return blockPos.up();
+        }
         for (Direction direction : Direction.Type.HORIZONTAL) {
             BlockPos adjacentPos = blockPos.offset(direction);
             if (getWorld(mob).getBlockState(adjacentPos.down()).isSolidBlock(getWorld(mob), adjacentPos) && !isSolidBlock(adjacentPos) && !isSolidBlock(adjacentPos.up())) {
-                return adjacentPos;
+                if (!getWorld(mob).getBlockState(adjacentPos).isOf(Blocks.WATER)) {
+                    return adjacentPos;
+                }
             }
         }
         for (Direction direction : Direction.Type.HORIZONTAL) {
             BlockPos downAdjacentPos = blockPos.offset(direction).down();
             if (getWorld(mob).getBlockState(downAdjacentPos.down()).isSolidBlock(getWorld(mob), downAdjacentPos) && !isSolidBlock(downAdjacentPos) && !isSolidBlock(downAdjacentPos.up())) {
-                return downAdjacentPos;
+                if (!getWorld(mob).getBlockState(downAdjacentPos).isOf(Blocks.WATER)) {
+                    return downAdjacentPos;
+                }
+            }
+        }
+        return null;
+    }
+
+    private BlockPos findSuitableAdjacentBlockNextToWater(BlockPos blockPos) {
+        for (Direction direction : Direction.Type.HORIZONTAL) {
+            BlockPos adjacentPos = blockPos.offset(direction);
+            if (getWorld(mob).getBlockState(adjacentPos.down()).isSolidBlock(getWorld(mob), adjacentPos) && !isSolidBlock(adjacentPos) && !isSolidBlock(adjacentPos.up())) {
+                for (Direction direction2 : Direction.Type.HORIZONTAL) {
+                    //Find adjacent water at the same level as the solid block
+                    BlockPos adjacentWaterPos = adjacentPos.offset(direction2).down();
+                    if (getWorld(mob).getBlockState(adjacentWaterPos).isOf(Blocks.WATER)) {
+                        return adjacentPos;
+                    }
+                }
+            }
+        }
+        for (Direction direction : Direction.Type.HORIZONTAL) {
+            BlockPos downAdjacentPos = blockPos.offset(direction).down();
+            if (getWorld(mob).getBlockState(downAdjacentPos.down()).isSolidBlock(getWorld(mob), downAdjacentPos) && !isSolidBlock(downAdjacentPos) && !isSolidBlock(downAdjacentPos.up())) {
+                for (Direction direction2 : Direction.Type.HORIZONTAL) {
+                    //Find adjacent water at the same level as the solid block
+                    BlockPos adjacentWaterPos = downAdjacentPos.offset(direction2).down();
+                    if (getWorld(mob).getBlockState(adjacentWaterPos).isOf(Blocks.WATER)) {
+                        return downAdjacentPos;
+                    }
+                }
             }
         }
         return null;
@@ -339,12 +402,12 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.RED_BED)
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.BLACK_BED)
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.DRIPSTONE_BLOCK);
-        return getWorld(mob).getBlockState(blockPos).isSolidBlock(getWorld(mob), blockPos) || isLadderVineOrDoor;
+        return getWorld(mob).getBlockState(blockPos).isSolidBlock(getWorld(mob), blockPos) || isLadderVineOrDoor || isStalagmiteBlock(blockPos, getWorld(mob));
     }
 
     private boolean isSolidBlock(BlockPos blockPos) {
         //System.out.println("block state: " + getWorld(mob).getBlockState(blockPos));
-        if (pathingBehavior != null && pathingBehavior.getCurrent() != null) {
+        /*if (pathingBehavior != null && pathingBehavior.getCurrent() != null) {
             IPathExecutor current = pathingBehavior.getCurrent(); // this should prevent most race conditions?
             Set<BlockPos> blocksToBreak = current.toBreak();
             Set<BlockPos> blocksToWalkInto = current.toWalkInto();
@@ -360,8 +423,8 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 if (pos.equals(blockPos)) {
                     return true;
                 }
-            }*/
-        }
+            }*
+        }*/
         boolean isLadderVineOrDoor = getWorld(mob).getBlockState(blockPos).isOf(Blocks.LADDER)
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.VINE)
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.IRON_DOOR)
@@ -378,14 +441,72 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.JUNGLE_TRAPDOOR)
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.ACACIA_TRAPDOOR)
                 || getWorld(mob).getBlockState(blockPos).isOf(Blocks.DARK_OAK_TRAPDOOR);
-        return getWorld(mob).getBlockState(blockPos).isSolidBlock(getWorld(mob), blockPos) || isLadderVineOrDoor;
+        return getWorld(mob).getBlockState(blockPos).isSolidBlock(getWorld(mob), blockPos) || isLadderVineOrDoor || isStalagmiteBlock(blockPos, getWorld(mob));
+    }
+
+    private boolean isAdjacentOrDiagonal(BlockPos pos1, BlockPos pos2) {
+        int dx = Math.abs(pos1.getX() - pos2.getX());
+        int dy = Math.abs(pos1.getY() - pos2.getY());
+        int dz = Math.abs(pos1.getZ() - pos2.getZ());
+        return dx <= 1 && dy <= 1 && dz <= 1;
+    }
+
+    private void moveToBlock(MobEntity mob, BlockPos targetPos) {
+        Vec3d mobPos = mob.getPos();
+        Vec3d targetVec = new Vec3d(targetPos.getX() + 0.5, targetPos.getY(), targetPos.getZ() + 0.5);
+        Vec3d direction = targetVec.subtract(mobPos).normalize().multiply(0.1); // Adjust the multiplier for smoothness
+
+        mob.setVelocity(direction);
     }
 
     @Override
     public void tick() {
+        if (savedPath != null && (mob.getBlockPos().equals(savedPath.get(savedPath.size() - 1)) || mob.getBlockPos().up().equals(savedPath.get(savedPath.size() - 1)))) {
+            resetGoal(true);
+            return;
+        }
+        if (currentPath != null && (mob.getBlockPos().equals(currentPath.get(currentPath.size() - 1)) || mob.getBlockPos().up().equals(currentPath.get(currentPath.size() - 1)))) {
+            resetGoal(true);
+            return;
+        }
         targetEntity = mob.getTarget();
         if (targetEntity != null) {
+            if (isEntityNotMoving(mob) && isEntityStuckInStalagmite(mob)) {
+                BlockPos feetPos = mob.getBlockPos();
+                BlockPos headPos = feetPos.up();
+                BlockPos facingPos = feetPos.offset(mob.getMovementDirection());
+
+                // Check if the block at the entity's feet, head, or in front is a stalagmite
+                if (isStalagmiteBlock(feetPos, mob.getWorld())) {
+                    breakingPos = feetPos;
+                } else if (isStalagmiteBlock(headPos, mob.getWorld())) {
+                    breakingPos = headPos;
+                } else if (isStalagmiteBlock(facingPos, mob.getWorld())) {
+                    breakingPos = facingPos;
+                }
+            }
+            if (previousPos == null) {
+                previousPos = mob.getBlockPos();
+            }
             if (breakingPos != null) {
+                this.setControls(EnumSet.of(Control.MOVE));
+                if (mob.getBlockPos() != null) {
+                    if (mob.getBlockPos().getManhattanDistance(previousPos) > 2) {
+                        previousPos = mob.getBlockPos();
+                        standingStillTicks = 0;
+                    } else {
+                        standingStillTicks++;
+                    }
+                    if (standingStillTicks > 200) {
+                        System.out.println("Mob: " + mob.getId() + "Standing still for too long while breaking block.");
+                        resetGoal(true);
+                        return;
+                    }
+                }
+                if (!isSolidBlock(breakingPos)) {
+                    resetGoal(true);
+                    return;
+                }
                 if (mob.getBlockPos().isWithinDistance(breakingPos, 4.5)) {
                     //System.out.println("Block is within distance to break.");
                     continueBreakingBlock();
@@ -410,6 +531,24 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 //System.out.println("Block is not within distance to break. Moving to block.");
                 //System.out.println("Distance: " + mob.getBlockPos().getManhattanDistance(breakingPos));
             } else if (placingPos != null) {
+                this.setControls(EnumSet.of(Control.MOVE));
+                if (mob.getBlockPos() != null) {
+                    if (mob.getBlockPos().getManhattanDistance(previousPos) > 2) {
+                        previousPos = mob.getBlockPos();
+                        standingStillTicks = 0;
+                    } else {
+                        standingStillTicks++;
+                    }
+                    if (standingStillTicks > 200) {
+                        System.out.println("Mob: " + mob.getId() + "Standing still for too long while placing block.");
+                        resetGoal(true);
+                        return;
+                    }
+                }
+                if (isSolidBlock(placingPos)) {
+                    resetGoal(true);
+                    return;
+                }
                 if (mob.getBlockPos().isWithinDistance(placingPos, 5.5)) {
                     // System.out.println("Block is within distance to place.");
                     placeBlock();
@@ -438,21 +577,33 @@ public class BreakPlaceAndChaseGoal extends Goal {
                     }*/
                 }
                 //If mob moved more than 2 blocks away from previous pos:
-                if (mob.getBlockPos() != null && previousPos != null) {
-                    if (mob.getBlockPos().getManhattanDistance(previousPos) > 2) {
-                        previousPos = mob.getBlockPos();
-                        standingStillTicks = 0;
-                    } else {
-                        standingStillTicks++;
-                    }
-                    if (standingStillTicks > 200 || isSolidBlock(placingPos)) {
-                        resetGoal(true);
-                    }
-                }
             } else {
                 calculatePath();
             }
         }
+    }
+
+    private boolean isEntityStuckInStalagmite(LivingEntity entity) {
+        BlockPos feetPos = entity.getBlockPos();
+        BlockPos headPos = feetPos.up();
+        BlockPos facingPos = feetPos.offset(entity.getMovementDirection());
+
+        boolean isFeetStalagmite = isStalagmiteBlock(feetPos, entity.getWorld());
+        boolean isHeadStalagmite = isStalagmiteBlock(headPos, entity.getWorld());
+        boolean isFacingStalagmite = isStalagmiteBlock(facingPos, entity.getWorld());
+
+        return (isFeetStalagmite || isHeadStalagmite || isFacingStalagmite) && isEntityNotMoving(entity);
+    }
+
+
+    private boolean isStalagmiteBlock(BlockPos pos, World world) {
+        BlockState blockState = world.getBlockState(pos);
+        return blockState.isOf(Blocks.POINTED_DRIPSTONE) && blockState.get(PointedDripstoneBlock.VERTICAL_DIRECTION) == Direction.UP;
+    }
+
+    private boolean isEntityNotMoving(LivingEntity entity) {
+        // Check if the entity's movement is minimal
+        return entity.getVelocity().lengthSquared() < 0.01;
     }
 
     private boolean isPlaceableBlock(ItemStack itemStack) {
@@ -564,7 +715,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
         World world = getWorld(mob);
         breakingTicks++;
         int originalProgress = blockDamageProgress.getOrDefault(breakingPos, 0);
-        int progress;
+        double progress;
 
         // Retrieve block hardness
         float blockHardness = getWorld(mob).getBlockState(breakingPos).getHardness(getWorld(mob), breakingPos);
@@ -574,8 +725,8 @@ public class BreakPlaceAndChaseGoal extends Goal {
         //System.out.println("Breaking ticks: " + breakingTicks);
         progress = originalProgress + (int) ((breakingTicks / (float) adjustedBreakingTime) * 10);
         //System.out.println("Progress: " + progress);
-        world.setBlockBreakingInfo(mob.getId(), breakingPos, progress);
-        blockDamageProgress.put(breakingPos, progress);
+        world.setBlockBreakingInfo(mob.getId(), breakingPos, (int)progress);
+        blockDamageProgress.put(breakingPos, (int)progress);
 
         if (progress >= 10 / ConfigManager.getConfig().getMobBlockBreakSpeed()) {
             //System.out.println("Breaking block at: " + breakingPos);
@@ -595,7 +746,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                     goalBaritone.getCustomGoalProcess().setGoalAndPath(getTargetGoal());
                 }
             }
-            breakingPos = null;
             if (ConfigManager.getConfig().isOptimizedMobitone() && savedPath != null) {
                 for (BetterBlockPos betterBlockPos : savedPath) {
                     if (betterBlockPos.equals(placingPos)) {
@@ -611,6 +761,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
                     MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
                 }
             }
+            resetGoal(false);
         }
     }
 
@@ -657,12 +808,17 @@ public class BreakPlaceAndChaseGoal extends Goal {
                     if (nextPos.y != pos.y) {
                         BlockPos twoBlocksUp;
                         if (nextPos.y < pos.y) {
-                            twoBlocksUp = new BlockPos(nextPos.x, nextPos.y + 2, nextPos.z);
+                            for (int j = pos.y + 1; j >= nextPos.y + 1; j--) {
+                                twoBlocksUp = new BlockPos(nextPos.x, j, nextPos.z);
+                                if (isBreakable(twoBlocksUp)) {
+                                    return true;
+                                }
+                            }
                         } else {
                             twoBlocksUp = new BlockPos(pos.x, pos.y + 2, pos.z);
-                        }
-                        if (isBreakable(twoBlocksUp)) {
-                            return true;
+                            if (isBreakable(twoBlocksUp)) {
+                                return true;
+                            }
                         }
                     }
                 }
@@ -674,10 +830,10 @@ public class BreakPlaceAndChaseGoal extends Goal {
     @Override
     public void stop() {
         resetGoal(true);
-        System.out.println("Stopping BreakPlaceAndChaseGoal for mob id: " + mob.getId());
     }
 
     private void resetGoal(boolean removePath) {
+        this.setControls(EnumSet.noneOf(Control.class));
         currentPath = null;
         breakingTicks = 0;
         standingStillTicks = 0;
@@ -730,6 +886,10 @@ public class BreakPlaceAndChaseGoal extends Goal {
     }
 
     public void navigateMobToTargetPos(BlockPos targetPos) {
+        if (getWorld(mob).getBlockState(targetPos).isOf(Blocks.WATER)) {
+            mob.getNavigation().startMovingTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), 1.0);
+            ClientRenderedBlockUpdateServiceImpl.renderTargetBlock(mob.getId(), targetPos);
+        }
         if (!isSolidBlock(targetPos) && !isSolidBlock(targetPos.up()) && !isPlacementNeeded(targetPos.down(), -1)) {
             mob.getNavigation().startMovingTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), 1.0);
             ClientRenderedBlockUpdateServiceImpl.renderTargetBlock(mob.getId(), targetPos);
