@@ -18,12 +18,12 @@ public class InfiniteZombieBlocksCommand {
                             boolean state = BoolArgumentType.getBool(context, "state");
                             ConfigManager.getConfig().setInfiniteZombieBlocks(state);
                             ConfigManager.saveConfig();
-                            context.getSource().sendFeedback(() -> Text.of("Setting infiniteZombieBlocks to: " + state), true);
+                            context.getSource().sendFeedback(Text.of("Setting infiniteZombieBlocks to: " + state), true);
                             // Add custom logic here
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /infiniteZombieBlocks <true/false>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /infiniteZombieBlocks <true/false>"), true);
                     return 0;
                 }));
     }

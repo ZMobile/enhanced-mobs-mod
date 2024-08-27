@@ -18,11 +18,11 @@ public class DaysBeforeBloodmoonPossibilityCommand {
                             int value = IntegerArgumentType.getInteger(context, "value");
                             ConfigManager.getConfig().setDaysBeforeBloodmoonPossibility(value);
                             ConfigManager.saveConfig();
-                            context.getSource().sendFeedback(() -> Text.of("Days before bloodmoon possibility set to " + value), true);
+                            context.getSource().sendFeedback(Text.of("Days before bloodmoon possibility set to " + value), true);
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /daysBeforeBloodmoonPossibility <value>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /daysBeforeBloodmoonPossibility <value>"), true);
                     return 0;
                 }));
     }

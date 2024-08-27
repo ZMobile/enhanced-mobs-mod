@@ -36,7 +36,7 @@ public class ResetPathsCommand {
                         }
                     }
                     // Send feedback to the command source
-                    context.getSource().sendFeedback(() -> Text.of("All paths have been cleared."), true);
+                    context.getSource().sendFeedback(Text.of("All paths have been cleared."), true);
                     return 1;
                 }));
     }

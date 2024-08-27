@@ -21,12 +21,12 @@ public class AllowBreakCommand {
                             BaritoneAPI.getSettings().allowBreak.value = state;
                             ConfigManager.getConfig().setAllowBreak(state);
                             ConfigManager.saveConfig();
-                            context.getSource().sendFeedback(() -> Text.of("Setting allowBreak to: " + state), true);
+                            context.getSource().sendFeedback(Text.of("Setting allowBreak to: " + state), true);
                             // Add custom logic here
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /allowBreak <true/false>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /allowBreak <true/false>"), true);
                     return 0;
                 }));
     }

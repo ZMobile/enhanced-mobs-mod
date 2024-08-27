@@ -32,7 +32,7 @@ public class CommandBloodmoon {
         BloodmoonHandler handler = BloodmoonHandler.INSTANCE;
         if (handler != null) {
             handler.force();
-            source.sendFeedback(() -> Text.literal("Bloodmoon forced."), true);
+            source.sendFeedback(Text.literal("Bloodmoon forced."), true);
         } else {
             source.sendError(Text.literal("Bloodmoon handler not initialized."));
         }
@@ -44,7 +44,7 @@ public class CommandBloodmoon {
         BloodmoonHandler handler = BloodmoonHandler.INSTANCE;
         if (handler != null) {
             handler.stop();
-            source.sendFeedback(() -> Text.literal("Bloodmoon stopped."), true);
+            source.sendFeedback(Text.literal("Bloodmoon stopped."), true);
         } else {
             source.sendError(Text.literal("Bloodmoon handler not initialized."));
         }
@@ -55,7 +55,7 @@ public class CommandBloodmoon {
         ServerCommandSource source = context.getSource();
         ConfigManager.getConfig().setBloodmoonEnabled(true);
         ConfigManager.saveConfig();
-        source.sendFeedback(() -> Text.literal("Bloodmoon enabled."), true);
+        source.sendFeedback(Text.literal("Bloodmoon enabled."), true);
         return 1;
     }
 
@@ -63,7 +63,7 @@ public class CommandBloodmoon {
         ServerCommandSource source = context.getSource();
         ConfigManager.getConfig().setBloodmoonEnabled(false);
         ConfigManager.saveConfig();
-        source.sendFeedback(() -> Text.literal("Bloodmoon disabled."), true);
+        source.sendFeedback(Text.literal("Bloodmoon disabled."), true);
         return 1;
     }
 }

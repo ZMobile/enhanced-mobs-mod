@@ -18,12 +18,12 @@ public class RaidersBreakBlocksCommand {
                             boolean state = BoolArgumentType.getBool(context, "state");
                             ConfigManager.getConfig().setRaidersBreakBlocks(state);
                             ConfigManager.saveConfig();
-                            context.getSource().sendFeedback(() -> Text.of("Setting raidersBreakBlocks to: " + state), true);
+                            context.getSource().sendFeedback(Text.of("Setting raidersBreakBlocks to: " + state), true);
                             // Add custom logic here
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /raidersBreakBlocks <true/false>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /raidersBreakBlocks <true/false>"), true);
                     return 0;
                 }));
     }

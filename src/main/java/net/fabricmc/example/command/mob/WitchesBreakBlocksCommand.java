@@ -18,12 +18,12 @@ public class WitchesBreakBlocksCommand {
                             boolean state = BoolArgumentType.getBool(context, "state");
                             ConfigManager.getConfig().setWitchesBreakBlocks(state);
                             ConfigManager.saveConfig();
-                            context.getSource().sendFeedback(() -> Text.of("Setting witchesBreakBlocks to: " + state), true);
+                            context.getSource().sendFeedback(Text.of("Setting witchesBreakBlocks to: " + state), true);
                             // Add custom logic here
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /witchesBreakBlocks <true/false>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /witchesBreakBlocks <true/false>"), true);
                     return 0;
                 }));
     }

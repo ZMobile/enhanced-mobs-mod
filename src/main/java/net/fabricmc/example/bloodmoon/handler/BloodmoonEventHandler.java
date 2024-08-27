@@ -16,8 +16,6 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-import static net.fabricmc.example.bloodmoon.server.BloodmoonHandler.BLOODMOON_HANDLER_TYPE;
-
 public class BloodmoonEventHandler {
 
 	public void registerEvents() {
@@ -31,9 +29,11 @@ public class BloodmoonEventHandler {
 
 		if (!world.isClient && world.getRegistryKey() == World.OVERWORLD) {
 			BloodmoonHandler.INSTANCE = world.getPersistentStateManager().getOrCreate(
-					BLOODMOON_HANDLER_TYPE,
-					"bloodmoon"
+                    BloodmoonHandler::readNbt, // This is the read function that reads from NBT and returns a BloodmoonHandler
+                    BloodmoonHandler::new, // This is the supplier that provides a new instance if one doesn't already exist
+					"bloodmoon" // This is the id under which the state is stored
 			);
+
 
 			// This null check is no longer necessary, since `getOrCreate` ensures a valid instance is returned.
 			BloodmoonHandler.INSTANCE.updateClients();

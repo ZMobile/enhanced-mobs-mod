@@ -20,12 +20,12 @@ public class MobBlockBreakAdditionalPenaltyCommand {
                             BaritoneAPI.getSettings().blockBreakAdditionalPenalty.value = value;
                             ConfigManager.getConfig().setMobBlockBreakAdditionalPenalty(value);
                             ConfigManager.saveConfig();
-                            context.getSource().sendFeedback(() -> Text.of("Setting mobBlockBreakAdditionalPenalty to: " + value), true);
+                            context.getSource().sendFeedback(Text.of("Setting mobBlockBreakAdditionalPenalty to: " + value), true);
                             // Add custom logic here
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /mobBlockBreakAdditionalPenalty <value>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /mobBlockBreakAdditionalPenalty <value>"), true);
                     return 0;
                 }));
     }

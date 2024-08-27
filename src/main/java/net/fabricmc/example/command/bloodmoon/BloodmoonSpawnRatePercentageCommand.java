@@ -18,11 +18,11 @@ public class BloodmoonSpawnRatePercentageCommand {
                             double value = DoubleArgumentType.getDouble(context, "value");
                             ConfigManager.getConfig().setBloodmoonSpawnPercentage(value);
                             ConfigManager.saveConfig();
-                            context.getSource().sendFeedback(() -> Text.of("Bloodmoon spawn rate percentage set to " + value), true);
+                            context.getSource().sendFeedback(Text.of("Bloodmoon spawn rate percentage set to " + value), true);
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /bloodmoonSpawnRatePercentage <value>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /bloodmoonSpawnRatePercentage <value>"), true);
                     return 0;
                 }));
     }

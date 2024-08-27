@@ -10,7 +10,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
@@ -48,17 +47,12 @@ public class BloodmoonHandler extends PersistentState {
 		return nbt;
 	}
 
-	public static final PersistentState.Type<BloodmoonHandler> BLOODMOON_HANDLER_TYPE = new PersistentState.Type<>(
-			BloodmoonHandler::new, // Supplier<BloodmoonHandler> for instance creation
-			nbt -> BloodmoonHandler.readNbt(nbt, null), // Function<NbtCompound, BloodmoonHandler> for reading NBT data
-			DataFixTypes.WORLD_GEN_SETTINGS // Adjust as needed
-	);
-
 	public static void initialize(ServerWorld serverWorld) {
 		PersistentStateManager persistentStateManager = serverWorld.getPersistentStateManager();
 		INSTANCE = persistentStateManager.getOrCreate(
-				BLOODMOON_HANDLER_TYPE,
-				"bloodmoon"
+				BloodmoonHandler::readNbt, // This is the read function that reads from NBT and returns a BloodmoonHandler
+				BloodmoonHandler::new, // This is the supplier that provides a new instance if one doesn't already exist
+				"bloodmoon" // This is the id under which the state is stored
 		);
 		world = serverWorld;
 
@@ -92,7 +86,7 @@ public class BloodmoonHandler extends PersistentState {
 			if (INSTANCE.isBloodmoonActive()) {
 				if (!BloodmoonConfig.GENERAL.RESPECT_GAMERULE || world.getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING)) {
 					for (int i = 0; i < BloodmoonConfig.SPAWNING.SPAWN_SPEED; i++) {
-						INSTANCE.bloodMoonSpawner.triggerBloodmoonSpawning(world, world.getDifficulty() != Difficulty.PEACEFUL, false);
+						INSTANCE.bloodMoonSpawner.spawn(world, world.getDifficulty() != Difficulty.PEACEFUL, false);
 					}
 				}
 
@@ -158,7 +152,7 @@ public class BloodmoonHandler extends PersistentState {
 		return bloodMoon;
 	}
 
-	public static BloodmoonHandler readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
+	public static BloodmoonHandler readNbt(NbtCompound nbt) {
 		BloodmoonHandler handler = new BloodmoonHandler();
 		handler.bloodMoon = nbt.getBoolean("bloodMoon");
 		handler.forceBloodMoon = nbt.getBoolean("forceBloodMoon");

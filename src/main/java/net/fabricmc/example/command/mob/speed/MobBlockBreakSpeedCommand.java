@@ -18,12 +18,12 @@ public class MobBlockBreakSpeedCommand {
                             double value = DoubleArgumentType.getDouble(context, "value");
                             ConfigManager.getConfig().setMobBlockBreakSpeed(value);
                             ConfigManager.saveConfig();
-                            context.getSource().sendFeedback(() -> Text.of("Setting mobBlockBreakSpeed to: " + value), true);
+                            context.getSource().sendFeedback(Text.of("Setting mobBlockBreakSpeed to: " + value), true);
                             // Add custom logic here
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /mobBlockBreakSpeed <value>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /mobBlockBreakSpeed <value>"), true);
                     return 0;
                 }));
     }

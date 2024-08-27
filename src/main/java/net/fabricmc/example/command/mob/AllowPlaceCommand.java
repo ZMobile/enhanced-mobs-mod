@@ -22,12 +22,12 @@ public class AllowPlaceCommand {
                             BaritoneAPI.getSettings().allowPlace.value = state;
                             ConfigManager.getConfig().setAllowPlace(state);
                             ConfigManager.saveConfig();
-                            context.getSource().sendFeedback(() -> Text.of("Setting allowPlace to: " + state), true);
+                            context.getSource().sendFeedback(Text.of("Setting allowPlace to: " + state), true);
                             // Add custom logic here
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /allowPlace <true/false>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /allowPlace <true/false>"), true);
                     return 0;
                 }));
     }

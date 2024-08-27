@@ -18,12 +18,12 @@ public class TrueDarknessEnforcedCommand {
                             boolean state = BoolArgumentType.getBool(context, "state");
                             ConfigManager.getConfig().setTrueDarknessEnforced(state);
                             ConfigManager.saveConfig();
-                            context.getSource().sendFeedback(() -> Text.of("Setting trueDarknessEnforced to: " + state), true);
+                            context.getSource().sendFeedback(Text.of("Setting trueDarknessEnforced to: " + state), true);
                             // Add custom logic here
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /trueDarknessEnforced <true/false>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /trueDarknessEnforced <true/false>"), true);
                     return 0;
                 }));
     }

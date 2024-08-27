@@ -39,12 +39,12 @@ public class IsolatePathCommand {
                                     ServerPlayNetworking.send(player, BaritoneCustomPayload.ID, buf);
                                 }
                             }
-                            context.getSource().sendFeedback(() -> Text.of("Isolating path of mob: " + value), true);
+                            context.getSource().sendFeedback(Text.of("Isolating path of mob: " + value), true);
                             // Add custom logic here
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /isolatePath <value>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /isolatePath <value>"), true);
                     return 0;
                 }));
     }

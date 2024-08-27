@@ -18,12 +18,12 @@ public class CreepersExplodeObstructionsCommand {
                             boolean state = BoolArgumentType.getBool(context, "state");
                             ConfigManager.getConfig().setCreepersExplodeObstructions(state);
                             ConfigManager.saveConfig();
-                            context.getSource().sendFeedback(() -> Text.of("Setting creepersExplodeObstructions to: " + state), true);
+                            context.getSource().sendFeedback(Text.of("Setting creepersExplodeObstructions to: " + state), true);
                             // Add custom logic here
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /creepersExplodeObstructions <true/false>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /creepersExplodeObstructions <true/false>"), true);
                     return 0;
                 }));
     }

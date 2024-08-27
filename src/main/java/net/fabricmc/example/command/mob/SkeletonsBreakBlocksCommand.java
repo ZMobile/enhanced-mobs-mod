@@ -18,12 +18,12 @@ public class SkeletonsBreakBlocksCommand {
                             boolean state = BoolArgumentType.getBool(context, "state");
                             ConfigManager.getConfig().setSkeletonsBreakBlocks(state);
                             ConfigManager.saveConfig();
-                            context.getSource().sendFeedback(() -> Text.of("Setting skeletonsBreakBlocks to: " + state), true);
+                            context.getSource().sendFeedback(Text.of("Setting skeletonsBreakBlocks to: " + state), true);
                             // Add custom logic here
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /skeletonsBreakBlocks <true/false>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /skeletonsBreakBlocks <true/false>"), true);
                     return 0;
                 }));
     }

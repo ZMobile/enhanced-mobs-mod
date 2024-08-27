@@ -18,12 +18,12 @@ public class OptimizedMobitoneCommand {
                             boolean state = BoolArgumentType.getBool(context, "state");
                             ConfigManager.getConfig().setOptimizedMobitone(state);
                             ConfigManager.saveConfig();
-                            context.getSource().sendFeedback(() -> Text.of("Setting optimizedMobitone to: " + state), true);
+                            context.getSource().sendFeedback(Text.of("Setting optimizedMobitone to: " + state), true);
                             // Add custom logic here
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /optimizedMobitone <true/false>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /optimizedMobitone <true/false>"), true);
                     return 0;
                 }));
     }

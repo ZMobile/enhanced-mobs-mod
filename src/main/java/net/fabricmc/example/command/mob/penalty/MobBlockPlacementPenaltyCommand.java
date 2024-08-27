@@ -20,12 +20,12 @@ public class MobBlockPlacementPenaltyCommand {
                             BaritoneAPI.getSettings().blockPlacementPenalty.value = value;
                             ConfigManager.getConfig().setMobBlockPlacementPenalty(value);
                             ConfigManager.saveConfig();
-                            context.getSource().sendFeedback(() -> Text.of("Setting mobBlockPlacementPenalty to: " + value), true);
+                            context.getSource().sendFeedback(Text.of("Setting mobBlockPlacementPenalty to: " + value), true);
                             // Add custom logic here
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /mobBlockPlacementPenalty <value>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /mobBlockPlacementPenalty <value>"), true);
                     return 0;
                 }));
     }

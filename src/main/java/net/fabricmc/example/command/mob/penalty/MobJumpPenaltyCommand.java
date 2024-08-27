@@ -21,12 +21,12 @@ public class MobJumpPenaltyCommand {
                             BaritoneAPI.getSettings().jumpPenalty.value = value;
                             ConfigManager.getConfig().setMobJumpPenalty(value);
                             ConfigManager.saveConfig();
-                            context.getSource().sendFeedback(() -> Text.of("Setting mobJumpPenalty to: " + value), true);
+                            context.getSource().sendFeedback(Text.of("Setting mobJumpPenalty to: " + value), true);
                             // Add custom logic here
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /mobJumpPenalty <value>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /mobJumpPenalty <value>"), true);
                     return 0;
                 }));
     }

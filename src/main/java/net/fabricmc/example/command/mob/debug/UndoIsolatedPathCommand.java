@@ -38,7 +38,7 @@ public class UndoIsolatedPathCommand {
                     }
 
                     // Send feedback to the command source
-                    context.getSource().sendFeedback(() -> Text.of("All isolated paths have been undone."), true);
+                    context.getSource().sendFeedback(Text.of("All isolated paths have been undone."), true);
                     return 1;
                 }));
     }

@@ -31,12 +31,12 @@ public class GoalInfoCommand {
                             }
                             // v System.out.println(gson.toJson(goal));
                             String finalResponse = response;
-                            context.getSource().sendFeedback(() -> Text.of(finalResponse), true);
+                            context.getSource().sendFeedback(Text.of(finalResponse), true);
                             // Add custom logic here
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /goalInfo <value>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /goalInfo <value>"), true);
                     return 0;
                 }));
     }

@@ -8,24 +8,22 @@ import net.fabricmc.example.config.ConfigManager;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.entity.Spawner;
 import net.minecraft.entity.*;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.mob.Monster;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.tag.BiomeTags;
-import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.collection.Pool;
 import net.minecraft.util.math.*;
+import net.minecraft.util.registry.RegistryEntry;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.LightType;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.SpawnSettings;
+import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.WorldChunk;
 
 
@@ -38,6 +36,7 @@ import net.minecraft.entity.SpawnReason;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.spawner.Spawner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -50,9 +49,9 @@ public final class BloodmoonSpawner implements Spawner {
 	private final Set<ChunkPos> eligibleChunksForSpawning = Sets.newHashSet();
 	int witchCount = 0; // Counter for witches
 
-	public void triggerBloodmoonSpawning(ServerWorld world, boolean spawnHostileMobs, boolean spawnPeacefulMobs) {
+	public int spawn(ServerWorld world, boolean spawnHostileMobs, boolean spawnPeacefulMobs) {
 		if (!spawnHostileMobs && !spawnPeacefulMobs) {
-			return;
+			return 0;
 		}
 
 		this.eligibleChunksForSpawning.clear();
@@ -196,7 +195,7 @@ public final class BloodmoonSpawner implements Spawner {
 													mobEntity = (MobEntity) spawnEntry.type.create(world);
 												} catch (Exception e) {
 													e.printStackTrace();
-													return;
+													return 0;
 												}
 
 												mobEntity.refreshPositionAndAngles(spawnX, y, spawnZ, world.random.nextFloat() * 360.0F, 0.0F);
@@ -223,6 +222,7 @@ public final class BloodmoonSpawner implements Spawner {
 				}
 			}
 		}
+		return spawnCount;
 	}
 
 	private boolean isPlayerNearby(ServerWorld world, BlockPos pos, double distance) {
@@ -248,8 +248,19 @@ public final class BloodmoonSpawner implements Spawner {
 		WorldChunk chunk = world.getChunk(chunkX, chunkZ);
 		int x = chunkX * 16 + world.random.nextInt(16);
 		int z = chunkZ * 16 + world.random.nextInt(16);
+
+		// Get the heightmap to determine the surface Y-level
 		int maxY = chunk.sampleHeightmap(Heightmap.Type.WORLD_SURFACE, x, z) + 1;
-		int y = world.random.nextInt(maxY > 0 ? maxY : chunk.getHighestNonEmptySection() * 16 - 1);
+
+		// Determine the maximum Y-level to consider
+		if (maxY <= 0) {
+			ChunkSection highestSection = chunk.getHighestNonEmptySection();
+			maxY = highestSection != null ? highestSection.getYOffset() + 15 : 0;
+		}
+
+		// Pick a random Y level
+		int y = world.random.nextInt(maxY);
+
 		return new BlockPos(x, y, z);
 	}
 
@@ -324,11 +335,5 @@ public final class BloodmoonSpawner implements Spawner {
 				}
 			}
 		}
-	}
-
-
-	@Override
-	public void setEntityType(EntityType<?> type, net.minecraft.util.math.random.Random random) {
-		// TODO Auto-generated method stub
 	}
 }

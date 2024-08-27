@@ -18,12 +18,12 @@ public class ZombiesBreakAndPlaceBlocksCommand {
                             boolean state = BoolArgumentType.getBool(context, "state");
                             ConfigManager.getConfig().setZombiesBreakAndPlaceBlocks(state);
                             ConfigManager.saveConfig();
-                            context.getSource().sendFeedback(() -> Text.of("Setting zombiesBreakAndPlaceBlocks to: " + state), true);
+                            context.getSource().sendFeedback(Text.of("Setting zombiesBreakAndPlaceBlocks to: " + state), true);
                             // Add custom logic here
                             return 1;
                         }))
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.of("Usage: /zombiesBreakAndPlaceBlocks <true/false>"), true);
+                    context.getSource().sendFeedback(Text.of("Usage: /zombiesBreakAndPlaceBlocks <true/false>"), true);
                     return 0;
                 }));
     }
