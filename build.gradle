@@ -13,26 +13,6 @@ configurations {
 	mobitone
 }
 
-task downloadMobitone {
-	doLast {
-		def url = 'https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone/mobitone1.20.4-server.jar'
-		def outputFile = file(files('lib/mobitone1.20.4-server.jar').getAsPath())
-
-		if (!outputFile.exists()) {
-			println "Downloading mobitone1.20.4-server.jar..."
-			outputFile.parentFile.mkdirs()  // Ensure the directory exists
-			new URL(url).withInputStream { inputStream ->
-				outputFile.withOutputStream { outputStream ->
-					outputStream << inputStream
-				}
-			}
-			println "Download completed."
-		} else {
-			println "mobitone1.20.4-server.jar already exists. Skipping download."
-		}
-	}
-}
-
 
 repositories {
 	// Add repositories to retrieve artifacts from in here.
@@ -79,8 +59,8 @@ dependencies {
 	//modImplementation files('lib/mobitone1.20.1-server.jar')
 
 
-	modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone/mobitone1.20.4-server.jar", 'mobitone', '1.20.4-server')
-	include urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone/mobitone1.20.4-server.jar", 'mobitone', '1.20.4-server')
+	modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.11.0-Mobitone1.19.2/mobitone1.19.2-server.jar", 'mobitone', '1.19.2-server')
+	include urlFile("https://github.com/ZMobile/baritone/releases/download/v1.11.0-Mobitone1.19.2/mobitone1.19.2-server.jar", 'mobitone', '1.19.2-server')
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
 	// You may need to force-disable transitiveness on them.
 }
