@@ -31,26 +31,15 @@ public abstract class SkeletonEntityMixin extends PathAwareEntity {
         //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(), (SkeletonEntity) (Object) this);
         //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
         if (ConfigManager.getConfig().isSkeletonsBreakBlocks()) {
-            if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
-                if (ConfigManager.getConfig().isSkeletonsBreakBlocksDuringBloodmoon()) {
-                    provisionMobitoneGoal();
-                }
-            } else {
-                if (!ConfigManager.getConfig().isBuildingMiningMobsDuringBloodmoonOnly()) {
-                    provisionMobitoneGoal();
-                }
+            if (!ConfigManager.getConfig().isOptimizedMobitone()) {
+                MobitoneServiceImpl.addMobitone(this);
+                MobitoneServiceImpl.fillInQueue();
             }
+            //}
+            this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this));
         }
         this.goalSelector.add(6, new CustomTargetGoal(this));
         //System.out.println("Baritone goal successfully added to SkeletonEntity");
-    }
-
-    private void provisionMobitoneGoal() {
-        if (!ConfigManager.getConfig().isOptimizedMobitone()) {
-            MobitoneServiceImpl.addMobitone(this);
-            MobitoneServiceImpl.fillInQueue();
-        }
-        this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this));
     }
 
     @Inject(method = "tickMovement", at = @At("HEAD"))

@@ -47,16 +47,11 @@ public class BloodmoonHandler extends PersistentState {
 		return nbt;
 	}
 
-	public static final PersistentState.Type<BloodmoonHandler> BLOODMOON_HANDLER_TYPE = new PersistentState.Type<>(
-			BloodmoonHandler::new,
-			BloodmoonHandler::readNbt,
-			DataFixTypes.WORLD_GEN_SETTINGS // Adjust as needed
-	);
-
 	public static void initialize(ServerWorld serverWorld) {
 		PersistentStateManager persistentStateManager = serverWorld.getPersistentStateManager();
 		INSTANCE = persistentStateManager.getOrCreate(
-				BLOODMOON_HANDLER_TYPE,
+				BloodmoonHandler::readNbt, // This is the read function that reads from NBT and returns a BloodmoonHandler
+				BloodmoonHandler::new, // This is the supplier that provides a new instance if one doesn't already exist
 				"bloodmoon" // This is the id under which the state is stored
 		);
 		world = serverWorld;

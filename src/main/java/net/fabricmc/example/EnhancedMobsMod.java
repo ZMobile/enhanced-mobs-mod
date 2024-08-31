@@ -11,10 +11,7 @@ import net.fabricmc.example.bloodmoon.server.CommandBloodmoon;
 import net.fabricmc.example.client.payload.BaritoneCustomPayload;
 import net.fabricmc.example.command.OptimizedMobitoneCommand;
 import net.fabricmc.example.command.TrueDarknessEnforcedCommand;
-import net.fabricmc.example.command.bloodmoon.BloodmoonChancePercentageCommand;
 import net.fabricmc.example.command.bloodmoon.BloodmoonSpawnRatePercentageCommand;
-import net.fabricmc.example.command.bloodmoon.BuildingMiningMobsDuringBloodmoonOnly;
-import net.fabricmc.example.command.bloodmoon.DaysBeforeBloodmoonPossibilityCommand;
 import net.fabricmc.example.command.mob.*;
 import net.fabricmc.example.command.mob.debug.GoalInfoCommand;
 import net.fabricmc.example.command.mob.debug.IsolatePathCommand;
@@ -46,14 +43,14 @@ import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
-
+import net.minecraft.util.math.Box;
+import net.minecraft.util.registry.RegistryEntry;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeKeys;
@@ -113,6 +110,7 @@ public class EnhancedMobsMod implements ModInitializer {
 		proxy.init();
 		proxy.postInit();
 
+		// Register Bloodmoon command
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			CommandBloodmoon.register(dispatcher);
 			AllowPlaceCommand.register(dispatcher);
@@ -129,14 +127,11 @@ public class EnhancedMobsMod implements ModInitializer {
 			OptimizedMobitoneCommand.register(dispatcher);
 			InfiniteZombieBlocksCommand.register(dispatcher);
 			MobBlockBreakSpeedCommand.register(dispatcher);
-			//IsolatePathCommand.register(dispatcher);
-			//UndoIsolatedPathCommand.register(dispatcher);
-			//ResetPathsCommand.register(dispatcher);
-			//GoalInfoCommand.register(dispatcher);
+			IsolatePathCommand.register(dispatcher);
+			UndoIsolatedPathCommand.register(dispatcher);
+			ResetPathsCommand.register(dispatcher);
+			GoalInfoCommand.register(dispatcher);
 			BloodmoonSpawnRatePercentageCommand.register(dispatcher);
-			BloodmoonChancePercentageCommand.register(dispatcher);
-			DaysBeforeBloodmoonPossibilityCommand.register(dispatcher);
-			BuildingMiningMobsDuringBloodmoonOnly.register(dispatcher);
 		});
 
 		// Server starting event
