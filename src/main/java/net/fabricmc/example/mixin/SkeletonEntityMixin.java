@@ -1,18 +1,13 @@
 package net.fabricmc.example.mixin;
 
-import baritone.api.BaritoneAPI;
-import baritone.api.IBaritone;
 import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.example.mobai.BreakPlaceAndChaseGoal;
 import net.fabricmc.example.mobai.CustomTargetGoal;
 import net.fabricmc.example.service.MobitoneServiceImpl;
-import net.fabricmc.example.util.MinecraftServerUtil;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.AbstractSkeletonEntity;
 import net.minecraft.entity.mob.PathAwareEntity;
-import net.minecraft.entity.mob.SkeletonEntity;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -31,15 +26,26 @@ public abstract class SkeletonEntityMixin extends PathAwareEntity {
         //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(), (SkeletonEntity) (Object) this);
         //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
         if (ConfigManager.getConfig().isSkeletonsBreakBlocks()) {
-            if (!ConfigManager.getConfig().isOptimizedMobitone()) {
-                MobitoneServiceImpl.addMobitone(this);
-                MobitoneServiceImpl.fillInQueue();
+            if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+                if (ConfigManager.getConfig().isSkeletonsBreakBlocksDuringBloodmoon()) {
+                    provisionMobitoneGoal();
+                }
+            } else {
+                if (!ConfigManager.getConfig().isBuildingMiningMobsDuringBloodmoonOnly()) {
+                    provisionMobitoneGoal();
+                }
             }
-            //}
-            this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this));
         }
         this.goalSelector.add(6, new CustomTargetGoal(this));
         //System.out.println("Baritone goal successfully added to SkeletonEntity");
+    }
+
+    private void provisionMobitoneGoal() {
+        if (!ConfigManager.getConfig().isOptimizedMobitone()) {
+            MobitoneServiceImpl.addMobitone(this);
+            MobitoneServiceImpl.fillInQueue();
+        }
+        this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this));
     }
 
     @Inject(method = "tickMovement", at = @At("HEAD"))

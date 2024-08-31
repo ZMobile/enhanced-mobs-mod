@@ -13,6 +13,7 @@ import net.fabricmc.example.command.OptimizedMobitoneCommand;
 import net.fabricmc.example.command.TrueDarknessEnforcedCommand;
 import net.fabricmc.example.command.bloodmoon.BloodmoonChancePercentageCommand;
 import net.fabricmc.example.command.bloodmoon.BloodmoonSpawnRatePercentageCommand;
+import net.fabricmc.example.command.bloodmoon.BuildingMiningMobsDuringBloodmoonOnly;
 import net.fabricmc.example.command.bloodmoon.DaysBeforeBloodmoonPossibilityCommand;
 import net.fabricmc.example.command.mob.*;
 import net.fabricmc.example.command.mob.debug.GoalInfoCommand;
@@ -129,13 +130,14 @@ public class EnhancedMobsMod implements ModInitializer {
 			OptimizedMobitoneCommand.register(dispatcher);
 			InfiniteZombieBlocksCommand.register(dispatcher);
 			MobBlockBreakSpeedCommand.register(dispatcher);
-			IsolatePathCommand.register(dispatcher);
-			UndoIsolatedPathCommand.register(dispatcher);
-			ResetPathsCommand.register(dispatcher);
-			GoalInfoCommand.register(dispatcher);
+			//IsolatePathCommand.register(dispatcher);
+			//UndoIsolatedPathCommand.register(dispatcher);
+			//ResetPathsCommand.register(dispatcher);
+			//GoalInfoCommand.register(dispatcher);
 			BloodmoonSpawnRatePercentageCommand.register(dispatcher);
 			DaysBeforeBloodmoonPossibilityCommand.register(dispatcher);
 			BloodmoonChancePercentageCommand.register(dispatcher);
+			BuildingMiningMobsDuringBloodmoonOnly.register(dispatcher);
 		});
 
 		// Server starting event
