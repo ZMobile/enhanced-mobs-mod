@@ -31,16 +31,26 @@ public abstract class RaiderEntityMixin extends PathAwareEntity {
         //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(),  this);
         //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
         if (ConfigManager.getConfig().isRaidersBreakBlocks()) {
-            if (!ConfigManager.getConfig().isOptimizedMobitone()) {
-                MobitoneServiceImpl.addMobitone(this);
-                MobitoneServiceImpl.fillInQueue();
+            if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+                if (!ConfigManager.getConfig().isBuildingMiningMobsDuringBloodmoonOnly()) {
+                    provisionMobitoneGoal();
+                }
+            } else {
+                provisionMobitoneGoal();
             }
-            //}
-            this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this));
         }
         this.goalSelector.add(6, new CustomTargetGoal(this));
         // BaritoneAPI.getProvider().getBaritoneForEntity(this).getCustomGoalProcess().setGoalAndPath(goal);
         //System.out.println("Baritone goal successfully added to IllagerEntity");
+    }
+
+    private void provisionMobitoneGoal() {
+        if (!ConfigManager.getConfig().isOptimizedMobitone()) {
+            MobitoneServiceImpl.addMobitone(this);
+            MobitoneServiceImpl.fillInQueue();
+        }
+        //}
+        this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this));
     }
 
     @Inject(method = "onDeath", at = @At("TAIL"))

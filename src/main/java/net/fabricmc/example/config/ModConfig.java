@@ -11,6 +11,7 @@ public class  ModConfig {
     private boolean creepersExplodeObstructions;
     private boolean bloodmoonEnabled;
     private boolean trueDarknessEnforced;
+    private Boolean buildingMiningMobsDuringBloodmoonOnly;
     private double mobBlockPlacementPenalty;
     private double mobBlockBreakAdditionalPenalty;
     private double mobJumpPenalty;
@@ -25,12 +26,13 @@ public class  ModConfig {
         allowPlace = true;
         zombiesBreakAndPlaceBlocks = true;
         skeletonsBreakBlocks = true;
-        skeletonsBreakBlocksDuringBloodmoon = false;
+        skeletonsBreakBlocksDuringBloodmoon = true;
         raidersBreakBlocks = true;
         witchesBreakBlocks = true;
         creepersExplodeObstructions = true;
         bloodmoonEnabled = true;
         trueDarknessEnforced = false;
+        buildingMiningMobsDuringBloodmoonOnly = false;
         mobBlockPlacementPenalty = 3.0;
         mobBlockBreakAdditionalPenalty = 2.0;
         mobJumpPenalty = 2.0;
@@ -115,6 +117,14 @@ public class  ModConfig {
 
     public boolean isTrueDarknessEnforced() {
         return trueDarknessEnforced;
+    }
+
+    public Boolean isBuildingMiningMobsDuringBloodmoonOnly() {
+        return buildingMiningMobsDuringBloodmoonOnly;
+    }
+
+    public void setBuildingMiningMobsDuringBloodmoonOnly(boolean buildingMiningMobsDuringBloodmoonOnly) {
+        this.buildingMiningMobsDuringBloodmoonOnly = buildingMiningMobsDuringBloodmoonOnly;
     }
 
     public void setTrueDarknessEnforced(boolean trueDarknessEnforced) {
