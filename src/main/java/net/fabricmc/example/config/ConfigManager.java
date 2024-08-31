@@ -43,10 +43,15 @@ public class ConfigManager {
                         0.00001);
             }
             if (config.isSkeletonsBreakBlocksDuringBloodmoon() == null) {
-                config.setSkeletonsBreakBlocksDuringBloodmoon(false);
+                config.setSkeletonsBreakBlocksDuringBloodmoon(true);
             }
             if (config.getDaysBeforeBloodmoonPossibility() == null) {
                 config.setDaysBeforeBloodmoonPossibility(3);
+            }
+            if (config.isBuildingMiningMobsDuringBloodmoonOnly() == null) {
+                config.setBuildingMiningMobsDuringBloodmoonOnly(false);
+
+                config.setSkeletonsBreakBlocksDuringBloodmoon(true);
             }
         } catch (JsonIOException | JsonSyntaxException | IOException e) {
             config = new ModConfig();
