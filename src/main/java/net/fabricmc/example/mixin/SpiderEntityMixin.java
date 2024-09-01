@@ -2,7 +2,9 @@ package net.fabricmc.example.mixin;
 
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
+import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.mobai.CustomTargetGoal;
+import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.PathAwareEntity;
@@ -22,7 +24,11 @@ public class SpiderEntityMixin extends PathAwareEntity {
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void addCustomGoals(CallbackInfo info) {
         //GoalBlock goal = new GoalBlock(0, 60, 200);
-        BaritoneAPI.getProvider().createBaritone(MinecraftClient.getInstance(),  this);
+        //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(),  this);
+        /*if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+            MobitoneServiceImpl.addMobitone(this);
+            MobitoneServiceImpl.fillInQueue();
+        }*/
         this.goalSelector.add(6, new CustomTargetGoal(this));
         // BaritoneAPI.getProvider().getBaritoneForEntity(this).getCustomGoalProcess().setGoalAndPath(goal);
         //System.out.println("Baritone goal successfully added to ZombieEntity");
@@ -44,13 +50,13 @@ public class SpiderEntityMixin extends PathAwareEntity {
     @Inject(method = "tick", at = @At("TAIL"))
     private void onZombieDespawn(CallbackInfo info) {
         if (!this.isAlive()) {
-            IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
+            /*IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
             if (goalBaritone != null) {
                 // Clean up Baritone instance for this entity
                 BaritoneAPI.getProvider().destroyBaritone(goalBaritone);
                 // Debug log to verify cleanup
                 //System.out.println("Baritone instance successfully removed for ZombieEntity on despawn");
-            }
+            }*/
         }
     }
 }

@@ -2,8 +2,8 @@ plugins {
 	id 'fabric-loom' version '1.6-SNAPSHOT'
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = '17'
+targetCompatibility = '17'
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version
@@ -48,17 +48,25 @@ dependencies {
 
 	//modImplementation urlFile("https://github.com/cabaletta/baritone/releases/download/v1.10.2/baritone-api-fabric-1.10.2.jar", 'baritone', '1.20.4-1.10.2')
 	//modImplementation files("C:/Users/hzant/IdeaProjects/baritone-zante/dist/baritone-api-fabric-1.9.3-66-gfac6749e.jar")
-	modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone-Singleplayer/mobitone1.20.4.jar", 'mobitone', '1.20.4')
-	implementation "dev.babbaj:nether-pathfinder:1.4.1"
+	//modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.11.0-Mobitone-Singleplayer/mobitone1.21.jar", 'mobitone', '1.21')
+	modImplementation "dev.babbaj:nether-pathfinder:1.4.1"
 
 	// Include the cloth-config jar in the lib directory
-	//modImplementation files('lib/mobitone1.20.4-2.jar')
+	 modImplementation files('lib/mobitone1.21.jar')
 	modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
 		exclude(group: "net.fabricmc.fabric-api")
 	}
 	//modImplementation urlFile("https://www.curseforge.com/minecraft/mc-mods/cloth-config/download/4973455", 'cloth-config', '13.0.121-fabric')
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
 	// You may need to force-disable transitiveness on them.
+}
+
+configurations {
+	includeInJar
+}
+
+dependencies {
+	includeInJar "dev.babbaj:nether-pathfinder:1.4.1"
 }
 
 processResources {
@@ -78,7 +86,7 @@ tasks.withType(JavaCompile).configureEach {
 	// The Minecraft launcher currently installs Java 8 for users, so your mod probably wants to target Java 8 too
 	// JDK 9 introduced a new way of specifying this that will make sure no newer classes or methods are used.
 	// We'll use that if it's available, but otherwise we'll use the older option.
-	def targetVersion = 8
+	def targetVersion = 17
 	if (JavaVersion.current().isJava9Compatible()) {
 		it.options.release = targetVersion
 	}
@@ -91,9 +99,20 @@ java {
 	withSourcesJar()
 }
 
+tasks.register('includeDependencies', Copy) {
+	from {
+		configurations.includeInJar.collect { it.isDirectory() ? it : zipTree(it) }
+	}
+	into "$buildDir/dependencies"
+}
 jar {
 	from("LICENSE") {
 		rename { "${it}_${project.archivesBaseName}"}
+	}
+
+	dependsOn tasks.named('includeDependencies')
+	from {
+		tasks.named('includeDependencies').get().destinationDir
 	}
 }
 

@@ -2,10 +2,11 @@ package net.fabricmc.example.mixin;
 
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
+import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.config.ConfigManager;
-import net.fabricmc.example.mobai.BreakBlockAndChaseGoal;
 import net.fabricmc.example.mobai.BreakPlaceAndChaseGoal;
 import net.fabricmc.example.mobai.CustomTargetGoal;
+import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.AbstractSkeletonEntity;
@@ -26,12 +27,29 @@ public abstract class SkeletonEntityMixin extends PathAwareEntity {
 
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void addCustomGoals(CallbackInfo info) {
+        //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(), (SkeletonEntity) (Object) this);
+        //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
         if (ConfigManager.getConfig().isSkeletonsBreakBlocks()) {
-            BaritoneAPI.getProvider().createBaritone(MinecraftClient.getInstance(), (SkeletonEntity) (Object) this);
-            this.goalSelector.add(6, new BreakPlaceAndChaseGoal((SkeletonEntity) (Object) this));
+            if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+                if (ConfigManager.getConfig().isSkeletonsBreakBlocksDuringBloodmoon()) {
+                    provisionMobitoneGoal();
+                }
+            } else {
+                if (!ConfigManager.getConfig().isBuildingMiningMobsDuringBloodmoonOnly()) {
+                    provisionMobitoneGoal();
+                }
+            }
         }
-        this.goalSelector.add(6, new CustomTargetGoal((SkeletonEntity) (Object) this));
+        this.goalSelector.add(6, new CustomTargetGoal(this));
         //System.out.println("Baritone goal successfully added to SkeletonEntity");
+    }
+
+    private void provisionMobitoneGoal() {
+        if (!ConfigManager.getConfig().isOptimizedMobitone()) {
+            MobitoneServiceImpl.addMobitone(this);
+            MobitoneServiceImpl.fillInQueue();
+        }
+        this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this));
     }
 
     @Inject(method = "tickMovement", at = @At("HEAD"))
@@ -42,11 +60,12 @@ public abstract class SkeletonEntityMixin extends PathAwareEntity {
     @Inject(method = "tickMovement", at = @At("TAIL"))
     private void onSkeletonDespawn(CallbackInfo info) {
         if (!this.isAlive()) {
-            IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
+            /*IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
             if (goalBaritone != null) {
                 BaritoneAPI.getProvider().destroyBaritone(goalBaritone);
                 //System.out.println("Baritone instance successfully removed for SkeletonEntity on despawn");
-            }
+            }*/
+            MobitoneServiceImpl.removeMobitone(this);
         }
     }
 }

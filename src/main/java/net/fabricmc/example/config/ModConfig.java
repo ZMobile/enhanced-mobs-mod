@@ -5,28 +5,44 @@ public class  ModConfig {
     private boolean allowPlace;
     private boolean zombiesBreakAndPlaceBlocks;
     private boolean skeletonsBreakBlocks;
+    private Boolean skeletonsBreakBlocksDuringBloodmoon;
     private boolean raidersBreakBlocks;
     private boolean witchesBreakBlocks;
     private boolean creepersExplodeObstructions;
     private boolean bloodmoonEnabled;
+    private boolean trueDarknessEnforced;
     private boolean renderMobPathing;
+    private Boolean buildingMiningMobsDuringBloodmoonOnly;
     private double mobBlockPlacementPenalty;
     private double mobBlockBreakAdditionalPenalty;
     private double mobJumpPenalty;
+    private Double bloodmoonSpawnPercentage;
+    private Boolean optimizedMobitone;
+    private Boolean infiniteZombieBlocks;
+    private Double mobBlockBreakSpeed;
+    private Integer daysBeforeBloodmoonPossibility;
 
     public ModConfig() {
         allowBreak = true;
         allowPlace = true;
         zombiesBreakAndPlaceBlocks = true;
         skeletonsBreakBlocks = true;
+        skeletonsBreakBlocksDuringBloodmoon = true;
         raidersBreakBlocks = true;
         witchesBreakBlocks = true;
         creepersExplodeObstructions = true;
         bloodmoonEnabled = true;
+        trueDarknessEnforced = false;
         renderMobPathing = false;
+        buildingMiningMobsDuringBloodmoonOnly = false;
         mobBlockPlacementPenalty = 3.0;
         mobBlockBreakAdditionalPenalty = 2.0;
         mobJumpPenalty = 2.0;
+        bloodmoonSpawnPercentage = 0.0001;
+        optimizedMobitone = true;
+        infiniteZombieBlocks = true;
+        mobBlockBreakSpeed = 1.0;
+        daysBeforeBloodmoonPossibility = 3;
     }
 
     public boolean isAllowBreak() {
@@ -61,6 +77,14 @@ public class  ModConfig {
         this.skeletonsBreakBlocks = skeletonsBreakBlocks;
     }
 
+    public Boolean isSkeletonsBreakBlocksDuringBloodmoon() {
+        return skeletonsBreakBlocksDuringBloodmoon;
+    }
+
+    public void setSkeletonsBreakBlocksDuringBloodmoon(boolean skeletonsBreakBlocksDuringBloodmoon) {
+        this.skeletonsBreakBlocksDuringBloodmoon = skeletonsBreakBlocksDuringBloodmoon;
+    }
+
     public boolean isRaidersBreakBlocks() {
         return raidersBreakBlocks;
     }
@@ -93,6 +117,14 @@ public class  ModConfig {
         this.bloodmoonEnabled = bloodmoonEnabled;
     }
 
+    public boolean isTrueDarknessEnforced() {
+        return trueDarknessEnforced;
+    }
+
+    public Boolean isBuildingMiningMobsDuringBloodmoonOnly() {
+        return buildingMiningMobsDuringBloodmoonOnly;
+    }
+
     public boolean isRenderMobPathing() {
         return renderMobPathing;
     }
@@ -123,5 +155,45 @@ public class  ModConfig {
 
     public void setMobJumpPenalty(double mobJumpPenalty) {
         this.mobJumpPenalty = mobJumpPenalty;
+    }
+
+    public Double getBloodmoonSpawnPercentage() {
+        return bloodmoonSpawnPercentage;
+    }
+
+    public void setBloodmoonSpawnPercentage(double bloodmoonSpawnPercentage) {
+        this.bloodmoonSpawnPercentage = bloodmoonSpawnPercentage;
+    }
+
+    public Boolean isOptimizedMobitone() {
+        return optimizedMobitone;
+    }
+
+    public void setOptimizedMobitone(Boolean optimizedMobitone) {
+        this.optimizedMobitone = optimizedMobitone;
+    }
+
+    public Boolean isInfiniteZombieBlocks() {
+        return infiniteZombieBlocks;
+    }
+
+    public void setInfiniteZombieBlocks(Boolean infiniteZombieBlocks) {
+        this.infiniteZombieBlocks = infiniteZombieBlocks;
+    }
+
+    public Double getMobBlockBreakSpeed() {
+        return mobBlockBreakSpeed;
+    }
+
+    public void setMobBlockBreakSpeed(Double mobBlockBreakSpeed) {
+        this.mobBlockBreakSpeed = mobBlockBreakSpeed;
+    }
+
+    public Integer getDaysBeforeBloodmoonPossibility() {
+        return daysBeforeBloodmoonPossibility;
+    }
+
+    public void setDaysBeforeBloodmoonPossibility(int daysBeforeBloodmoonPossibility) {
+        this.daysBeforeBloodmoonPossibility = daysBeforeBloodmoonPossibility;
     }
 }

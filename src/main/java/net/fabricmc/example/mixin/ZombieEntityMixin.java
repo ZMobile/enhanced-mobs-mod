@@ -1,15 +1,21 @@
 package net.fabricmc.example.mixin;
 
-import baritone.api.BaritoneAPI;
-import baritone.api.IBaritone;
+import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.config.ConfigManager;
-import net.fabricmc.example.mobai.BreakBlockAndChaseGoal;
 import net.fabricmc.example.mobai.BreakPlaceAndChaseGoal;
+import net.fabricmc.example.mobai.tracker.BreakPlaceAndChaseGoalTracker;
 import net.fabricmc.example.mobai.CustomTargetGoal;
-import net.minecraft.client.MinecraftClient;
+import net.fabricmc.example.mobai.tracker.MobPathTracker;
+import net.fabricmc.example.service.MobitoneServiceImpl;
+import net.minecraft.block.AzaleaBlock;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.ai.pathing.PathNodeType;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.ZombieEntity;
+import net.minecraft.text.Text;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 
@@ -26,14 +32,32 @@ public abstract class ZombieEntityMixin extends PathAwareEntity {
 
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void addCustomGoals(CallbackInfo info) {
-        //GoalBlock goal = new GoalBlock(-370, 7, 60, 200);
+        //GoalBlock goal = new GoalBlock(0, 60, 200);
+        //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(),  this);v
+        //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
         if (ConfigManager.getConfig().isZombiesBreakAndPlaceBlocks()) {
-            BaritoneAPI.getProvider().createBaritone(MinecraftClient.getInstance(), this);
-            this.goalSelector.add(6, new BreakPlaceAndChaseGoal(this));
+            if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+                if (!ConfigManager.getConfig().isBuildingMiningMobsDuringBloodmoonOnly()) {
+                    provisionMobitoneGoal();
+                }
+            } else {
+                provisionMobitoneGoal();
+            }
         }
         this.goalSelector.add(6, new CustomTargetGoal(this));
+
         // BaritoneAPI.getProvider().getBaritoneForEntity(this).getCustomGoalProcess().setGoalAndPath(goal);
-        //System.out.println("Baritone goal successfully added to ZombieEntity");
+    }
+
+    private void provisionMobitoneGoal() {
+        if (!ConfigManager.getConfig().isOptimizedMobitone()) {
+            MobitoneServiceImpl.addMobitone(this);
+            MobitoneServiceImpl.fillInQueue();
+        }
+        //}
+        BreakPlaceAndChaseGoal goal = new BreakPlaceAndChaseGoal(this);
+        this.goalSelector.add(1, goal);
+        BreakPlaceAndChaseGoalTracker.addGoal(this.getId(), goal);
     }
 
     @Inject(method = "tick", at = @At("HEAD"))
@@ -52,13 +76,16 @@ public abstract class ZombieEntityMixin extends PathAwareEntity {
     @Inject(method = "tick", at = @At("TAIL"))
     private void onZombieDespawn(CallbackInfo info) {
         if (!this.isAlive()) {
-            IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
+            /*IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
             if (goalBaritone != null) {
                 // Clean up Baritone instance for this entity
                 BaritoneAPI.getProvider().destroyBaritone(goalBaritone);
                 // Debug log to verify cleanup
                 //System.out.println("Baritone instance successfully removed for ZombieEntity on despawn");
-            }
+            }*/
+            MobitoneServiceImpl.removeMobitone(this);
+            BreakPlaceAndChaseGoalTracker.removeGoal(this.getId());
+            MobPathTracker.removePath(this.getUuidAsString());
         }
     }
 }

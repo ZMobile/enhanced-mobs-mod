@@ -7,7 +7,10 @@ import baritone.api.pathing.calc.IPath;
 import baritone.api.pathing.goals.GoalBlock;
 import baritone.api.pathing.path.IPathExecutor;
 import baritone.api.utils.BetterBlockPos;
-import net.minecraft.block.Blocks;
+import net.fabricmc.example.config.ConfigManager;
+import net.fabricmc.example.service.MobitoneServiceImpl;
+import net.minecraft.block.*;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.mob.CreeperEntity;
 import net.minecraft.entity.mob.PathAwareEntity;
@@ -76,6 +79,9 @@ public class ExplodeBlockAndChaseGoal extends Goal {
             if (mob.getEntityWorld().getBlockState(targetPos.down()).isAir()) {
                 //System.out.println("Player is standing on air. Cannot calculate path.");
                 return;
+            }
+            if (ConfigManager.getConfig().isOptimizedMobitone()) {
+                MobitoneServiceImpl.addMobitone(mob);
             }
             IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(mob);
             if (goalBaritone != null) {
@@ -204,30 +210,73 @@ public class ExplodeBlockAndChaseGoal extends Goal {
                 }
             }*/
         }
-        boolean nonSolidButObstructive = getWorld(mob).getBlockState(blockPos).isOf(Blocks.LADDER)
-                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.VINE)
-                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.IRON_DOOR)
-                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.OAK_DOOR)
-                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.SPRUCE_DOOR)
-                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.BIRCH_DOOR)
-                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.JUNGLE_DOOR)
-                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.ACACIA_DOOR)
-                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.DARK_OAK_DOOR)
-                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.IRON_TRAPDOOR)
-                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.OAK_TRAPDOOR)
-                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.SPRUCE_TRAPDOOR)
-                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.BIRCH_TRAPDOOR)
-                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.JUNGLE_TRAPDOOR)
-                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.ACACIA_TRAPDOOR)
-                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.DARK_OAK_TRAPDOOR)
-                || getWorld(mob).getBlockState(blockPos).isOf(Blocks.POINTED_DRIPSTONE);
-        return getWorld(mob).getBlockState(blockPos).isSolidBlock(getWorld(mob), blockPos) || nonSolidButObstructive;
+        return getWorld(mob).getBlockState(blockPos).isSolidBlock(getWorld(mob), blockPos) || isObstructiveNonQualifyingSolidBlock(blockPos);
+    }
+
+    private boolean isObstructiveNonQualifyingSolidBlock(Block block) {
+        return block instanceof LadderBlock
+                || block instanceof VineBlock
+                || block instanceof FenceBlock
+                || block instanceof WallBlock
+                || block instanceof PaneBlock
+                || block instanceof TransparentBlock
+                || block instanceof DoorBlock
+                || block instanceof TrapdoorBlock
+                || block instanceof BedBlock
+                || block instanceof ChainBlock
+                || block == Blocks.IRON_BARS
+                || block == Blocks.CHAIN
+                || block == Blocks.POINTED_DRIPSTONE
+                || block == Blocks.END_ROD
+                || block instanceof AzaleaBlock
+                || block instanceof BigDripleafBlock
+                || block instanceof SmallDripleafBlock;
+    }
+
+    private boolean isObstructiveNonQualifyingSolidBlock(BlockPos blockPos) {
+        BlockState blockState = getWorld(mob).getBlockState(blockPos);
+        Block block = blockState.getBlock();
+
+        return isObstructiveNonQualifyingSolidBlock(block);
     }
 
     @Override
     public void tick() {
         if (targetPlayer != null) {
-            calculatePath();
+            if (isEntityStuckInDesignatedGlitchBlock(mob)) {
+                float yaw = mob.getYaw();
+                yaw = yaw % 360;
+                if (yaw < 0) {
+                    yaw += 360;
+                }
+                Direction facing;
+                if (yaw >= 45 && yaw < 135) {
+                    facing = Direction.WEST;
+                } else if (yaw >= 135 && yaw < 225) {
+                    facing = Direction.NORTH;
+                } else if (yaw >= 225 && yaw < 315) {
+                    facing = Direction.EAST;
+                } else {
+                    facing = Direction.SOUTH;
+                }
+                BlockPos feetPos = mob.getBlockPos();
+                BlockPos headPos = feetPos.up();
+                BlockPos facingFeetPos = feetPos.offset(facing);
+                BlockPos facingHeadPos = facingFeetPos.up();
+
+                // Check if the block at the entity's feet, head, or in front is a stalagmite
+                if (isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(feetPos, mob.getWorld())) {
+                    breakingPos = feetPos;
+                } else if (isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(headPos, mob.getWorld())) {
+                    breakingPos = headPos;
+                } else if (isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(facingFeetPos, mob.getWorld())) {
+                    breakingPos = facingFeetPos;
+                } else if (isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(facingHeadPos, mob.getWorld())) {
+                    breakingPos = facingHeadPos;
+                }
+            } else {
+                calculatePath();
+            }
             if (breakingPos != null) {
                 if (mob.getBlockPos().isWithinDistance(breakingPos, 3)) {
                     //System.out.println("Block is within distance to explode.");
@@ -241,6 +290,59 @@ public class ExplodeBlockAndChaseGoal extends Goal {
         }
     }
 
+    private boolean isEntityStuckInDesignatedGlitchBlock(LivingEntity entity) {
+        World world = getWorld(mob);
+        float yaw = entity.getYaw();
+        yaw = yaw % 360;
+        if (yaw < 0) {
+            yaw += 360;
+        }
+        Direction facing;
+        if (yaw >= 45 && yaw < 135) {
+            facing = Direction.WEST;
+        } else if (yaw >= 135 && yaw < 225) {
+            facing = Direction.NORTH;
+        } else if (yaw >= 225 && yaw < 315) {
+            facing = Direction.EAST;
+        } else {
+            facing = Direction.SOUTH;
+        }
+        BlockPos feetPos = entity.getBlockPos();
+        BlockPos headPos = feetPos.up();
+        BlockPos facingPos = feetPos.offset(facing);
+        BlockPos facingHeadPos = facingPos.up();
+
+        boolean isFeetStalagmite = isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(feetPos, entity.getWorld());
+        boolean isHeadStalagmite = isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(headPos, entity.getWorld());
+        boolean isFeetFacingStalagmite = isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(facingPos, entity.getWorld());
+        boolean isHeadFacingStalagmite = isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(facingHeadPos, entity.getWorld());
+
+        return (isFeetStalagmite || isHeadStalagmite || isFeetFacingStalagmite || isHeadFacingStalagmite) && isEntityNotMoving(entity);
+    }
+
+
+    private boolean isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(BlockPos pos, World world) {
+        BlockState blockState = world.getBlockState(pos);
+        return blockState.isOf(Blocks.POINTED_DRIPSTONE) // Stalagmite
+                || blockState.isOf(Blocks.END_ROD) // End Rod
+                || blockState.isOf(Blocks.CHAIN) // Chain
+                || blockState.isOf(Blocks.AZALEA) // Azalea Block
+                || blockState.isOf(Blocks.FLOWERING_AZALEA) // Flowering Azalea Block
+                || blockState.isOf(Blocks.BIG_DRIPLEAF)
+                || blockState.isOf(Blocks.SMALL_DRIPLEAF)
+                || blockState.isOf(Blocks.DECORATED_POT)
+                || blockState.isOf(Blocks.DAYLIGHT_DETECTOR)
+                || blockState.isOf(Blocks.SLIME_BLOCK)
+                || blockState.isOf(Blocks.HONEY_BLOCK)
+                || blockState.isOf(Blocks.TARGET);
+    }
+
+
+    private boolean isEntityNotMoving(LivingEntity entity) {
+        // Check if the entity's movement is minimal
+        return entity.getVelocity().lengthSquared() < 0.01;
+    }
+
     private void explodeBlock() {
         //System.out.println("Exploding block at: " + breakingPos);
         mob.ignite(); // Ignite the creeper to make it explode
@@ -250,7 +352,7 @@ public class ExplodeBlockAndChaseGoal extends Goal {
     @Override
     public boolean shouldContinue() {
         if (currentPath != null) {
-            return areSolidBlocksSeparatingPlayerFromMob();
+            return areSolidBlocksSeparatingPlayerFromMob() && !isEntityStuckInDesignatedGlitchBlock(mob);
         }
         return true;
     }

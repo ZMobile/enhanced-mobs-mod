@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "ZombieEntityMixin",
+    "DrownedEntityMixin",
     "CreeperEntityMixin",
     "SpiderEntityMixin",
     "SkeletonEntityMixin",

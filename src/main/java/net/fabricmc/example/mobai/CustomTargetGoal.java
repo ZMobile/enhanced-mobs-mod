@@ -27,11 +27,11 @@ public class CustomTargetGoal extends Goal {
     @Override
     public boolean canStart() {
         targetPlayer = mob.getWorld().getClosestPlayer(mob, MAX_HEARING_DISTANCE);
-        if (targetPlayer != null) {
+        if (targetPlayer != null && !CustomVisibilityCheckServiceImpl.isInCreativeMode(targetPlayer) && !targetPlayer.isSneaking()) {
             return true;
         }
         targetPlayer = mob.getWorld().getClosestPlayer(mob, MAX_UNOBSTRUCTED_DISTANCE);
-        if (BloodmoonHandler.INSTANCE.isBloodmoonActive() && within40Y(mob, targetPlayer)) {
+        if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
             return true;
         }
         if (mob.getTarget() == null && targetPlayer != null  && within40Y(mob, targetPlayer) &&
@@ -78,7 +78,7 @@ public class CustomTargetGoal extends Goal {
             stop();
         }
         if (targetPlayer != null) {
-            if (BloodmoonHandler.INSTANCE.isBloodmoonActive() && within40Y(mob, targetPlayer)) {
+            if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
                 mob.setTarget(targetPlayer);
                 stop();
             }
@@ -110,4 +110,5 @@ public class CustomTargetGoal extends Goal {
         if (entity1 == null || entity2 == null) return false;
         return Math.abs(entity1.getY() - entity2.getY()) <= 40;
     }
+
 }

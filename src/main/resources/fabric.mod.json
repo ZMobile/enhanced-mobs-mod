@@ -23,7 +23,9 @@
     ],
     "client": [
       "net.fabricmc.example.bloodmoon.client.ClientBloodmoonHandler",
-      "net.fabricmc.example.client.ClientPathManager"
+      "net.fabricmc.example.client.ClientPathManager",
+      "net.fabricmc.example.client.ClientPlacingBlockHighlighter",
+      "net.fabricmc.example.client.ClientTargetBlockHighlighter"
     ]
   },
   "mixins": [
@@ -31,6 +33,6 @@
   ],
   "depends": {
     "fabricloader": ">=0.11.3",
-    "minecraft": "1.20.4"
+    "minecraft": "1.21"
   }
 }

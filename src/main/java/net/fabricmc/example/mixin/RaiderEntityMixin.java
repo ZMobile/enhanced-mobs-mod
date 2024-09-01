@@ -2,9 +2,11 @@ package net.fabricmc.example.mixin;
 
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
+import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.example.mobai.BreakPlaceAndChaseGoal;
 import net.fabricmc.example.mobai.CustomTargetGoal;
+import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.PathAwareEntity;
@@ -25,25 +27,42 @@ public abstract class RaiderEntityMixin extends PathAwareEntity {
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void addCustomGoals(CallbackInfo info) {
         //GoalBlock goal = new GoalBlock(0, 60, 200);
+        //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(),  this);
+        //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
         if (ConfigManager.getConfig().isRaidersBreakBlocks()) {
-            BaritoneAPI.getProvider().createBaritone(MinecraftClient.getInstance(), this);
-            this.goalSelector.add(6, new BreakPlaceAndChaseGoal(this));
+            if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+                if (!ConfigManager.getConfig().isBuildingMiningMobsDuringBloodmoonOnly()) {
+                    provisionMobitoneGoal();
+                }
+            } else {
+                provisionMobitoneGoal();
+            }
         }
         this.goalSelector.add(6, new CustomTargetGoal(this));
         // BaritoneAPI.getProvider().getBaritoneForEntity(this).getCustomGoalProcess().setGoalAndPath(goal);
         //System.out.println("Baritone goal successfully added to IllagerEntity");
     }
 
+    private void provisionMobitoneGoal() {
+        if (!ConfigManager.getConfig().isOptimizedMobitone()) {
+            MobitoneServiceImpl.addMobitone(this);
+            MobitoneServiceImpl.fillInQueue();
+        }
+        //}
+        this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this));
+    }
+
     @Inject(method = "onDeath", at = @At("TAIL"))
     private void onIllagerDespawn(CallbackInfo info) {
         if (!this.isAlive()) {
-            IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
+            /*IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
             if (goalBaritone != null) {
                 // Clean up Baritone instance for this entity
                 BaritoneAPI.getProvider().destroyBaritone(goalBaritone);
                 // Debug log to verify cleanup
                 //System.out.println("Baritone instance successfully removed for IllagerEntity on despawn");
-            }
+            }*/
+            MobitoneServiceImpl.removeMobitone(this);
         }
     }
 }
