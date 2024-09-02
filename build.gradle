@@ -46,13 +46,14 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
+
 	//modImplementation urlFile("https://github.com/cabaletta/baritone/releases/download/v1.10.2/baritone-api-fabric-1.10.2.jar", 'baritone', '1.20.4-1.10.2')
 	//modImplementation files("C:/Users/hzant/IdeaProjects/baritone-zante/dist/baritone-api-fabric-1.9.3-66-gfac6749e.jar")
-	//modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.11.0-Mobitone-Singleplayer/mobitone1.21.jar", 'mobitone', '1.21')
+	modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.11.0-Mobitone-Singleplayer/mobitone1.21.jar", 'mobitone', '1.21')
 	modImplementation "dev.babbaj:nether-pathfinder:1.4.1"
 
 	// Include the cloth-config jar in the lib directory
-	 modImplementation files('lib/mobitone1.21.jar')
+	//modImplementation files('lib/mobitone1.21.jar')
 	modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
 		exclude(group: "net.fabricmc.fabric-api")
 	}

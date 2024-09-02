@@ -125,6 +125,10 @@ public class  ModConfig {
         return buildingMiningMobsDuringBloodmoonOnly;
     }
 
+    public void setBuildingMiningMobsDuringBloodmoonOnly(Boolean buildingMiningMobsDuringBloodmoonOnly) {
+        this.buildingMiningMobsDuringBloodmoonOnly = buildingMiningMobsDuringBloodmoonOnly;
+    }
+
     public boolean isRenderMobPathing() {
         return renderMobPathing;
     }
