@@ -19,6 +19,7 @@ import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.mob.PathAwareEntity;
+import net.minecraft.entity.mob.SkeletonEntity;
 import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
@@ -67,11 +68,20 @@ public class BreakPlaceAndChaseGoal extends Goal {
     @Override
     public boolean canStart() {
         if (mob.getTarget() != null && mob.getTarget() instanceof PlayerEntity) {
-            targetEntity = (PlayerEntity) mob.getTarget();
+            targetEntity = mob.getTarget();
             boolean withinRange = mob.getBlockPos().isWithinDistance(targetEntity.getBlockPos(), 100)
                     && Math.abs(mob.getBlockPos().getY() - targetEntity.getBlockPos().getY()) < 50;
-            return !mob.isAttacking()
-                    && (!mob.isNavigating() || isEntityStuckInDesignatedGlitchBlock(mob)) && withinRange;
+            boolean skeletonSpecificTrigger = false;
+            if ((!mob.isNavigating() || isEntityStuckInDesignatedGlitchBlock(mob)) && withinRange) {
+                if (mob instanceof SkeletonEntity) {
+                    Path path = mob.getNavigation().findPathTo(mob.getTarget(), 0);
+                    if (path == null || path.isFinished()) {
+                        skeletonSpecificTrigger = true;
+                    }
+                }
+                boolean canStart = (!mob.isAttacking() || skeletonSpecificTrigger);
+                return canStart;
+            }
         }
         return false;
     }
@@ -490,6 +500,10 @@ public class BreakPlaceAndChaseGoal extends Goal {
             }
             if (breakingPos != null) {
                 this.setControls(EnumSet.of(Control.MOVE));
+                if (!isSolidBlock(breakingPos)) {
+                    resetGoal(true);
+                    return;
+                }
                 if (mob.getBlockPos() != null) {
                     if (mob.getBlockPos().getManhattanDistance(previousPos) > 2) {
                         previousPos = mob.getBlockPos();
@@ -502,10 +516,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                         resetGoal(true);
                         return;
                     }
-                }
-                if (!isSolidBlock(breakingPos)) {
-                    resetGoal(true);
-                    return;
                 }
                 if (mob.getBlockPos().isWithinDistance(breakingPos, 4.5)) {
                     //System.out.println("Block is within distance to break.");
@@ -532,6 +542,10 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 //System.out.println("Distance: " + mob.getBlockPos().getManhattanDistance(breakingPos));
             } else if (placingPos != null) {
                 this.setControls(EnumSet.of(Control.MOVE));
+                if (isSolidBlock(placingPos)) {
+                    resetGoal(true);
+                    return;
+                }
                 if (mob.getBlockPos() != null) {
                     if (mob.getBlockPos().getManhattanDistance(previousPos) > 2) {
                         previousPos = mob.getBlockPos();
@@ -544,10 +558,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                         resetGoal(true);
                         return;
                     }
-                }
-                if (isSolidBlock(placingPos)) {
-                    resetGoal(true);
-                    return;
                 }
                 if (mob.getBlockPos().isWithinDistance(placingPos, 5.5)) {
                     // System.out.println("Block is within distance to place.");
@@ -584,7 +594,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
     }
 
     private boolean isEntityStuckInDesignatedGlitchBlock(LivingEntity entity) {
-        System.out.println("Mob pos: " + mob.getBlockPos());
         float yaw = entity.getYaw();
         yaw = yaw % 360;
         if (yaw < 0) {
@@ -769,7 +778,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
             if (currentPath == null) {
                 currentPath = new ArrayList<>(savedPath);
             }
-            return areSolidBlocksSeparatingPlayerFromMob() && !isEntityStuckInDesignatedGlitchBlock(mob);
+            return areSolidBlocksSeparatingPlayerFromMob();
         }
         return true;
     }
@@ -827,9 +836,20 @@ public class BreakPlaceAndChaseGoal extends Goal {
     }
 
     public boolean willObstructPlayer(BlockView world, BlockPos pos) {
-        BlockState state = world.getBlockState(pos);
-        VoxelShape shape = state.getCollisionShape(world, pos);
-        return !shape.isEmpty() && !state.isOf(Blocks.COBWEB);
+        if (world == null || pos == null) {
+            return false;
+        }
+
+        try {
+            BlockState state = world.getBlockState(pos);
+            VoxelShape shape = state.getCollisionShape(world, pos);
+            return !shape.isEmpty() && !state.isOf(Blocks.COBWEB);
+        } catch (NullPointerException e) {
+            return isSolidBlock(pos); // Handle specific null-related issues
+        } catch (Exception e) {
+            e.printStackTrace(); // Log other exceptions for debugging purposes
+            return false; // Return false if any unexpected exception occurs
+        }
     }
 
     @Override
@@ -891,6 +911,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
     }
 
     public void navigateMobToTargetPos(BlockPos targetPos) {
+        this.setControls(EnumSet.of(Control.MOVE));
         if (getWorld(mob).getBlockState(targetPos).isOf(Blocks.WATER)) {
             mob.getNavigation().startMovingTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), 1.0);
             ClientRenderedBlockUpdateServiceImpl.renderTargetBlock(mob.getId(), targetPos);
