@@ -137,6 +137,9 @@ public final class BloodmoonSpawner implements Spawner {
 										List<PlayerEntity> nearbyPlayers = world.getEntitiesByClass(PlayerEntity.class, searchBox, player -> true);
 
 										double bloodmoonSpawnChance = ConfigManager.getConfig().getBloodmoonSpawnPercentage();
+										if (mutablePos.getY() < 45) {
+											bloodmoonSpawnChance = bloodmoonSpawnChance * 10;
+										}
 
 										if (spawnEntry.type == EntityType.DROWNED) {
 											if (!nearbyPlayers.isEmpty()) {

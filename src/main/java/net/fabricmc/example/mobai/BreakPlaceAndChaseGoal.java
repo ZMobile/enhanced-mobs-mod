@@ -499,8 +499,8 @@ public class BreakPlaceAndChaseGoal extends Goal {
             }
             if (breakingPos != null) {
                 this.setControls(EnumSet.of(Control.MOVE));
-                if (!willObstructPlayer(mob.getWorld(), breakingPos)) {
-                    resetGoal(false);
+                if (!isSolidBlock(breakingPos)) {
+                    resetGoal(true);
                     return;
                 }
                 if (mob.getBlockPos() != null) {
@@ -515,10 +515,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                         resetGoal(true);
                         return;
                     }
-                }
-                if (!isSolidBlock(breakingPos)) {
-                    resetGoal(true);
-                    return;
                 }
                 if (mob.getBlockPos().isWithinDistance(breakingPos, 4.5)) {
                     //System.out.println("Block is within distance to break.");
@@ -545,8 +541,8 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 //System.out.println("Distance: " + mob.getBlockPos().getManhattanDistance(breakingPos));
             } else if (placingPos != null) {
                 this.setControls(EnumSet.of(Control.MOVE));
-                if (!willObstructPlayer(mob.getWorld(), breakingPos)) {
-                    resetGoal(false);
+                if (isSolidBlock(placingPos)) {
+                    resetGoal(true);
                     return;
                 }
                 if (mob.getBlockPos() != null) {
@@ -780,7 +776,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
             if (currentPath == null) {
                 currentPath = new ArrayList<>(savedPath);
             }
-            return areSolidBlocksSeparatingPlayerFromMob() && !isEntityStuckInDesignatedGlitchBlock(mob);
+            return areSolidBlocksSeparatingPlayerFromMob();
         }
         return true;
     }
@@ -838,9 +834,20 @@ public class BreakPlaceAndChaseGoal extends Goal {
     }
 
     public boolean willObstructPlayer(BlockView world, BlockPos pos) {
-        BlockState state = world.getBlockState(pos);
-        VoxelShape shape = state.getCollisionShape(world, pos);
-        return !shape.isEmpty() && !state.isOf(Blocks.COBWEB);
+        if (world == null || pos == null) {
+            return false;
+        }
+
+        try {
+            BlockState state = world.getBlockState(pos);
+            VoxelShape shape = state.getCollisionShape(world, pos);
+            return !shape.isEmpty() && !state.isOf(Blocks.COBWEB);
+        } catch (NullPointerException e) {
+            return isSolidBlock(pos); // Handle specific null-related issues
+        } catch (Exception e) {
+            e.printStackTrace(); // Log other exceptions for debugging purposes
+            return false; // Return false if any unexpected exception occurs
+        }
     }
 
     @Override
