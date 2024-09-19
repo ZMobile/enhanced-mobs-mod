@@ -150,7 +150,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
             pos = currentPath.get(pathIndex);
             nextPos = currentPath.get(pathIndex + 1);
         }
-        if (getWorld(mob).getBlockState(blockPos).isAir()) {
+        if (!isSolidBlock(blockPos) || getWorld(mob).getBlockState(blockPos).isOf(Blocks.LAVA)) {
             if (nextPos != null && pos.equals(blockPos)) {
                 return !nextPos.equals(pos.down());
             }
@@ -265,29 +265,67 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
                         //Now to check if placement needed:
                         BetterBlockPos floorUnderBlockPos = new BetterBlockPos(pos.x, pos.y - 1, pos.z);
-                        if (isPlacementNeeded(floorUnderBlockPos, i) && mob.getMainHandStack().getItem() instanceof BlockItem && !nextPos.equals(floorUnderBlockPos)) {
-                            // Ensure breakingPos is null
-                            if (!hasAdjacentBlockIncludingBelow(floorUnderBlockPos)) {
-                                placingPos = floorUnderBlockPos.down();
+                        if (mob.getMainHandStack().getItem() instanceof BlockItem) {
+                            if (isPlacementNeeded(floorUnderBlockPos, i) && !isSolidBlock(floorUnderBlockPos) && !nextPos.equals(floorUnderBlockPos)) {
+                                // Ensure breakingPos is null
+                                if (!hasAdjacentBlockIncludingBelow(floorUnderBlockPos)) {
+                                    placingPos = floorUnderBlockPos.down();
+                                } else {
+                                    placingPos = floorUnderBlockPos;
+                                }
+                                BlockPos placingPosRender = new BlockPos(placingPos.getX(), placingPos.getY(), placingPos.getZ());
+                                ClientRenderedBlockUpdateServiceImpl.renderPlacingBlock(mob.getId(), placingPosRender);
+                                breakingPos = null; // Ensure breakingPos is null
+                                placingTargetPos = findSuitableAdjacentBlock(placingPos);
+                                navigateMobToTargetPos(placingPos);
+                                savedPath = new ArrayList<>(currentPath);
+                                MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
+                                if (ConfigManager.getConfig().isOptimizedMobitone()) {
+                                    MobitoneServiceImpl.removeMobitone(mob);
+                                }
+                                return;
                             } else {
-                                placingPos = floorUnderBlockPos;
+                                if (nextPos.x != pos.x && nextPos.z != pos.z) {
+                                    BlockPos diagonalBlockPos1 = new BlockPos(pos.x, pos.y, nextPos.z);
+                                    BlockPos diagonalBlockPos2 = new BlockPos(nextPos.x, pos.y, pos.z);
+                                    if ((!isSolidBlock(diagonalBlockPos1) && !isSolidBlock(diagonalBlockPos1.up()) && isPlacementNeeded(diagonalBlockPos1.down(), i))) {
+                                        if ((!isSolidBlock(diagonalBlockPos2) || !isSolidBlock(diagonalBlockPos2.up())) && isSolidBlock(diagonalBlockPos2.down())) {
+                                            //Diagonal path already exists, none needed
+                                            //continue;
+                                        } else {
+                                            placingPos = diagonalBlockPos1.down();
+                                            BlockPos placingPosRender = new BlockPos(placingPos.getX(), placingPos.getY(), placingPos.getZ());
+                                            ClientRenderedBlockUpdateServiceImpl.renderPlacingBlock(mob.getId(), placingPosRender);
+                                            breakingPos = null; // Ensure breakingPos is null
+                                            placingTargetPos = findSuitableAdjacentBlock(placingPos);
+                                            navigateMobToTargetPos(placingPos);
+                                            savedPath = new ArrayList<>(currentPath);
+                                            MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
+                                            if (ConfigManager.getConfig().isOptimizedMobitone()) {
+                                                MobitoneServiceImpl.removeMobitone(mob);
+                                            }
+                                        }
+                                    }
+                                    if (!isSolidBlock(diagonalBlockPos2) || !isSolidBlock(diagonalBlockPos2.up()) && isPlacementNeeded(diagonalBlockPos2.down(), i)) {
+                                        if ((!isSolidBlock(diagonalBlockPos1) || !isSolidBlock(diagonalBlockPos1.down())) && isSolidBlock(diagonalBlockPos1.down())) {
+                                            //Diagonal path already exists, none needed
+                                            //continue;
+                                        } else {
+                                            placingPos = diagonalBlockPos2.down();
+                                            BlockPos placingPosRender = new BlockPos(placingPos.getX(), placingPos.getY(), placingPos.getZ());
+                                            ClientRenderedBlockUpdateServiceImpl.renderPlacingBlock(mob.getId(), placingPosRender);
+                                            breakingPos = null; // Ensure breakingPos is null
+                                            placingTargetPos = findSuitableAdjacentBlock(placingPos);
+                                            navigateMobToTargetPos(placingPos);
+                                            savedPath = new ArrayList<>(currentPath);
+                                            MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
+                                            if (ConfigManager.getConfig().isOptimizedMobitone()) {
+                                                MobitoneServiceImpl.removeMobitone(mob);
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                            BlockPos placingPosRender = new BlockPos(placingPos.getX(), placingPos.getY(), placingPos.getZ());
-                            ClientRenderedBlockUpdateServiceImpl.renderPlacingBlock(mob.getId(), placingPosRender);
-                            breakingPos = null; // Ensure breakingPos is null
-                            placingTargetPos = findSuitableAdjacentBlock(placingPos);
-                            navigateMobToTargetPos(placingPos);
-                            savedPath = new ArrayList<>(currentPath);
-                            MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
-                            if (ConfigManager.getConfig().isOptimizedMobitone()) {
-                                MobitoneServiceImpl.removeMobitone(mob);
-                            }
-                            return;
-                        } else {
-                            /*if (mob.getMainHandStack().getItem() instanceof BlockItem) {
-                                System.out.println("Checking: " + pos);
-                                System.out.println("Has a block but still found nowhere to place block");
-                            }*/
                         }
                     }
                     //
