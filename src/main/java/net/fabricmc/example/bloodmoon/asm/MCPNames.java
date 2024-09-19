@@ -36,7 +36,6 @@ public class MCPNames {
 				fields = readMappings(new File("./../mcp/fields.csv"));
 				methods = readMappings(new File("./../mcp/methods.csv"));
 			}
-
 		} else {
 			fields = methods = null;
 		}

@@ -22,11 +22,18 @@ import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
 import net.minecraft.world.World;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class BloodmoonHandler extends PersistentState {
 	public static ServerWorld world;
 	public static BloodmoonHandler INSTANCE;
+	public static Set<ServerPlayerEntity> logoutQueue = new HashSet<>();
+	public static Set<ServerPlayerEntity> joinedPlayers = new HashSet<>();
 
 	private final BloodmoonSpawner bloodMoonSpawner;
+	//for my server only
+	private static int daysElapsed;
 
 	boolean bloodMoon;
 	boolean forceBloodMoon;
@@ -38,6 +45,7 @@ public class BloodmoonHandler extends PersistentState {
 		bloodMoonSpawner = new BloodmoonSpawner();
 		bloodMoon = false;
 		forceBloodMoon = false;
+		daysElapsed = 0;
 	}
 
 	public static final PersistentState.Type<BloodmoonHandler> BLOODMOON_HANDLER_TYPE = new PersistentState.Type<>(
@@ -65,6 +73,10 @@ public class BloodmoonHandler extends PersistentState {
 	}
 
 	public void playerJoinedWorld(ServerPlayerEntity player) {
+		if (!joinedPlayers.contains(player)) {
+			daysElapsed = 0;
+			joinedPlayers.add(player);
+		}
 		if (bloodMoon) {
 			PacketHandler.sendTo(player, new MessageBloodmoonStatus(bloodMoon));
 		}
@@ -90,6 +102,7 @@ public class BloodmoonHandler extends PersistentState {
 				}
 			} else {
 				if (time == 12000) {
+					daysElapsed++;
 					if (BloodmoonConfig.SCHEDULE.NTH_NIGHT != 0) {
 						INSTANCE.nightCounter--;
 
@@ -127,6 +140,12 @@ public class BloodmoonHandler extends PersistentState {
 	}
 
 	public void setBloodmoon(boolean bloodMoon) {
+		if (!bloodMoon) {
+			for (ServerPlayerEntity player : logoutQueue) {
+				player.networkHandler.disconnect(Text.of("Logged out after Bloodmoon."));
+			}
+			logoutQueue.clear(); // Clear the queue after logging out players
+		}
 		if (this.bloodMoon != bloodMoon) {
 			PacketHandler.sendToAll(world, new MessageBloodmoonStatus(bloodMoon));
 			this.markDirty();

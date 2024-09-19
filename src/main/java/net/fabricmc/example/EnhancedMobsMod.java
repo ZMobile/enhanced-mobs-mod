@@ -15,6 +15,7 @@ import net.fabricmc.example.command.bloodmoon.BloodmoonChancePercentageCommand;
 import net.fabricmc.example.command.bloodmoon.BloodmoonSpawnRatePercentageCommand;
 import net.fabricmc.example.command.bloodmoon.BuildingMiningMobsDuringBloodmoonOnly;
 import net.fabricmc.example.command.bloodmoon.DaysBeforeBloodmoonPossibilityCommand;
+import net.fabricmc.example.command.logout.LogoutQueueCommand;
 import net.fabricmc.example.command.mob.*;
 import net.fabricmc.example.command.mob.debug.GoalInfoCommand;
 import net.fabricmc.example.command.mob.debug.IsolatePathCommand;
@@ -54,6 +55,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeKeys;
@@ -82,6 +84,7 @@ public class EnhancedMobsMod implements ModInitializer {
 				BlockPos pos = entity.getBlockPos();
 				RegistryEntry<Biome> biome = world.getBiome(pos);
 				Random random = new Random();
+				//if (ConfigManager.getConfig().zombiesSpawnWithBlocks()) {
 				if (random.nextInt(10) < 3) { // 30% chance to have blocks
 					ItemStack stack = getRandomBlockStack(biome, random);
 					((ZombieEntity) entity).equipStack(EquipmentSlot.MAINHAND, stack);
@@ -97,6 +100,7 @@ public class EnhancedMobsMod implements ModInitializer {
 						((ZombieEntity) entity).equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.TRIDENT));
 					}
 				}
+				//}
 			}
 		});
 
@@ -129,14 +133,15 @@ public class EnhancedMobsMod implements ModInitializer {
 			OptimizedMobitoneCommand.register(dispatcher);
 			InfiniteZombieBlocksCommand.register(dispatcher);
 			MobBlockBreakSpeedCommand.register(dispatcher);
-			//IsolatePathCommand.register(dispatcher);
-			//UndoIsolatedPathCommand.register(dispatcher);
-			//ResetPathsCommand.register(dispatcher);
+			IsolatePathCommand.register(dispatcher);
+			UndoIsolatedPathCommand.register(dispatcher);
+			ResetPathsCommand.register(dispatcher);
 			//GoalInfoCommand.register(dispatcher);
 			BloodmoonSpawnRatePercentageCommand.register(dispatcher);
 			BloodmoonChancePercentageCommand.register(dispatcher);
 			DaysBeforeBloodmoonPossibilityCommand.register(dispatcher);
 			BuildingMiningMobsDuringBloodmoonOnly.register(dispatcher);
+			//LogoutQueueCommand.register(dispatcher);
 		});
 
 		// Server starting event
@@ -150,6 +155,12 @@ public class EnhancedMobsMod implements ModInitializer {
 			BaritoneAPI.getSettings().allowBreak.value = ConfigManager.getConfig().isAllowBreak();
 			LOGGER.info("Server is starting");
 		});
+
+		/*ServerPlayConnectionEvents.DISCONNECT.register((player, test) -> {
+			if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+				player.getPlayer().changeGameMode(GameMode.SPECTATOR);
+			}
+		});*/
 
 		/*UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
 			// Check if the block being interacted with is a bed

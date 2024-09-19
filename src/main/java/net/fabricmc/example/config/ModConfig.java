@@ -36,7 +36,7 @@ public class  ModConfig {
         mobBlockPlacementPenalty = 3.0;
         mobBlockBreakAdditionalPenalty = 2.0;
         mobJumpPenalty = 2.0;
-        bloodmoonSpawnPercentage = 0.0001;
+        bloodmoonSpawnPercentage = 0.00001;
         optimizedMobitone = true;
         infiniteZombieBlocks = true;
         mobBlockBreakSpeed = 1.0;
