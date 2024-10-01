@@ -26,7 +26,6 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -670,7 +669,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 || blockState.isOf(Blocks.FLOWERING_AZALEA) // Flowering Azalea Block
                 || blockState.isOf(Blocks.BIG_DRIPLEAF)
                 || blockState.isOf(Blocks.SMALL_DRIPLEAF)
-                || blockState.isOf(Blocks.DECORATED_POT)
                 || blockState.isOf(Blocks.DAYLIGHT_DETECTOR)
                 || blockState.isOf(Blocks.SLIME_BLOCK)
                 || blockState.isOf(Blocks.HONEY_BLOCK)
