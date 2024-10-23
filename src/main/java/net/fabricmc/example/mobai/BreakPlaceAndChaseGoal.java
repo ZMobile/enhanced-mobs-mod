@@ -714,7 +714,13 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 if (success) {
                     // Decrement the amount of blocks in the mob's hand by 1
                     //if not infinite blocks or block isnt cobblestone, dirt, stone, deepslate or deepslate cobble
-                    if (!ConfigManager.getConfig().isInfiniteZombieBlocks() || (blockItem.getBlock() != Blocks.COBBLESTONE && blockItem.getBlock() != Blocks.DIRT && blockItem.getBlock() != Blocks.STONE && blockItem.getBlock() != Blocks.DEEPSLATE && blockItem.getBlock() != Blocks.COBBLED_DEEPSLATE)) {
+                    if (!ConfigManager.getConfig().isInfiniteZombieBlocks() || (blockItem.getBlock() != Blocks.COBBLESTONE
+                            && blockItem.getBlock() != Blocks.DIRT
+                            && blockItem.getBlock() != Blocks.STONE
+                            && blockItem.getBlock() != Blocks.DEEPSLATE
+                            && blockItem.getBlock() != Blocks.COBBLED_DEEPSLATE
+                    && blockItem.getBlock() != Blocks.NETHERRACK
+                    && blockItem.getBlock() != Blocks.SOUL_SOIL)) {
                         itemStack.decrement(1);
                     }
                 }
