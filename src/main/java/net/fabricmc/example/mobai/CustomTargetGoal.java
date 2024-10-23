@@ -72,29 +72,61 @@ public class CustomTargetGoal extends Goal {
 
     @Override
     public void tick() {
-        PlayerEntity hearingTargetPlayer = mob.getWorld().getClosestPlayer(mob, MAX_HEARING_DISTANCE);
-        if (hearingTargetPlayer != null) {
-            mob.setTarget(hearingTargetPlayer);
-            stop();
+        if (mob.isTouchingWater()) {
+            if (targetPlayer != null) {
+                // Calculate the direction vector towards the target player
+                double dx = targetPlayer.getX() - mob.getX();
+                double dy = targetPlayer.getY() - mob.getY();
+                double dz = targetPlayer.getZ() - mob.getZ();
+                double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+                // Normalize the direction vector and apply a small push
+                if (distance > 0) {
+                    dx /= distance;
+                    dy /= distance;
+                    dz /= distance;
+
+                    // Calculate current velocity
+                    double currentSpeed = Math.sqrt(mob.getVelocity().x * mob.getVelocity().x +
+                            mob.getVelocity().y * mob.getVelocity().y +
+                            mob.getVelocity().z * mob.getVelocity().z);
+                    double maxSpeed = 0.1; // Set the max speed cap here (adjust as needed)
+
+                    // Apply the velocity only if it's below the max speed
+                    if (currentSpeed < maxSpeed) {
+                        mob.addVelocity(dx * 0.05, dy * 0.05, dz * 0.05);
+                        mob.velocityModified = true;
+                    }
+                }
+            }
         }
-        if (targetPlayer != null) {
-            if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
-                mob.setTarget(targetPlayer);
+
+        if (mob.getTarget() == null) {
+            PlayerEntity hearingTargetPlayer = mob.getWorld().getClosestPlayer(mob, MAX_HEARING_DISTANCE);
+            if (hearingTargetPlayer != null) {
+                mob.setTarget(hearingTargetPlayer);
                 stop();
             }
-            if (
-                    mob.getTarget() == null && within40Y(mob, targetPlayer) && CustomVisibilityCheckServiceImpl.canSeeThroughGlassWithException(mob, targetPlayer) && !CustomVisibilityCheckServiceImpl.isInCreativeMode(targetPlayer) && CustomVisibilityCheckServiceImpl.isFacingTarget(mob, targetPlayer)) {
-                sightCounter++;
-                lookAtPlayer();
-                if (sightCounter >= SIGHT_DURATION) {
+            if (targetPlayer != null) {
+                if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
                     mob.setTarget(targetPlayer);
                     stop();
                 }
-            } else {
-                sightCounter = 0;
+                if (
+                        mob.getTarget() == null && within40Y(mob, targetPlayer) && CustomVisibilityCheckServiceImpl.canSeeThroughGlassWithException(mob, targetPlayer) && !CustomVisibilityCheckServiceImpl.isInCreativeMode(targetPlayer) && CustomVisibilityCheckServiceImpl.isFacingTarget(mob, targetPlayer)) {
+                    sightCounter++;
+                    lookAtPlayer();
+                    if (sightCounter >= SIGHT_DURATION) {
+                        mob.setTarget(targetPlayer);
+                        stop();
+                    }
+                } else {
+                    sightCounter = 0;
+                }
             }
         }
     }
+
 
     private void lookAtPlayer() {
         double dx = targetPlayer.getX() - mob.getX();
