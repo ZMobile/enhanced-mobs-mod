@@ -136,6 +136,8 @@ public class EnhancedMobsMod implements ModInitializer {
 			BloodmoonChancePercentageCommand.register(dispatcher);
 			DaysBeforeBloodmoonPossibilityCommand.register(dispatcher);
 			BuildingMiningMobsDuringBloodmoonOnly.register(dispatcher);
+			CreeperHissCommand.register(dispatcher);
+			SpiderSpeedCommand.register(dispatcher);
 		});
 
 		// Server starting event

@@ -1,13 +1,10 @@
 package net.fabricmc.example.mixin;
 
-import baritone.api.BaritoneAPI;
-import baritone.api.IBaritone;
-import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
+import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.example.mobai.CustomTargetGoal;
-import net.fabricmc.example.service.MobitoneServiceImpl;
-import net.fabricmc.example.util.MinecraftServerUtil;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.SpiderEntity;
 import net.minecraft.world.World;
@@ -24,40 +21,22 @@ public class SpiderEntityMixin extends PathAwareEntity {
 
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void addCustomGoals(CallbackInfo info) {
-        //GoalBlock goal = new GoalBlock(0, 60, 200);
-        //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(),  this);
-        /*if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
-            MobitoneServiceImpl.addMobitone(this);
-            MobitoneServiceImpl.fillInQueue();
-        }*/
         this.goalSelector.add(6, new CustomTargetGoal(this));
-        // BaritoneAPI.getProvider().getBaritoneForEntity(this).getCustomGoalProcess().setGoalAndPath(goal);
-        //System.out.println("Baritone goal successfully added to ZombieEntity");
+        EntityAttributeInstance speedAttribute = this.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+
+        if (speedAttribute != null && ConfigManager.getConfig().isSpiderSpeed()) {
+            speedAttribute.setBaseValue(0.75);
+        }
     }
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void checkZombieState(CallbackInfo info) {
-        /*ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        if (player != null) {
-            Vec3d playerPosition = MinecraftClient.getInstance().player.getPos();
-            GoalBlock goal = new GoalBlock((int) playerPosition.x, (int) playerPosition.y, (int) playerPosition.z);
-            IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
-            if (goalBaritone != null) {
-                goalBaritone.getCustomGoalProcess().setGoalAndPath(goal);
-            }
-        }*/
+
     }
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void onZombieDespawn(CallbackInfo info) {
         if (!this.isAlive()) {
-            /*IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
-            if (goalBaritone != null) {
-                // Clean up Baritone instance for this entity
-                BaritoneAPI.getProvider().destroyBaritone(goalBaritone);
-                // Debug log to verify cleanup
-                //System.out.println("Baritone instance successfully removed for ZombieEntity on despawn");
-            }*/
         }
     }
 }
