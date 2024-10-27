@@ -8,7 +8,7 @@ import net.fabricmc.example.bloodmoon.proxy.CommonProxy;
 import net.fabricmc.example.bloodmoon.reference.Reference;
 import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.bloodmoon.server.CommandBloodmoon;
-import net.fabricmc.example.client.payload.BaritoneCustomPayload;
+import net.fabricmc.example.command.mob.CreeperHissCommand;
 import net.fabricmc.example.command.OptimizedMobitoneCommand;
 import net.fabricmc.example.command.TrueDarknessEnforcedCommand;
 import net.fabricmc.example.command.bloodmoon.BloodmoonChancePercentageCommand;
@@ -16,10 +16,7 @@ import net.fabricmc.example.command.bloodmoon.BloodmoonSpawnRatePercentageComman
 import net.fabricmc.example.command.bloodmoon.BuildingMiningMobsDuringBloodmoonOnly;
 import net.fabricmc.example.command.bloodmoon.DaysBeforeBloodmoonPossibilityCommand;
 import net.fabricmc.example.command.mob.*;
-import net.fabricmc.example.command.mob.debug.GoalInfoCommand;
-import net.fabricmc.example.command.mob.debug.IsolatePathCommand;
-import net.fabricmc.example.command.mob.debug.ResetPathsCommand;
-import net.fabricmc.example.command.mob.debug.UndoIsolatedPathCommand;
+import net.fabricmc.example.command.mob.SpiderSpeedCommand;
 import net.fabricmc.example.command.mob.penalty.MobBlockBreakAdditionalPenaltyCommand;
 import net.fabricmc.example.command.mob.penalty.MobBlockPlacementPenaltyCommand;
 import net.fabricmc.example.command.mob.penalty.MobJumpPenaltyCommand;
@@ -53,7 +50,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeKeys;
@@ -138,6 +134,8 @@ public class EnhancedMobsMod implements ModInitializer {
 			DaysBeforeBloodmoonPossibilityCommand.register(dispatcher);
 			BloodmoonChancePercentageCommand.register(dispatcher);
 			BuildingMiningMobsDuringBloodmoonOnly.register(dispatcher);
+			CreeperHissCommand.register(dispatcher);
+			SpiderSpeedCommand.register(dispatcher);
 		});
 
 		// Server starting event
