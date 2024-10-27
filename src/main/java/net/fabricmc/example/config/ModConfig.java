@@ -20,6 +20,8 @@ public class  ModConfig {
     private Boolean infiniteZombieBlocks;
     private Double mobBlockBreakSpeed;
     private Integer daysBeforeBloodmoonPossibility;
+    private Boolean creeperHiss;
+    private Boolean spiderSpeed;
 
     public ModConfig() {
         allowBreak = true;
@@ -36,11 +38,13 @@ public class  ModConfig {
         mobBlockPlacementPenalty = 3.0;
         mobBlockBreakAdditionalPenalty = 2.0;
         mobJumpPenalty = 2.0;
-        bloodmoonSpawnPercentage = 0.0001;
+        bloodmoonSpawnPercentage = 0.00001;
         optimizedMobitone = true;
         infiniteZombieBlocks = true;
         mobBlockBreakSpeed = 1.0;
         daysBeforeBloodmoonPossibility = 3;
+        creeperHiss = false;
+        spiderSpeed = true;
     }
 
     public boolean isAllowBreak() {
@@ -193,5 +197,21 @@ public class  ModConfig {
 
     public void setDaysBeforeBloodmoonPossibility(int daysBeforeBloodmoonPossibility) {
         this.daysBeforeBloodmoonPossibility = daysBeforeBloodmoonPossibility;
+    }
+
+    public Boolean isCreeperHiss() {
+        return creeperHiss;
+    }
+
+    public void setCreeperHiss(boolean creeperHiss) {
+        this.creeperHiss = creeperHiss;
+    }
+
+    public Boolean isSpiderSpeed() {
+        return spiderSpeed;
+    }
+
+    public void setSpiderSpeed(Boolean spiderSpeed) {
+        this.spiderSpeed = spiderSpeed;
     }
 }
