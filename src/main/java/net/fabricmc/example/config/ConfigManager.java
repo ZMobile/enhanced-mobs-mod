@@ -53,6 +53,12 @@ public class ConfigManager {
 
                 config.setSkeletonsBreakBlocksDuringBloodmoon(true);
             }
+            if (config.isCreeperHiss() == null) {
+                config.setCreeperHiss(false);
+            }
+            if (config.isSpiderSpeed()) {
+                config.setSpiderSpeed(true);
+            }
         } catch (JsonIOException | JsonSyntaxException | IOException e) {
             config = new ModConfig();
             saveConfig();

@@ -13,8 +13,12 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.CreeperEntity;
 import net.minecraft.entity.mob.PathAwareEntity;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.world.World;
+import net.minecraft.world.event.GameEvent;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -41,11 +45,6 @@ public abstract class CreeperEntityMixin extends PathAwareEntity {
         }
         this.goalSelector.add(6, new CustomCreeperTargetGoal(this));
         //System.out.println("Baritone goal successfully added to CreeperEntity");
-    }
-
-    @Inject(method = "tick", at = @At("HEAD"))
-    private void checkCreeperState(CallbackInfo info) {
-        // Add any custom behavior for the tick method
     }
 
     @Inject(method = "tick", at = @At("TAIL"))

@@ -4,16 +4,17 @@
   "package": "net.fabricmc.example.mixin",
   "compatibilityLevel": "JAVA_14",
   "mixins": [
-    "MobSpawnerMixin",
-    "ZombieEntityMixin",
-    "DrownedEntityMixin",
     "CreeperEntityMixin",
-    "SpiderEntityMixin",
-    "SkeletonEntityMixin",
+    "DrownedEntityMixin",
+    "EntityMixin",
+    "MobSpawnerMixin",
+    "ModPlayerDataMixin",
     "RaiderEntityMixin",
-    "WitchEntityMixin",
+    "SkeletonEntityMixin",
     "SlimeEntityMixin",
-    "ModPlayerDataMixin"
+    "SpiderEntityMixin",
+    "WitchEntityMixin",
+    "ZombieEntityMixin"
   ],
   "client": [
   ],

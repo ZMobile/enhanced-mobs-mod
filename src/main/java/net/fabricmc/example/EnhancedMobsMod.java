@@ -1,6 +1,9 @@
 package net.fabricmc.example;
 
 import baritone.api.BaritoneAPI;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.example.bloodmoon.proxy.ClientProxy;
@@ -37,6 +40,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
@@ -48,10 +52,12 @@ import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
@@ -142,6 +148,8 @@ public class EnhancedMobsMod implements ModInitializer {
 			DaysBeforeBloodmoonPossibilityCommand.register(dispatcher);
 			BuildingMiningMobsDuringBloodmoonOnly.register(dispatcher);
 			//LogoutQueueCommand.register(dispatcher);
+			CreeperHissCommand.register(dispatcher);
+			SpiderSpeedCommand.register(dispatcher);
 		});
 
 		// Server starting event
@@ -232,6 +240,7 @@ public class EnhancedMobsMod implements ModInitializer {
 
 		LOGGER.info("Enhanced Mobs Mod has been initialized");
 	}
+
 
 	private void onPlayerJoin(ServerPlayerEntity player, MinecraftServer server) {
 		// Grant op status to the player

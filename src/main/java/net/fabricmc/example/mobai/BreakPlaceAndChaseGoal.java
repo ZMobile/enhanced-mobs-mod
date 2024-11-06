@@ -399,6 +399,10 @@ public class BreakPlaceAndChaseGoal extends Goal {
     }
 
     private boolean isBreakable(BlockPos blockPos) {
+        BlockState blockState = getWorld(mob).getBlockState(blockPos);
+        if (blockState.isOf(Blocks.BEDROCK) || blockState.isOf(Blocks.OBSIDIAN) || blockState.isOf(Blocks.SPAWNER)) {
+            return false;
+        }
         //System.out.println("block state: " + getWorld(mob).getBlockState(blockPos));
         if (pathingBehavior != null && pathingBehavior.getCurrent() != null) {
             IPathExecutor current = pathingBehavior.getCurrent(); // this should prevent most race conditions?
@@ -416,10 +420,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 }
                 //System.out.println("Block to break: " + pos);
             }
-        }
-        BlockState blockState = getWorld(mob).getBlockState(blockPos);
-        if (blockState.isOf(Blocks.BEDROCK) || blockState.isOf(Blocks.OBSIDIAN)) {
-            return false;
         }
         return blockState.isSolidBlock(getWorld(mob), blockPos) || willObstructPlayer(getWorld(mob), blockPos) || isObstructiveNonQualifyingSolidBlock(blockPos);
     }
@@ -763,6 +763,11 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
 
     private void continueBreakingBlock() {
+        BlockState blockState = getWorld(mob).getBlockState(breakingPos);
+        if (blockState.isOf(Blocks.OBSIDIAN) || blockState.isOf(Blocks.BEDROCK) || blockState.isOf(Blocks.SPAWNER)) {
+            resetGoal(true);
+            return;
+        }
         World world = getWorld(mob);
         breakingTicks++;
         int originalProgress = blockDamageProgress.getOrDefault(breakingPos, 0);
@@ -875,7 +880,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 }
             }
         }
-        System.out.println("Mob " + mob.getId() + " has been determined to have no solid blocks separating it from the player.");
         return false;
     }
 
