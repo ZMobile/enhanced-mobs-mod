@@ -124,7 +124,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 placingTargetPos = null;
                 findBreakingOrPlacingBlock();
             }
-            baritone.getPathingBehavior().setCanPath(breakingPos == null && placingPos == null);
         }
     }
 
@@ -493,6 +492,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
     @Override
     public void tick() {
+        baritone.getPathingBehavior().setCanPath(breakingPos == null && placingPos == null);
         if (savedPath != null && (mob.getBlockPos().equals(savedPath.get(savedPath.size() - 1)) || mob.getBlockPos().up().equals(savedPath.get(savedPath.size() - 1)))) {
             resetGoal(true);
             return;
@@ -539,7 +539,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 previousPos = mob.getBlockPos();
             }
             if (breakingPos != null) {
-                baritone.getPathingBehavior().setCanPath(false);
                 this.setControls(EnumSet.of(Control.MOVE));
                 if (!isSolidBlock(breakingPos)) {
                     resetGoal(true);
@@ -582,7 +581,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 //System.out.println("Block is not within distance to break. Moving to block.");
                 //System.out.println("Distance: " + mob.getBlockPos().getManhattanDistance(breakingPos));
             } else if (placingPos != null) {
-                baritone.getPathingBehavior().setCanPath(false);
                 this.setControls(EnumSet.of(Control.MOVE));
                 if (isSolidBlock(placingPos)) {
                     resetGoal(true);
@@ -903,7 +901,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
     @Override
     public void stop() {
         resetGoal(true);
-        baritone.getPathingBehavior().setCanPath(areSolidBlocksSeparatingPlayerFromMob());
+        baritone.getPathingBehavior().setCanPath(false);
     }
 
     private void resetGoal(boolean removePath) {
