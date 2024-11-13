@@ -76,11 +76,11 @@ dependencies {
 	//modImplementation files('lib/cloth-config-13.0.121-fabric.jar')
 	//implementation 'com.typesafe:config:1.4.1'
 	//modImplementation configurations.mobitone
-	//modImplementation files('lib/mobitone1.21-server.jar')
+	modImplementation files('lib/mobitone1.21-server.jar')
 
 	// Implementation has both of these uncommented:
-	modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.11.0-Mobitone/mobitone1.21-server.jar", 'mobitone', '1.21-server')
-	include urlFile("https://github.com/ZMobile/baritone/releases/download/v1.11.0-Mobitone/mobitone1.21-server.jar", 'mobitone', '1.21-server')
+	//modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.11.0-Mobitone/mobitone1.21-server.jar", 'mobitone', '1.21-server')
+	//include urlFile("https://github.com/ZMobile/baritone/releases/download/v1.11.0-Mobitone/mobitone1.21-server.jar", 'mobitone', '1.21-server')
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
 	// You may need to force-disable transitiveness on them.
 }

@@ -33,9 +33,12 @@ public class ExplodeBlockAndChaseGoal extends Goal {
     private BlockPos breakingPos;
     private BlockPos targetPos;
     private final Map<BlockPos, Integer> blockDamageProgress = new HashMap<>();
+    private IBaritone baritone;
 
     public ExplodeBlockAndChaseGoal(CreeperEntity mob) {
         this.mob = mob;
+        MobitoneServiceImpl.addMobitone(mob);
+        this.baritone = BaritoneAPI.getProvider().getPrimaryBaritone();
         BaritoneAPI.getSettings().allowParkour.value = false;
         BaritoneAPI.getSettings().allowJumpAt256.value = false;
         BaritoneAPI.getSettings().allowParkourAscend.value = false;
@@ -63,6 +66,7 @@ public class ExplodeBlockAndChaseGoal extends Goal {
     }
 
     private void calculatePath() {
+
         //System.out.println("Calculating path.");
         if (this.targetPlayer != null) {
             targetPos = targetPlayer.getBlockPos();
@@ -84,12 +88,11 @@ public class ExplodeBlockAndChaseGoal extends Goal {
             if (ConfigManager.getConfig().isOptimizedMobitone()) {
                 MobitoneServiceImpl.addMobitone(mob);
             }
-            IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(mob);
-            if (goalBaritone != null) {
-                pathingBehavior = goalBaritone.getPathingBehavior();
-                goalBaritone.getCustomGoalProcess().setGoalAndPath(goal);
-                if (goalBaritone.getPathingBehavior().getCurrent() != null) {
-                    currentPath = goalBaritone.getPathingBehavior().getCurrent().getPath();
+            if (baritone != null) {
+                pathingBehavior = baritone.getPathingBehavior();
+                baritone.getCustomGoalProcess().setGoalAndPath(goal);
+                if (baritone.getPathingBehavior().getCurrent() != null) {
+                    currentPath = baritone.getPathingBehavior().getCurrent().getPath();
                     breakingPos = null;
                     findBreakingBlock();
                 } else {
@@ -279,10 +282,12 @@ public class ExplodeBlockAndChaseGoal extends Goal {
                 calculatePath();
             }
             if (breakingPos != null) {
+                    baritone.getPathingBehavior().setCanPath(false);
                 if (mob.getBlockPos().isWithinDistance(breakingPos, 3)) {
                     //System.out.println("Block is within distance to explode.");
                     explodeBlock();
                 } else {
+                    baritone.getPathingBehavior().setCanPath(false);
                     //System.out.println("Block is not within distance to explode. Moving to block.");
                     //System.out.println("Distance: " + mob.getBlockPos().getManhattanDistance(breakingPos));
                     mob.getNavigation().startMovingTo(breakingPos.getX(), breakingPos.getY(), breakingPos.getZ(), 1.0);
@@ -414,6 +419,7 @@ public class ExplodeBlockAndChaseGoal extends Goal {
     private void resetGoal() {
         currentPath = null;
         breakingPos = null;
+        baritone.getPathingBehavior().setCanPath(true);
         mob.getNavigation().stop();
     }
 }
