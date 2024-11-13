@@ -50,6 +50,8 @@ dependencies {
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	include("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
+
 
 	implementation "dev.babbaj:nether-pathfinder:1.4.1"
 
@@ -59,8 +61,8 @@ dependencies {
 	//modImplementation files('lib/mobitone1.20.1-server.jar')
 
 
-	modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.11.0-Mobitone1.19.2/mobitone1.19.2-server.jar", 'mobitone', '1.19.2-server')
-	include urlFile("https://github.com/ZMobile/baritone/releases/download/v1.11.0-Mobitone1.19.2/mobitone1.19.2-server.jar", 'mobitone', '1.19.2-server')
+	modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.11.0-Mobitone1.19.2-2.0/mobitone1.19.2-server.jar", 'mobitone', '1.19.2-server-2.0')
+	include urlFile("https://github.com/ZMobile/baritone/releases/download/v1.11.0-Mobitone1.19.2-2.0/mobitone1.19.2-server.jar", 'mobitone', '1.19.2-server-2.0')
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
 	// You may need to force-disable transitiveness on them.
 }
