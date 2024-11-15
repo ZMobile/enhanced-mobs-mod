@@ -9,11 +9,15 @@ public class PathingData {
     @SerializedName("mob_id")
     private int mobId;
 
+    @SerializedName("type")
+    private String type;
+
     @SerializedName("path_positions")
     private List<BetterBlockPos> pathPositions;
 
-    public PathingData(int mobId, List<BetterBlockPos> pathPositions) {
+    public PathingData(int mobId, String type, List<BetterBlockPos> pathPositions) {
         this.mobId = mobId;
+        this.type = type;
         this.pathPositions = pathPositions;
     }
 

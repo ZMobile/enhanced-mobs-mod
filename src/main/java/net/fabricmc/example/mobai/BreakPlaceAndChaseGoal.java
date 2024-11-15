@@ -8,6 +8,7 @@ import baritone.api.pathing.goals.GoalBlock;
 import baritone.api.pathing.path.IPathExecutor;
 import baritone.api.utils.BetterBlockPos;
 import baritone.api.utils.MinecraftServerUtil;
+import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.client.block.ClientRenderedBlockUpdateServiceImpl;
 import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.example.mobai.tracker.MobPathTracker;
@@ -92,7 +93,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
     @Override
     public void start() {
-        baritone.getPathingBehavior().setCanPath(true);
+        //baritone.getPathingBehavior().setCanPath(true);
         //calculatePath();
     }
 
@@ -492,7 +493,12 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
     @Override
     public void tick() {
-        baritone.getPathingBehavior().setCanPath(breakingPos == null && placingPos == null);
+        if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+            BaritoneAPI.getSettings().slowPath.value = true;
+        } else {
+            BaritoneAPI.getSettings().slowPath.value = false;
+        }
+        //baritone.getPathingBehavior().setCanPath(breakingPos == null && placingPos == null);
         if (savedPath != null && (mob.getBlockPos().equals(savedPath.get(savedPath.size() - 1)) || mob.getBlockPos().up().equals(savedPath.get(savedPath.size() - 1)))) {
             resetGoal(true);
             return;
@@ -901,7 +907,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
     @Override
     public void stop() {
         resetGoal(true);
-        baritone.getPathingBehavior().setCanPath(false);
+        //baritone.getPathingBehavior().setCanPath(false);
     }
 
     private void resetGoal(boolean removePath) {
@@ -921,7 +927,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
             }
         }
-        baritone.getPathingBehavior().setCanPath(true);
+        //baritone.getPathingBehavior().setCanPath(true);
     }
 
     public boolean hasBreakingPos() {

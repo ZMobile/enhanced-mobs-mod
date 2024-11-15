@@ -8,6 +8,7 @@ import baritone.api.pathing.goals.GoalBlock;
 import baritone.api.pathing.path.IPathExecutor;
 import baritone.api.utils.BetterBlockPos;
 import baritone.api.utils.MinecraftServerUtil;
+import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.minecraft.block.*;
@@ -246,6 +247,11 @@ public class ExplodeBlockAndChaseGoal extends Goal {
 
     @Override
     public void tick() {
+        if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+            BaritoneAPI.getSettings().slowPath.value = true;
+        } else {
+            BaritoneAPI.getSettings().slowPath.value = false;
+        }
         if (targetPlayer != null) {
             if (isEntityStuckInDesignatedGlitchBlock(mob)) {
                 float yaw = mob.getYaw();
@@ -282,12 +288,11 @@ public class ExplodeBlockAndChaseGoal extends Goal {
                 calculatePath();
             }
             if (breakingPos != null) {
-                    baritone.getPathingBehavior().setCanPath(false);
+                //baritone.getPathingBehavior().setCanPath(false);
                 if (mob.getBlockPos().isWithinDistance(breakingPos, 3)) {
                     //System.out.println("Block is within distance to explode.");
                     explodeBlock();
                 } else {
-                    baritone.getPathingBehavior().setCanPath(false);
                     //System.out.println("Block is not within distance to explode. Moving to block.");
                     //System.out.println("Distance: " + mob.getBlockPos().getManhattanDistance(breakingPos));
                     mob.getNavigation().startMovingTo(breakingPos.getX(), breakingPos.getY(), breakingPos.getZ(), 1.0);
@@ -419,7 +424,7 @@ public class ExplodeBlockAndChaseGoal extends Goal {
     private void resetGoal() {
         currentPath = null;
         breakingPos = null;
-        baritone.getPathingBehavior().setCanPath(true);
+        //baritone.getPathingBehavior().setCanPath(true);
         mob.getNavigation().stop();
     }
 }

@@ -28,6 +28,7 @@ import net.fabricmc.example.command.mob.penalty.MobBlockBreakAdditionalPenaltyCo
 import net.fabricmc.example.command.mob.penalty.MobBlockPlacementPenaltyCommand;
 import net.fabricmc.example.command.mob.penalty.MobJumpPenaltyCommand;
 import net.fabricmc.example.command.mob.speed.MobBlockBreakSpeedCommand;
+import net.fabricmc.example.command.performance.*;
 import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.example.client.darkness.ModPlayerData;
 import net.fabricmc.example.util.MinecraftServerUtil;
@@ -150,6 +151,11 @@ public class EnhancedMobsMod implements ModInitializer {
 			//LogoutQueueCommand.register(dispatcher);
 			CreeperHissCommand.register(dispatcher);
 			SpiderSpeedCommand.register(dispatcher);
+			SlowPathDelayCommand.register(dispatcher);
+			PrimaryTimeoutCommand.register(dispatcher);
+			FailureTimeoutCommand.register(dispatcher);
+			PlanAheadPrimaryTimeoutCommand.register(dispatcher);
+			PlanAheadFailureTimeoutCommand.register(dispatcher);
 		});
 
 		// Server starting event
@@ -161,6 +167,7 @@ public class EnhancedMobsMod implements ModInitializer {
 			BaritoneAPI.getSettings().jumpPenalty.value = ConfigManager.getConfig().getMobJumpPenalty();
 			BaritoneAPI.getSettings().allowPlace.value = ConfigManager.getConfig().isAllowPlace();
 			BaritoneAPI.getSettings().allowBreak.value = ConfigManager.getConfig().isAllowBreak();
+			BaritoneAPI.getSettings().slowPathTimeDelayMS.value = 2L;
 			LOGGER.info("Server is starting");
 		});
 
