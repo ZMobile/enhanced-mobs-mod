@@ -18,6 +18,8 @@ public class SlowPathCommand {
                         .executes(context -> {
                             boolean state = BoolArgumentType.getBool(context, "state");
                             BaritoneAPI.getSettings().slowPath.value = state;
+                            ConfigManager.getConfig().setSlowPath(state);
+                            ConfigManager.saveConfig();
                             context.getSource().sendFeedback(() -> Text.of("Setting slowPath to: " + state), true);
                             // Add custom logic here
                             return 1;

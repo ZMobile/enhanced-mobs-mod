@@ -173,7 +173,8 @@ public class EnhancedMobsMod implements ModInitializer {
 			BaritoneAPI.getSettings().jumpPenalty.value = ConfigManager.getConfig().getMobJumpPenalty();
 			BaritoneAPI.getSettings().allowPlace.value = ConfigManager.getConfig().isAllowPlace();
 			BaritoneAPI.getSettings().allowBreak.value = ConfigManager.getConfig().isAllowBreak();
-			BaritoneAPI.getSettings().slowPathTimeDelayMS.value = 4L;
+			BaritoneAPI.getSettings().slowPath.value = ConfigManager.getConfig().isSlowPath();
+			BaritoneAPI.getSettings().slowPathTimeDelayMS.value = ConfigManager.getConfig().getSlowPathDelay();
 			LOGGER.info("Server is starting");
 		});
 

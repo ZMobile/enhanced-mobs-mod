@@ -56,8 +56,14 @@ public class ConfigManager {
             if (config.isCreeperHiss() == null) {
                 config.setCreeperHiss(false);
             }
-            if (config.isSpiderSpeed()) {
+            if (config.isSpiderSpeed() == null) {
                 config.setSpiderSpeed(true);
+            }
+            if (config.isSlowPath() == null) {
+                config.setSlowPath(true);
+            }
+            if (config.getSlowPathDelay() == null) {
+                config.setSlowPathDelay(4L);
             }
         } catch (JsonIOException | JsonSyntaxException | IOException e) {
             config = new ModConfig();

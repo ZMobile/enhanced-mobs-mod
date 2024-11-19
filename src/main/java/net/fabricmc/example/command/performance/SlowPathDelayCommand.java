@@ -20,6 +20,8 @@ public class SlowPathDelayCommand {
                         .executes(context -> {
                             long value = LongArgumentType.getLong(context, "value");
                             BaritoneAPI.getSettings().slowPathTimeDelayMS.value = value;
+                            ConfigManager.getConfig().setSlowPathDelay(value);
+                            ConfigManager.saveConfig();
                             context.getSource().sendFeedback(() -> Text.of("Setting slowPathDelay to: " + value + "milliseconds"), true);
                             // Add custom logic here
                             return 1;

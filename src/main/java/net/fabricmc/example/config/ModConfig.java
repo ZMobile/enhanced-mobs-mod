@@ -22,6 +22,8 @@ public class  ModConfig {
     private Integer daysBeforeBloodmoonPossibility;
     private Boolean creeperHiss;
     private Boolean spiderSpeed;
+    private Boolean slowPath;
+    private Long slowPathDelay;
 
     public ModConfig() {
         allowBreak = true;
@@ -45,6 +47,8 @@ public class  ModConfig {
         daysBeforeBloodmoonPossibility = 3;
         creeperHiss = false;
         spiderSpeed = true;
+        slowPath = true;
+        slowPathDelay = 4L;
     }
 
     public boolean isAllowBreak() {
@@ -213,5 +217,21 @@ public class  ModConfig {
 
     public void setSpiderSpeed(Boolean spiderSpeed) {
         this.spiderSpeed = spiderSpeed;
+    }
+
+    public Boolean isSlowPath() {
+        return slowPath;
+    }
+
+    public void setSlowPath(Boolean slowPath) {
+        this.slowPath = slowPath;
+    }
+
+    public Long getSlowPathDelay() {
+        return slowPathDelay;
+    }
+
+    public void setSlowPathDelay(Long slowPathDelay) {
+        this.slowPathDelay = slowPathDelay;
     }
 }
