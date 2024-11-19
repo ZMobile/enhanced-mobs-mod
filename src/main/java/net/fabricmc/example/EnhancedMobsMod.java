@@ -227,9 +227,9 @@ public class EnhancedMobsMod implements ModInitializer {
 			if (world.getBlockState(hitResult.getBlockPos()).getBlock() instanceof BedBlock) {
 				boolean isClientOnServer = isClientConnectedToServer();
 
-				if (BloodmoonHandler.INSTANCE.isBloodmoonActive()
-						&& player instanceof ServerPlayerEntity
-						&& !isClientOnServer) {
+				if (!isClientOnServer
+						&& BloodmoonHandler.INSTANCE.isBloodmoonActive()
+						&& player instanceof ServerPlayerEntity) {
 					// Cancel the interaction if it's a server and during a Bloodmoon
 					return ActionResult.FAIL;
 				}
@@ -241,9 +241,9 @@ public class EnhancedMobsMod implements ModInitializer {
 			// Wake the player up and send a message
 			boolean isClientOnServer = isClientConnectedToServer();
 
-			if (BloodmoonHandler.INSTANCE.isBloodmoonActive()
-					&& player instanceof ServerPlayerEntity
-					&& !isClientOnServer) {
+			if (!isClientOnServer &&
+					BloodmoonHandler.INSTANCE.isBloodmoonActive()
+					&& player instanceof ServerPlayerEntity) {
 				player.wakeUp();
 				((ServerPlayerEntity) player).sendMessage(Text.literal("You cannot sleep right now!"));
 			}
