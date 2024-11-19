@@ -27,8 +27,8 @@ public class WitchEntityMixin extends PathAwareEntity {
 
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void addCustomGoals(CallbackInfo info) {
-        if (BloodmoonHandler.INSTANCE.isBloodmoonActive() && random.nextFloat() < 0.9) {
-            //Reducing with spawns during bloodmoon by 95% because it spawns too many witches
+        if (BloodmoonHandler.INSTANCE.isBloodmoonActive() && random.nextFloat() < 0.8) {
+            //Reducing witch spawns during bloodmoon by 95% because it spawns too many witches
             this.discard();
         }
         //GoalBlock goal = new GoalBlock(0, 60, 200);
@@ -51,10 +51,10 @@ public class WitchEntityMixin extends PathAwareEntity {
     }
 
     private void provisionMobitoneGoal() {
-        if (!ConfigManager.getConfig().isOptimizedMobitone()) {
+        //if (!ConfigManager.getConfig().isOptimizedMobitone()) {
             MobitoneServiceImpl.addMobitone(this);
             MobitoneServiceImpl.fillInQueue();
-        }
+        //}
         this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this));
     }
 

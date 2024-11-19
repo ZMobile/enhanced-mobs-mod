@@ -83,7 +83,10 @@ public class EnhancedMobsMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		PayloadTypeRegistry.playS2C().register(BaritoneCustomPayload.ID, BaritoneCustomPayload.CODEC);
+		System.out.println("Initializing mod...");
+		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
+			PayloadTypeRegistry.playS2C().register(BaritoneCustomPayload.ID, BaritoneCustomPayload.CODEC);
+		}
 		ServerEntityEvents.ENTITY_LOAD.register(this::onEntityLoad);
 		ServerEntityEvents.ENTITY_LOAD.register((entity, serverWorld) -> {
 			if (entity instanceof ZombieEntity) {
@@ -140,9 +143,11 @@ public class EnhancedMobsMod implements ModInitializer {
 			OptimizedMobitoneCommand.register(dispatcher);
 			InfiniteZombieBlocksCommand.register(dispatcher);
 			MobBlockBreakSpeedCommand.register(dispatcher);
-			IsolatePathCommand.register(dispatcher);
-			UndoIsolatedPathCommand.register(dispatcher);
-			ResetPathsCommand.register(dispatcher);
+			if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
+				IsolatePathCommand.register(dispatcher);
+				UndoIsolatedPathCommand.register(dispatcher);
+				ResetPathsCommand.register(dispatcher);
+			}
 			//GoalInfoCommand.register(dispatcher);
 			BloodmoonSpawnRatePercentageCommand.register(dispatcher);
 			BloodmoonChancePercentageCommand.register(dispatcher);
@@ -152,6 +157,7 @@ public class EnhancedMobsMod implements ModInitializer {
 			CreeperHissCommand.register(dispatcher);
 			SpiderSpeedCommand.register(dispatcher);
 			SlowPathDelayCommand.register(dispatcher);
+			SlowPathCommand.register(dispatcher);
 			PrimaryTimeoutCommand.register(dispatcher);
 			FailureTimeoutCommand.register(dispatcher);
 			PlanAheadPrimaryTimeoutCommand.register(dispatcher);
@@ -167,43 +173,9 @@ public class EnhancedMobsMod implements ModInitializer {
 			BaritoneAPI.getSettings().jumpPenalty.value = ConfigManager.getConfig().getMobJumpPenalty();
 			BaritoneAPI.getSettings().allowPlace.value = ConfigManager.getConfig().isAllowPlace();
 			BaritoneAPI.getSettings().allowBreak.value = ConfigManager.getConfig().isAllowBreak();
-			BaritoneAPI.getSettings().slowPathTimeDelayMS.value = 2L;
+			BaritoneAPI.getSettings().slowPathTimeDelayMS.value = 4L;
 			LOGGER.info("Server is starting");
 		});
-
-		/*ServerPlayConnectionEvents.DISCONNECT.register((player, test) -> {
-			if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
-				player.getPlayer().changeGameMode(GameMode.SPECTATOR);
-			}
-		});*/
-
-		/*UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-			// Check if the block being interacted with is a bed
-			if (world.getBlockState(hitResult.getBlockPos()).getBlock() == Blocks.WHITE_BED ||
-					world.getBlockState(hitResult.getBlockPos()).getBlock() instanceof net.minecraft.block.BedBlock) {
-				//if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
-					// Cancel the interaction
-				if (player instanceof ServerPlayerEntity) {
-					// Set the player's spawn point
-					ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
-					BlockPos bedPos = hitResult.getBlockPos();
-					serverPlayer.setSpawnPoint(world.getRegistryKey(), bedPos, 0, true, true);
-					//serverPlayer.sendMessage(Text.literal("Your spawn point has been set!"), false);
-					return ActionResult.SUCCESS;
-				}
-				//return ActionResult.FAIL;
-				//}
-			}
-			return ActionResult.PASS;
-		});
-
-		EntitySleepEvents.START_SLEEPING.register((player, pos) -> {
-			// Wake the player up and send a message
-			//if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
-				player.wakeUp();
-				player.sendMessage(Text.literal("Unable to skip the night via sleeping"));
-			//}
-		});*/
 
 		//ClientModPacket.register();
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
@@ -245,7 +217,8 @@ public class EnhancedMobsMod implements ModInitializer {
 				4    // maxGroupSize
 		);
 
-		LOGGER.info("Enhanced Mobs Mod has been initialized");
+		//LOGGER.info("Enhanced Mobs Mod has been initialized");
+		System.out.println("Initializing mod complete");
 	}
 
 

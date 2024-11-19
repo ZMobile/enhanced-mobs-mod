@@ -4,6 +4,7 @@ import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
 import baritone.api.behavior.IPathingBehavior;
 import baritone.api.pathing.calc.IPath;
+import baritone.api.pathing.calc.IPathFinder;
 import baritone.api.pathing.goals.GoalBlock;
 import baritone.api.pathing.path.IPathExecutor;
 import baritone.api.utils.BetterBlockPos;
@@ -21,10 +22,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ExplodeBlockAndChaseGoal extends Goal {
     private final CreeperEntity mob;
@@ -39,7 +37,7 @@ public class ExplodeBlockAndChaseGoal extends Goal {
     public ExplodeBlockAndChaseGoal(CreeperEntity mob) {
         this.mob = mob;
         MobitoneServiceImpl.addMobitone(mob);
-        this.baritone = BaritoneAPI.getProvider().getPrimaryBaritone();
+        this.baritone = BaritoneAPI.getProvider().getBaritoneForEntity(mob);
         BaritoneAPI.getSettings().allowParkour.value = false;
         BaritoneAPI.getSettings().allowJumpAt256.value = false;
         BaritoneAPI.getSettings().allowParkourAscend.value = false;
@@ -86,9 +84,6 @@ public class ExplodeBlockAndChaseGoal extends Goal {
                 //System.out.println("Player is standing on air. Cannot calculate path.");
                 return;
             }
-            if (ConfigManager.getConfig().isOptimizedMobitone()) {
-                MobitoneServiceImpl.addMobitone(mob);
-            }
             if (baritone != null) {
                 pathingBehavior = baritone.getPathingBehavior();
                 baritone.getCustomGoalProcess().setGoalAndPath(goal);
@@ -97,7 +92,20 @@ public class ExplodeBlockAndChaseGoal extends Goal {
                     breakingPos = null;
                     findBreakingBlock();
                 } else {
-                    currentPath = null;
+                    if (baritone.getPathingBehavior().getInProgress().isPresent() && BaritoneAPI.getSettings().slowPath.value) {
+                        IPathFinder pathFinder = baritone.getPathingBehavior().getInProgress().get();
+                        Optional<IPath> bestSoFar = pathFinder.bestPathSoFar();
+                        if (bestSoFar.isPresent() && bestSoFar.get().positions() != null) {
+                            System.out.println("in progress path isnt null: " + baritone.getPathingBehavior().getInProgress().get().bestPathSoFar().get());
+                            currentPath = bestSoFar.get();
+                            breakingPos = null;
+                            findBreakingBlock();
+                        } else {
+                            currentPath = null;
+                        }
+                    } else {
+                        currentPath = null;
+                    }
                     //System.out.println("Failed to calculate path.");
                 }
             }
@@ -247,11 +255,11 @@ public class ExplodeBlockAndChaseGoal extends Goal {
 
     @Override
     public void tick() {
-        if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+        /*if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
             BaritoneAPI.getSettings().slowPath.value = true;
         } else {
             BaritoneAPI.getSettings().slowPath.value = false;
-        }
+        }*/
         if (targetPlayer != null) {
             if (isEntityStuckInDesignatedGlitchBlock(mob)) {
                 float yaw = mob.getYaw();

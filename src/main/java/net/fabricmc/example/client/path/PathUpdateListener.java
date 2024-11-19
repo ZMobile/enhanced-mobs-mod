@@ -10,10 +10,12 @@ import baritone.api.pathing.path.IPathExecutor;
 import baritone.api.utils.BetterBlockPos;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.example.client.payload.BaritoneCustomPayload;
 import net.fabricmc.example.client.payload.ClientPayloadData;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -39,41 +41,9 @@ public class PathUpdateListener implements IGameEventListener {
 
     @Override
     public void onTick(TickEvent tickEvent) {
-
-    }
-
-    @Override
-    public void onPostTick(TickEvent tickEvent) {
-
-    }
-
-    @Override
-    public void onPlayerUpdate(PlayerUpdateEvent playerUpdateEvent) {
-
-    }
-
-    @Override
-    public void onSendChatMessage(ChatEvent chatEvent) {
-
-    }
-
-    @Override
-    public void onPreTabComplete(TabCompleteEvent tabCompleteEvent) {
-
-    }
-
-    @Override
-    public void onChunkEvent(ChunkEvent chunkEvent) {
-
-    }
-
-    @Override
-    public void onBlockChange(BlockChangeEvent blockChangeEvent) {
-
-    }
-
-    @Override
-    public void onRenderPass(RenderEvent renderEvent) {
+        if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+            return;
+        }
         IPathExecutor current = behavior.getCurrent();
         IPathExecutor next = behavior.getNext();
         if (behavior.getInProgress().isPresent()) {
@@ -163,6 +133,41 @@ public class PathUpdateListener implements IGameEventListener {
                 }
             }
         }
+    }
+
+    @Override
+    public void onPostTick(TickEvent tickEvent) {
+
+    }
+
+    @Override
+    public void onPlayerUpdate(PlayerUpdateEvent playerUpdateEvent) {
+
+    }
+
+    @Override
+    public void onSendChatMessage(ChatEvent chatEvent) {
+
+    }
+
+    @Override
+    public void onPreTabComplete(TabCompleteEvent tabCompleteEvent) {
+
+    }
+
+    @Override
+    public void onChunkEvent(ChunkEvent chunkEvent) {
+
+    }
+
+    @Override
+    public void onBlockChange(BlockChangeEvent blockChangeEvent) {
+
+    }
+
+    @Override
+    public void onRenderPass(RenderEvent renderEvent) {
+
     }
 
     @Override

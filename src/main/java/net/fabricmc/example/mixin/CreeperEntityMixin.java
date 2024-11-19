@@ -34,10 +34,10 @@ public abstract class CreeperEntityMixin extends PathAwareEntity {
         CreeperEntity creeperEntity = (CreeperEntity) (Object) this;
         //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
         if (ConfigManager.getConfig().isCreepersExplodeObstructions()) {
-            if (!ConfigManager.getConfig().isOptimizedMobitone()) {
+            //if (!ConfigManager.getConfig().isOptimizedMobitone()) {
                 MobitoneServiceImpl.addMobitone(this);
                 MobitoneServiceImpl.fillInQueue();
-            }
+            //}
 
             //}
             //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(), creeperEntity);
@@ -57,5 +57,16 @@ public abstract class CreeperEntityMixin extends PathAwareEntity {
             }*/
             MobitoneServiceImpl.removeMobitone(this);
         }
+    }
+
+    @Inject(method = "explode", at = @At("TAIL"))
+    private void explode(CallbackInfo info) {
+        //if (!this.isAlive()) {
+            /*IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
+            if (goalBaritone != null) {
+                //BaritoneAPI.getProvider().destroyBaritone(goalBaritone);
+                //System.out.println("Baritone instance successfully removed for CreeperEntity on despawn");
+            }*/
+            MobitoneServiceImpl.removeMobitone(this);//
     }
 }

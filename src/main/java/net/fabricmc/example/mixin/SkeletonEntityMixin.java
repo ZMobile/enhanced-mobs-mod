@@ -46,10 +46,10 @@ public abstract class SkeletonEntityMixin extends PathAwareEntity {
     }
 
     private void provisionMobitoneGoal() {
-        if (!ConfigManager.getConfig().isOptimizedMobitone()) {
+        //if (!ConfigManager.getConfig().isOptimizedMobitone()) {
             MobitoneServiceImpl.addMobitone(this);
             MobitoneServiceImpl.fillInQueue();
-        }
+        //}
         this.goalSelector.add(1, new BreakPlaceAndChaseGoal(this));
     }
 

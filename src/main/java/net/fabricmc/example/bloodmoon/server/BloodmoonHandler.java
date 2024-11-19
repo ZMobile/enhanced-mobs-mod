@@ -1,5 +1,6 @@
 package net.fabricmc.example.bloodmoon.server;
 
+import baritone.api.BaritoneAPI;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.example.bloodmoon.config.BloodmoonConfig;
 import net.fabricmc.example.bloodmoon.network.PacketHandler;
@@ -84,10 +85,10 @@ public class BloodmoonHandler extends PersistentState {
 
 	public static void endWorldTick(ServerWorld world) {
 		if (INSTANCE != null && world.getRegistryKey() == World.OVERWORLD) {
-			if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+			/*if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
 				// Client-specific code should not be here
 				return;
-			}
+			}*/
 
 			int time = (int) (world.getTimeOfDay() % 24000);
 			if (INSTANCE.isBloodmoonActive()) {
@@ -98,10 +99,13 @@ public class BloodmoonHandler extends PersistentState {
 				}
 
 				if (time >= 0 && time < 12000) {
+					//BaritoneAPI.getSettings().slowPath.value = false;
 					INSTANCE.setBloodmoon(false);
 				}
 			} else {
+				//System.out.println("Bloodmoon checker called");
 				if (time == 12000) {
+					//System.out.println("Bloodmoon checker called");
 					daysElapsed++;
 					if (BloodmoonConfig.SCHEDULE.NTH_NIGHT != 0) {
 						INSTANCE.nightCounter--;
@@ -187,6 +191,7 @@ public class BloodmoonHandler extends PersistentState {
 	}
 
 	public void stop() {
+		//BaritoneAPI.getSettings().slowPath.value = false;
 		setBloodmoon(false);
 	}
 }

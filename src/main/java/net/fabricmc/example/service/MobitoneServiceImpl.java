@@ -39,6 +39,7 @@ public class MobitoneServiceImpl implements MobitoneService {
             IBaritone baritone = BaritoneAPI.getProvider().getBaritoneForEntity(livingEntity);
             if (baritone != null && baritone.getPathingBehavior() != null) {
                 PathUpdateListener pathUpdateListener = new PathUpdateListener(livingEntity.getId(), baritone.getPathingBehavior());
+                System.out.println("PathUpdateListener created for entity: " + livingEntity.getType());
                 baritone.getGameEventHandler().registerEventListener(pathUpdateListener);
             }
         /*} else {

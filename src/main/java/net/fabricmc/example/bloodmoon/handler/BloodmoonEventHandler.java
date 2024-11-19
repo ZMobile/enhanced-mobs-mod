@@ -26,7 +26,7 @@ public class BloodmoonEventHandler {
 
 	public void loadWorld(MinecraftServer server, ServerWorld world) {
 		BloodmoonHandler.initialize(world);
-		if (!world.isClient && world.getRegistryKey() == World.OVERWORLD) {
+		if (/*!world.isClient && */world.getRegistryKey() == World.OVERWORLD) {
 			BloodmoonHandler.INSTANCE = world.getPersistentStateManager().getOrCreate(
 					BloodmoonHandler.BLOODMOON_HANDLER_TYPE, Reference.MOD_ID
 			);

@@ -50,10 +50,10 @@ public abstract class ZombieEntityMixin extends PathAwareEntity {
     }
 
     private void provisionMobitoneGoal() {
-        if (!ConfigManager.getConfig().isOptimizedMobitone()) {
+        //if (!ConfigManager.getConfig().isOptimizedMobitone()) {
             MobitoneServiceImpl.addMobitone(this);
             MobitoneServiceImpl.fillInQueue();
-        }
+        //}
         //}
         BreakPlaceAndChaseGoal goal = new BreakPlaceAndChaseGoal(this);
         this.goalSelector.add(1, goal);
