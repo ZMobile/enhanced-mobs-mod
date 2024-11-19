@@ -43,7 +43,9 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.block.BedBlock;
 import net.minecraft.block.Blocks;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
@@ -222,10 +224,13 @@ public class EnhancedMobsMod implements ModInitializer {
 
 		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
 			// Check if the block being interacted with is a bed
-			if (world.getBlockState(hitResult.getBlockPos()).getBlock() == Blocks.WHITE_BED ||
-					world.getBlockState(hitResult.getBlockPos()).getBlock() instanceof net.minecraft.block.BedBlock) {
-				if (BloodmoonHandler.INSTANCE.isBloodmoonActive() && player instanceof ServerPlayerEntity) {
-					// Cancel the interaction
+			if (world.getBlockState(hitResult.getBlockPos()).getBlock() instanceof BedBlock) {
+				boolean isClientOnServer = isClientConnectedToServer();
+
+				if (BloodmoonHandler.INSTANCE.isBloodmoonActive()
+						&& player instanceof ServerPlayerEntity
+						&& !isClientOnServer) {
+					// Cancel the interaction if it's a server and during a Bloodmoon
 					return ActionResult.FAIL;
 				}
 			}
@@ -234,7 +239,11 @@ public class EnhancedMobsMod implements ModInitializer {
 
 		EntitySleepEvents.START_SLEEPING.register((player, pos) -> {
 			// Wake the player up and send a message
-			if (BloodmoonHandler.INSTANCE.isBloodmoonActive() && player instanceof ServerPlayerEntity) {
+			boolean isClientOnServer = isClientConnectedToServer();
+
+			if (BloodmoonHandler.INSTANCE.isBloodmoonActive()
+					&& player instanceof ServerPlayerEntity
+					&& !isClientOnServer) {
 				player.wakeUp();
 				((ServerPlayerEntity) player).sendMessage(Text.literal("You cannot sleep right now!"));
 			}
@@ -252,6 +261,14 @@ public class EnhancedMobsMod implements ModInitializer {
 		System.out.println("Initializing mod complete");
 	}
 
+	// Method to check if the client is connected to a server
+	private boolean isClientConnectedToServer() {
+		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+			MinecraftClient client = MinecraftClient.getInstance();
+			return client.getNetworkHandler() != null && client.world != null;
+		}
+		return false;
+	}
 
 	private void onPlayerJoin(ServerPlayerEntity player, MinecraftServer server) {
 		// Grant op status to the player
