@@ -196,7 +196,7 @@ public final class BloodmoonSpawner implements Spawner {
 												MobEntity mobEntity;
 
 												try {
-													mobEntity = (MobEntity) spawnEntry.type.create(world);
+													mobEntity = (MobEntity) spawnEntry.type.create(world, SpawnReason.NATURAL);
 												} catch (Exception e) {
 													e.printStackTrace();
 													return;
@@ -310,7 +310,7 @@ public final class BloodmoonSpawner implements Spawner {
 							MobEntity mobEntity;
 
 							try {
-								mobEntity = (MobEntity) spawnEntry.type.create(world);
+								mobEntity = (MobEntity) spawnEntry.type.create(world, SpawnReason.NATURAL);
 							} catch (Exception e) {
 								e.printStackTrace();
 								continue;

@@ -40,7 +40,7 @@ public class BloodmoonEventHandler {
 		}
 	}
 
-	public ActionResult sleepInBed(ServerPlayerEntity player, BlockPos pos) {
+	/*public ActionResult sleepInBed(ServerPlayerEntity player, BlockPos pos) {
 		if (BloodmoonHandler.INSTANCE != null && BloodmoonConfig.GENERAL.NO_SLEEP) {
 			if (EnhancedMobsMod.proxy.isBloodmoon()) {
 				player.sendMessage(Text.translatable("text.bloodmoon.nosleep").formatted(Formatting.RED), true);
@@ -48,7 +48,7 @@ public class BloodmoonEventHandler {
 			}
 		}
 		return ActionResult.PASS;
-	}
+	}*/
 
 	public void playerJoinedWorld(ServerPlayerEntity player) {
 		if (BloodmoonHandler.INSTANCE != null) {

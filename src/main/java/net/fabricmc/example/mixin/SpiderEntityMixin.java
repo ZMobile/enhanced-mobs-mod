@@ -22,7 +22,7 @@ public class SpiderEntityMixin extends PathAwareEntity {
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void addCustomGoals(CallbackInfo info) {
         this.goalSelector.add(6, new CustomTargetGoal(this));
-        EntityAttributeInstance speedAttribute = this.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+        EntityAttributeInstance speedAttribute = this.getAttributeInstance(EntityAttributes.MOVEMENT_SPEED);
 
         if (speedAttribute != null && ConfigManager.getConfig().isSpiderSpeed()) {
             speedAttribute.setBaseValue(0.75);

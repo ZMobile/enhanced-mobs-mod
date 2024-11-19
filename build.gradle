@@ -1,9 +1,9 @@
 plugins {
-	id 'fabric-loom' version '1.6-SNAPSHOT'
+	id 'fabric-loom' version '1.8-SNAPSHOT'
 }
 
-sourceCompatibility = JavaVersion.VERSION_14
-targetCompatibility = JavaVersion.VERSION_14
+sourceCompatibility = JavaVersion.VERSION_21
+targetCompatibility = JavaVersion.VERSION_21
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version
@@ -77,11 +77,11 @@ dependencies {
 	//modImplementation files('lib/cloth-config-13.0.121-fabric.jar')
 	//implementation 'com.typesafe:config:1.4.1'
 	//modImplementation configurations.mobitone
-	//modImplementation files('lib/mobitone1.21-server.jar')
+	//modImplementation files('lib/mobitone1.21.3-server.jar')
 
 	// Implementation has both of these uncommented:
-	modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone-2.1/mobitone1.21-2.1.jar", 'mobitone', '1.21-2.1')
-	include urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone-2.1/mobitone1.21-2.1.jar", 'mobitone', '1.21-2.1')
+	modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone-1.21.3-2.1/mobitone1.21.3-2.1.jar", 'mobitone', '1.21.3-2.1')
+	include urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone-1.21.3-2.1/mobitone1.21.3-2.1.jar", 'mobitone', '1.21.3-2.1')
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
 	// You may need to force-disable transitiveness on them.
 }
@@ -94,6 +94,7 @@ processResources {
 	}
 }
 
+
 tasks.withType(JavaCompile).configureEach {
 	// ensure that the encoding is set to UTF-8, no matter what the system default is
 	// this fixes some edge cases with special characters not displaying correctly
@@ -103,7 +104,7 @@ tasks.withType(JavaCompile).configureEach {
 	// The Minecraft launcher currently installs Java 8 for users, so your mod probably wants to target Java 8 too
 	// JDK 9 introduced a new way of specifying this that will make sure no newer classes or methods are used.
 	// We'll use that if it's available, but otherwise we'll use the older option.
-	def targetVersion = 8
+	def targetVersion = 21
 	if (JavaVersion.current().isJava9Compatible()) {
 		it.options.release = targetVersion
 	}

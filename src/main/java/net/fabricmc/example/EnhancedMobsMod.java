@@ -101,15 +101,45 @@ public class EnhancedMobsMod implements ModInitializer {
 				}
 				if (entity instanceof DrownedEntity && BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
 					double tridentChance = 3;
-					List<PlayerEntity> nearbyPlayersInBoats = world.getEntitiesByClass(PlayerEntity.class, entity.getBoundingBox().expand(100), player -> player.hasVehicle() && player.getVehicle().getType() == EntityType.BOAT);
+
+					// Create a set of all boat entity types
+					Set<EntityType<?>> boatTypes = new HashSet<>();
+					boatTypes.add(EntityType.ACACIA_BOAT);
+					boatTypes.add(EntityType.ACACIA_CHEST_BOAT);
+					boatTypes.add(EntityType.BIRCH_BOAT);
+					boatTypes.add(EntityType.BIRCH_CHEST_BOAT);
+					boatTypes.add(EntityType.DARK_OAK_BOAT);
+					boatTypes.add(EntityType.DARK_OAK_CHEST_BOAT);
+					boatTypes.add(EntityType.JUNGLE_BOAT);
+					boatTypes.add(EntityType.JUNGLE_CHEST_BOAT);
+					boatTypes.add(EntityType.MANGROVE_BOAT);
+					boatTypes.add(EntityType.MANGROVE_CHEST_BOAT);
+					boatTypes.add(EntityType.CHERRY_BOAT);
+					boatTypes.add(EntityType.CHERRY_CHEST_BOAT);
+					boatTypes.add(EntityType.SPRUCE_BOAT);
+					boatTypes.add(EntityType.SPRUCE_CHEST_BOAT);
+					boatTypes.add(EntityType.OAK_BOAT);
+					boatTypes.add(EntityType.OAK_CHEST_BOAT);
+					boatTypes.add(EntityType.BAMBOO_RAFT);
+					boatTypes.add(EntityType.BAMBOO_CHEST_RAFT);
+
+					// Check for nearby players in boats
+					List<PlayerEntity> nearbyPlayersInBoats = world.getEntitiesByClass(
+							PlayerEntity.class,
+							entity.getBoundingBox().expand(100),
+							player -> player.hasVehicle() && boatTypes.contains(player.getVehicle().getType())
+					);
+
 					if (!nearbyPlayersInBoats.isEmpty()) {
 						tridentChance = 7;
 					}
-					if (random.nextInt() < tridentChance) {
-						//System.out.println("Equipping trident");
+
+					if (random.nextDouble() < tridentChance / 10.0) { // Adjusted for proper percentage calculation
+						// Equip the drowned with a trident
 						((ZombieEntity) entity).equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.TRIDENT));
 					}
 				}
+
 				//}
 			}
 		});
@@ -206,7 +236,7 @@ public class EnhancedMobsMod implements ModInitializer {
 			// Wake the player up and send a message
 			if (BloodmoonHandler.INSTANCE.isBloodmoonActive() && player instanceof ServerPlayerEntity) {
 				player.wakeUp();
-				player.sendMessage(Text.literal("You cannot sleep right now!"));
+				((ServerPlayerEntity) player).sendMessage(Text.literal("You cannot sleep right now!"));
 			}
 		});
 		BiomeModifications.addSpawn(
