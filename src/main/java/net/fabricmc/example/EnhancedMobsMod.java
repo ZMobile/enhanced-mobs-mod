@@ -6,6 +6,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.example.bloodmoon.limiter.BloodmoonMobLimiter;
 import net.fabricmc.example.bloodmoon.proxy.ClientProxy;
 import net.fabricmc.example.bloodmoon.proxy.CommonProxy;
 import net.fabricmc.example.bloodmoon.reference.Reference;
@@ -31,6 +32,7 @@ import net.fabricmc.example.command.mob.speed.MobBlockBreakSpeedCommand;
 import net.fabricmc.example.command.performance.*;
 import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.example.client.darkness.ModPlayerData;
+import net.fabricmc.example.persistent.FakePlayerManager;
 import net.fabricmc.example.util.MinecraftServerUtil;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
@@ -143,6 +145,11 @@ public class EnhancedMobsMod implements ModInitializer {
 				}
 
 				//}
+				if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
+					// Register the fake player manager events
+					//FakePlayerManager.registerEvents();
+				}
+				//FakePlayerManager.registerEvents();
 			}
 		});
 
@@ -159,6 +166,7 @@ public class EnhancedMobsMod implements ModInitializer {
 		proxy.init();
 		proxy.postInit();
 
+		BloodmoonMobLimiter.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			CommandBloodmoon.register(dispatcher);
 			AllowPlaceCommand.register(dispatcher);
@@ -199,6 +207,7 @@ public class EnhancedMobsMod implements ModInitializer {
 		// Server starting event
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> {
 			MinecraftServerUtil.setMinecraftServer(server);
+			baritone.api.utils.MinecraftServerUtil.setMinecraftServer(server);
 			ConfigManager.loadConfig();
 			BaritoneAPI.getSettings().blockPlacementPenalty.value = ConfigManager.getConfig().getMobBlockPlacementPenalty();
 			BaritoneAPI.getSettings().blockBreakAdditionalPenalty.value = ConfigManager.getConfig().getMobBlockBreakAdditionalPenalty();

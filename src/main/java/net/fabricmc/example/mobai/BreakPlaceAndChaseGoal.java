@@ -16,6 +16,8 @@ import net.fabricmc.example.mobai.tracker.MobPathTracker;
 import net.fabricmc.example.service.MobitoneService;
 import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.minecraft.block.*;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
@@ -121,7 +123,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
                         IPathFinder pathFinder = baritone.getPathingBehavior().getInProgress().get();
                         Optional<IPath> bestSoFar = pathFinder.bestPathSoFar();
                         if (bestSoFar.isPresent() && bestSoFar.get().positions() != null) {
-                            System.out.println("in progress path isnt null: " + baritone.getPathingBehavior().getInProgress().get().bestPathSoFar().get());
                             currentPath = new ArrayList<>(bestSoFar.get().positions());
                             breakingPos = null;
                             placingPos = null;
@@ -177,7 +178,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
             }
             return true;
         }
-        if (getWorld(mob).getBlockState(blockPos).isOf(Blocks.WATER)) {
+        if (getWorld(mob).getBlockState(blockPos).isOf(Blocks.WATER)  || !getWorld(mob).getFluidState(blockPos).isEmpty()) {
             if (!getWorld(mob).getBlockState(blockPos.up()).isAir()) {
                 return false;
             }
@@ -802,12 +803,49 @@ public class BreakPlaceAndChaseGoal extends Goal {
         //System.out.println("Progress: " + progress);
         world.setBlockBreakingInfo(mob.getId(), breakingPos, (int)progress);
         blockDamageProgress.put(breakingPos, (int)progress);
+        if (blockState.getBlock() instanceof BlockEntityProvider) {
+            BlockEntity blockEntity = world.getBlockEntity(breakingPos);
+            System.out.println("Block entity: " + blockEntity);
+            if (blockEntity instanceof LootableContainerBlockEntity container) {
+                // Drop all items from the container
+                for (int i = 0; i < container.size(); i++) {
+                    ItemStack stack = container.getStack(i);
+                    System.out.println("Checking stack: " + stack);
+                    if (!stack.isEmpty()) {
+                        //Block.dropStack(world, breakingPos, stack);
+                    }
+                }
+                // Clear the container to ensure no residual items
+                //container.clear();
+            }
+        }
 
         if (progress >= 10 / ConfigManager.getConfig().getMobBlockBreakSpeed()) {
             //System.out.println("Breaking block at: " + breakingPos);
+            if (blockState.getBlock() instanceof BlockEntityProvider) {
+                BlockEntity blockEntity = world.getBlockEntity(breakingPos);
+                System.out.println("Block entity: " + blockEntity);
+                if (blockEntity instanceof LootableContainerBlockEntity container) {
+                    // Drop all items from the container
+                    container.generateLoot(null); // Use the correct PlayerEntity if needed
+                    
+                    for (int i = 0; i < container.size(); i++) {
+                        ItemStack stack = container.getStack(i);
+                        System.out.println("Dropping stack: " + stack);
+                        if (!stack.isEmpty()) {
+                            Block.dropStack(world, breakingPos, stack);
+                        }
+                    }
+                    // Clear the container to ensure no residual items
+                    container.clear();
+                }
+            }
+
             boolean success = world.breakBlock(breakingPos, true, mob);
             //System.out.println("Block broken: " + success);
             //System.out.println("Is air: " + world.getBlockState(breakingPos).isAir());
+            // Drop the block's items and container contents manually
+
             if (!success) {
                 world.setBlockState(breakingPos, Blocks.AIR.getDefaultState(), 3);
             }

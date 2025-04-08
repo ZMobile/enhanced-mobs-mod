@@ -3,6 +3,7 @@ package net.fabricmc.example.mobai;
 import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.service.CustomVisibilityCheckServiceImpl;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -11,7 +12,7 @@ import java.util.EnumSet;
 
 public class CustomTargetGoal extends Goal {
     private final MobEntity mob;
-    private PlayerEntity targetPlayer;
+    private LivingEntity targetPlayer;
     private int sightCounter;
     private static final int SIGHT_DURATION = 40; // 2 seconds (40 ticks)
     private static final int MAX_HEARING_DISTANCE = 20;
@@ -72,6 +73,10 @@ public class CustomTargetGoal extends Goal {
 
     @Override
     public void tick() {
+        if (targetPlayer != null && !targetPlayer.isAlive()) {
+            targetPlayer = null;
+        }
+
         if (mob.isTouchingWater()) {
             if (targetPlayer != null) {
                 // Calculate the direction vector towards the target player
@@ -126,7 +131,6 @@ public class CustomTargetGoal extends Goal {
             }
         }
     }
-
 
     private void lookAtPlayer() {
         double dx = targetPlayer.getX() - mob.getX();

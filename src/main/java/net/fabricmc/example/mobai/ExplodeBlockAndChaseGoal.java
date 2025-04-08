@@ -96,7 +96,6 @@ public class ExplodeBlockAndChaseGoal extends Goal {
                         IPathFinder pathFinder = baritone.getPathingBehavior().getInProgress().get();
                         Optional<IPath> bestSoFar = pathFinder.bestPathSoFar();
                         if (bestSoFar.isPresent() && bestSoFar.get().positions() != null) {
-                            System.out.println("in progress path isnt null: " + baritone.getPathingBehavior().getInProgress().get().bestPathSoFar().get());
                             currentPath = bestSoFar.get();
                             breakingPos = null;
                             findBreakingBlock();

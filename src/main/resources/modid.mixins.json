@@ -10,6 +10,7 @@
     "MobSpawnerMixin",
     "ModPlayerDataMixin",
     "RaiderEntityMixin",
+    "ServerWorldMixin",
     "SkeletonEntityMixin",
     "SlimeEntityMixin",
     "SpiderEntityMixin",

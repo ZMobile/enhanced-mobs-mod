@@ -41,8 +41,7 @@ import net.minecraft.util.math.MathHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import static net.minecraft.entity.EntityType.DROWNED;
-import static net.minecraft.entity.EntityType.WITCH;
+import static net.minecraft.entity.EntityType.*;
 
 public final class BloodmoonSpawner implements Spawner {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -174,6 +173,10 @@ public final class BloodmoonSpawner implements Spawner {
 											}*/
 										}
 										if (Math.random() < bloodmoonSpawnChance) {
+											if (spawnEntry.type == ENDERMAN) {
+												continue;
+											}
+
 											if (spawnEntry.type == WITCH && Math.random() > 0.1) { // 10% chance to spawn a witch
 												continue;
 											}
