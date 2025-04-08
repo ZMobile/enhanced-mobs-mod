@@ -37,7 +37,7 @@ public class  ModConfig {
         bloodmoonEnabled = true;
         trueDarknessEnforced = false;
         buildingMiningMobsDuringBloodmoonOnly = false;
-        mobBlockPlacementPenalty = 3.0;
+        mobBlockPlacementPenalty = 4.0;
         mobBlockBreakAdditionalPenalty = 2.0;
         mobJumpPenalty = 2.0;
         bloodmoonSpawnPercentage = 0.00001;
