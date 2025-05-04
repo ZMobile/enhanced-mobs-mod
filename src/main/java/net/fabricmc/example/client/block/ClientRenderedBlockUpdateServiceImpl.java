@@ -38,7 +38,7 @@ public class ClientRenderedBlockUpdateServiceImpl {
         MinecraftServer server = BaritoneAPI.getProvider().getPrimaryBaritone().getPlayerContext().world().getServer();
         if (server != null) {
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                ServerPlayNetworking.send(player, customPayload);
+                ServerPlayNetworking.send(player, BaritoneCustomPayload.ID, buf);
             }
         }
     }
@@ -63,7 +63,7 @@ public class ClientRenderedBlockUpdateServiceImpl {
         MinecraftServer server = BaritoneAPI.getProvider().getPrimaryBaritone().getPlayerContext().world().getServer();
         if (server != null) {
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                ServerPlayNetworking.send(player, customPayload);
+                ServerPlayNetworking.send(player, BaritoneCustomPayload.ID, buf);
             }
         }
     }

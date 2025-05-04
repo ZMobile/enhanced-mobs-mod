@@ -1,32 +1,25 @@
 package net.fabricmc.example.client.darkness;
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayNetworkHandler;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
-public class ClientModPacket implements CustomPayload {
-    /*public static final Identifier ID = Identifier.of("mobitone", "mobitone_mod_packet");
+public class ClientModPacket {
+    public static final Identifier ID = new Identifier("mobitone", "mobitone_mod_packet");
 
     public static void register() {
-        ServerPlayNetworking.registerGlobalReceiver(new Id<>(ID), (payload, context) -> {
-            MinecraftServer minecraftServer = context.server();
-            PlayerEntity player = context.player();
-            handle(minecraftServer, player);
-        });
+        // Registering the packet receiver using the new API format
+        ServerPlayNetworking.registerGlobalReceiver(ID, (server, player, handler, buf, responseSender) -> handle(server, player, handler, buf));
     }
 
-    public static void handle(MinecraftServer minecraftServer, PlayerEntity player) {
-        minecraftServer.execute(() -> {
-            // Server received the packet, player has the mod
+    private static void handle(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf) {
+        server.execute(() -> {
+            // Handle the packet on the server thread
             System.out.println("Set has mod to true");
             ((ModPlayerData) player).setHasMod(true);
         });
-    }*/
-
-    @Override
-    public Id<? extends CustomPayload> getId() {
-        return null;//new Id<>(ID);
     }
 }

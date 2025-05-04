@@ -1,9 +1,9 @@
 plugins {
-	id 'fabric-loom' version '1.10.1'
+	id 'fabric-loom' version '1.8-SNAPSHOT'
 }
 
-sourceCompatibility = JavaVersion.VERSION_21
-targetCompatibility = JavaVersion.VERSION_21
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version
@@ -13,13 +13,13 @@ configurations {
 	mobitone
 }
 
-task downloadMobitone {
+/*task downloadMobitone {
 	doLast {
 		def url = 'https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone/mobitone1.20.4-server.jar'
-		def outputFile = file(files('lib/renamed.jar').getAsPath())
+		def outputFile = file(files('lib/mobitone1.20.4-server.jar').getAsPath())
 
 		if (!outputFile.exists()) {
-			println "Downloading mobitone1.20.4-server.jar..."
+			println "Downloading mobitone1.20.1-server.jar..."
 			outputFile.parentFile.mkdirs()  // Ensure the directory exists
 			new URL(url).withInputStream { inputStream ->
 				outputFile.withOutputStream { outputStream ->
@@ -28,10 +28,10 @@ task downloadMobitone {
 			}
 			println "Download completed."
 		} else {
-			println "mobitone1.20.4-server.jar already exists. Skipping download."
+			println "mobitone1.20.1-server.jar already exists. Skipping download."
 		}
 	}
-}
+}*/
 
 
 repositories {
@@ -70,20 +70,18 @@ dependencies {
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	include("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
 
 	implementation "dev.babbaj:nether-pathfinder:1.4.1"
 
 	//modImplementation files('lib/cloth-config-13.0.121-fabric.jar')
 	//implementation 'com.typesafe:config:1.4.1'
 	//modImplementation configurations.mobitone
-	modImplementation files('lib/mobitone-1.21.jar')
-	//include files('lib/mobitone-1.21.jar')
+	modImplementation files('lib/mobitone-1.20.1.jar')
 
-	// Implementation has both of these uncommented:
-	//modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone-1.21.5-2.2/mobitone-1.21.5-2.2.jar", 'mobitone', '1.21.5-2.2')
-	//include urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone-1.21.5-2.2/mobitone-1.21.5-2.2.jar", 'mobitone', '1.21.5-2.2')
-	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
+
+	//modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.11.0-Mobitone1.20.1/mobitone1.20.1-server.jar", 'mobitone', '1.20.1-server')
+	//include urlFile("https://github.com/ZMobile/baritone/releases/download/v1.11.0-Mobitone1.20.1/mobitone1.20.1-server.jar", 'mobitone', '1.20.1-server')
+	//// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
 	// You may need to force-disable transitiveness on them.
 }
 
@@ -95,7 +93,6 @@ processResources {
 	}
 }
 
-
 tasks.withType(JavaCompile).configureEach {
 	// ensure that the encoding is set to UTF-8, no matter what the system default is
 	// this fixes some edge cases with special characters not displaying correctly
@@ -105,7 +102,7 @@ tasks.withType(JavaCompile).configureEach {
 	// The Minecraft launcher currently installs Java 8 for users, so your mod probably wants to target Java 8 too
 	// JDK 9 introduced a new way of specifying this that will make sure no newer classes or methods are used.
 	// We'll use that if it's available, but otherwise we'll use the older option.
-	def targetVersion = 21
+	def targetVersion = 16
 	if (JavaVersion.current().isJava9Compatible()) {
 		it.options.release = targetVersion
 	}

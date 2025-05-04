@@ -41,7 +41,7 @@ import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
@@ -88,9 +88,9 @@ public class EnhancedMobsMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		System.out.println("Initializing mod...");
-		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
+		/*if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
 			PayloadTypeRegistry.playS2C().register(BaritoneCustomPayload.ID, BaritoneCustomPayload.CODEC);
-		}
+		}*/
 		ServerEntityEvents.ENTITY_LOAD.register(this::onEntityLoad);
 		ServerEntityEvents.ENTITY_LOAD.register((entity, serverWorld) -> {
 			if (entity instanceof ZombieEntity) {
@@ -108,8 +108,9 @@ public class EnhancedMobsMod implements ModInitializer {
 
 					// Create a set of all boat entity types
 					Set<EntityType<?>> boatTypes = new HashSet<>();
-					boatTypes.add(EntityType.ACACIA_BOAT);
-					boatTypes.add(EntityType.ACACIA_CHEST_BOAT);
+					boatTypes.add(EntityType.BOAT);
+					boatTypes.add(EntityType.CHEST_BOAT);
+					/*boatTypes.add(EntityType.ACACIA_CHEST_BOAT);
 					boatTypes.add(EntityType.BIRCH_BOAT);
 					boatTypes.add(EntityType.BIRCH_CHEST_BOAT);
 					boatTypes.add(EntityType.DARK_OAK_BOAT);
@@ -125,7 +126,7 @@ public class EnhancedMobsMod implements ModInitializer {
 					boatTypes.add(EntityType.OAK_BOAT);
 					boatTypes.add(EntityType.OAK_CHEST_BOAT);
 					boatTypes.add(EntityType.BAMBOO_RAFT);
-					boatTypes.add(EntityType.BAMBOO_CHEST_RAFT);
+					boatTypes.add(EntityType.BAMBOO_CHEST_RAFT);*/
 
 					// Check for nearby players in boats
 					List<PlayerEntity> nearbyPlayersInBoats = world.getEntitiesByClass(

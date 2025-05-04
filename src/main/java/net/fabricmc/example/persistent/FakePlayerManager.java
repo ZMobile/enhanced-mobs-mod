@@ -34,7 +34,7 @@ public class FakePlayerManager {
             // Create and spawn the fake player
             BlockPos pos = player.getBlockPos();
             GameProfile gameProfile = new GameProfile(UUID.randomUUID(), "FakePlayerName");
-            FakePlayerEntity fakePlayer = new FakePlayerEntity(world, pos, gameProfile);
+            /*FakePlayerEntity fakePlayer = new FakePlayerEntity(world, pos, gameProfile);
             fakePlayer.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
             fakePlayer.refreshPositionAndAngles(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0.0F, 0.0F);
 
@@ -45,7 +45,7 @@ public class FakePlayerManager {
                 System.out.println("Fake player spawned for " + player.getName().getString());
             } else {
                 System.err.println("Failed to spawn fake player for " + player.getName().getString());
-            }
+            }*/
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {

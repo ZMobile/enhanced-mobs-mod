@@ -8,7 +8,6 @@ import net.fabricmc.example.config.ConfigManager;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.entity.Spawner;
 import net.minecraft.entity.*;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.mob.Monster;
@@ -38,6 +37,7 @@ import net.minecraft.entity.SpawnReason;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.spawner.Spawner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -49,9 +49,9 @@ public final class BloodmoonSpawner implements Spawner {
 	private final Set<ChunkPos> eligibleChunksForSpawning = Sets.newHashSet();
 	int witchCount = 0; // Counter for witches
 
-	public void triggerBloodmoonSpawning(ServerWorld world, boolean spawnHostileMobs, boolean spawnPeacefulMobs) {
+	public int spawn(ServerWorld world, boolean spawnHostileMobs, boolean spawnPeacefulMobs) {
 		if (!spawnHostileMobs && !spawnPeacefulMobs) {
-			return;
+			return 0;
 		}
 
 		this.eligibleChunksForSpawning.clear();
@@ -131,7 +131,7 @@ public final class BloodmoonSpawner implements Spawner {
 									 */
 									if (!spawnList.isEmpty()) {
 										int spawnIndex = world.random.nextInt(spawnList.getEntries().size());
-										SpawnSettings.SpawnEntry spawnEntry = spawnList.getEntries().get(spawnIndex).value();
+										SpawnSettings.SpawnEntry spawnEntry = spawnList.getEntries().get(spawnIndex);
 
 										Box searchBox = new Box(mutablePos).expand(50);
 										List<PlayerEntity> nearbyPlayers = world.getEntitiesByClass(PlayerEntity.class, searchBox, player -> true);
@@ -141,7 +141,7 @@ public final class BloodmoonSpawner implements Spawner {
 											bloodmoonSpawnChance = bloodmoonSpawnChance * 10;
 										}
 
-										if (spawnEntry.type() == EntityType.DROWNED) {
+										if (spawnEntry.type == EntityType.DROWNED) {
 											if (!nearbyPlayers.isEmpty()) {
 												for (PlayerEntity player : nearbyPlayers) {
 													Box monsterSearchBox = new Box(player.getBlockPos()).expand(40);
@@ -173,15 +173,15 @@ public final class BloodmoonSpawner implements Spawner {
 											}*/
 										}
 										if (Math.random() < bloodmoonSpawnChance) {
-											if (spawnEntry.type() == ENDERMAN) {
+											if (spawnEntry.type == ENDERMAN) {
 												continue;
 											}
 
-											if (spawnEntry.type() == WITCH && Math.random() > 0.1) { // 10% chance to spawn a witch
+											if (spawnEntry.type == WITCH && Math.random() > 0.1) { // 10% chance to spawn a witch
 												continue;
 											}
 
-											if (spawnEntry.type() == EntityType.DROWNED) {
+											if (spawnEntry.type == EntityType.DROWNED) {
 												if (!(world.getBlockState(mutablePos).isOf(Blocks.WATER) &&
 														world.getBlockState(mutablePos.up()).isOf(Blocks.WATER) &&
 														world.getBlockState(mutablePos.up(2)).isOf(Blocks.WATER))) {
@@ -189,20 +189,20 @@ public final class BloodmoonSpawner implements Spawner {
 												}
 											}
 
-											if (spawnEntry.type() == WITCH) {
+											if (spawnEntry.type == WITCH) {
 												witchCount++;
 												if (witchCount > 5) { // Limit to 5 witches
 													continue;
 												}
 											}
-											if (BloodmoonConfig.canSpawn(spawnEntry.type().getBaseClass())) {
+											if (BloodmoonConfig.canSpawn(spawnEntry.type.getBaseClass())) {
 												MobEntity mobEntity;
 
 												try {
-													mobEntity = (MobEntity) spawnEntry.type().create(world, SpawnReason.NATURAL);
+													mobEntity = (MobEntity) spawnEntry.type.create(world);
 												} catch (Exception e) {
 													e.printStackTrace();
-													return;
+													continue;
 												}
 
 												mobEntity.refreshPositionAndAngles(spawnX, y, spawnZ, world.random.nextFloat() * 360.0F, 0.0F);
@@ -229,6 +229,7 @@ public final class BloodmoonSpawner implements Spawner {
 				}
 			}
 		}
+		return spawnCount;
 	}
 
 	private boolean isPlayerNearby(ServerWorld world, BlockPos pos, double distance) {
@@ -291,14 +292,14 @@ public final class BloodmoonSpawner implements Spawner {
 		if (!spawnEntries.isEmpty()) {
 			while (random.nextFloat() < biome.getSpawnSettings().getCreatureSpawnProbability()) {
 				int spawnEntryIndex = random.nextInt(spawnEntries.getEntries().size());
-				SpawnSettings.SpawnEntry spawnEntry = spawnEntries.getEntries().get(spawnEntryIndex).value();
-				if (spawnEntry.type() == DROWNED) {
+				SpawnSettings.SpawnEntry spawnEntry = spawnEntries.getEntries().get(spawnEntryIndex);
+				if (spawnEntry.type == DROWNED) {
 					LOGGER.info("Attempting to spawn drowned at position: " + x + ", " + z);
 				}
 				if (spawnEntry == null) {
 					continue;
 				}
-				int count = spawnEntry.minGroupSize() + random.nextInt(1 + spawnEntry.maxGroupSize() - spawnEntry.minGroupSize());
+				int count = spawnEntry.minGroupSize + random.nextInt(1 + spawnEntry.maxGroupSize - spawnEntry.minGroupSize);
 				int posX = x + random.nextInt(16);
 				int posZ = z + random.nextInt(16);
 				int posY = world.getTopY(Heightmap.Type.MOTION_BLOCKING, posX, posZ);
@@ -309,11 +310,11 @@ public final class BloodmoonSpawner implements Spawner {
 					for (int attempt = 0; !spawned && attempt < 4; ++attempt) {
 						BlockPos spawnPos = world.getTopPosition(Heightmap.Type.MOTION_BLOCKING, new BlockPos(posX, 0, posZ));
 
-						if (canSpawnAtLocation(spawnEntry.type(), world, spawnPos)) {
+						if (canSpawnAtLocation(spawnEntry.type, world, spawnPos)) {
 							MobEntity mobEntity;
 
 							try {
-								mobEntity = (MobEntity) spawnEntry.type().create(world, SpawnReason.NATURAL);
+								mobEntity = (MobEntity) spawnEntry.type.create(world);
 							} catch (Exception e) {
 								e.printStackTrace();
 								continue;
@@ -330,11 +331,5 @@ public final class BloodmoonSpawner implements Spawner {
 				}
 			}
 		}
-	}
-
-
-	@Override
-	public void setEntityType(EntityType<?> type, net.minecraft.util.math.random.Random random) {
-		// TODO Auto-generated method stub
 	}
 }

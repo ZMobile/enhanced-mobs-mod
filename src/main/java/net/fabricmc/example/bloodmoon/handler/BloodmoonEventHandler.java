@@ -26,21 +26,20 @@ public class BloodmoonEventHandler {
 
 	public void loadWorld(MinecraftServer server, ServerWorld world) {
 		BloodmoonHandler.initialize(world);
-		if (/*!world.isClient && */world.getRegistryKey() == World.OVERWORLD) {
+
+		if (!world.isClient && world.getRegistryKey() == World.OVERWORLD) {
 			BloodmoonHandler.INSTANCE = world.getPersistentStateManager().getOrCreate(
-					BloodmoonHandler.BLOODMOON_HANDLER_TYPE
+					BloodmoonHandler::readNbt, // The function that reads from NBT
+					BloodmoonHandler::new, // Supplier that provides a new instance
+					"bloodmoon_handler" // ID used for storage
 			);
 
-			if (BloodmoonHandler.INSTANCE == null) {
-				BloodmoonHandler.INSTANCE = new BloodmoonHandler();
-				BloodmoonHandler.INSTANCE.markDirty();
-			}
-
+			// This null check is no longer necessary, since `getOrCreate` ensures a valid instance is returned.
 			BloodmoonHandler.INSTANCE.updateClients();
 		}
 	}
 
-	/*public ActionResult sleepInBed(ServerPlayerEntity player, BlockPos pos) {
+	public ActionResult sleepInBed(ServerPlayerEntity player, BlockPos pos) {
 		if (BloodmoonHandler.INSTANCE != null && BloodmoonConfig.GENERAL.NO_SLEEP) {
 			if (EnhancedMobsMod.proxy.isBloodmoon()) {
 				player.sendMessage(Text.translatable("text.bloodmoon.nosleep").formatted(Formatting.RED), true);
@@ -48,7 +47,7 @@ public class BloodmoonEventHandler {
 			}
 		}
 		return ActionResult.PASS;
-	}*/
+	}
 
 	public void playerJoinedWorld(ServerPlayerEntity player) {
 		if (BloodmoonHandler.INSTANCE != null) {

@@ -48,36 +48,42 @@ public class BloodmoonHandler extends PersistentState {
 		daysElapsed = 0;
 	}
 
-	public static final PersistentStateType<BloodmoonHandler> BLOODMOON_HANDLER_TYPE = new PersistentStateType<>(
-			"bloodmoon_handler",
-			ctx -> new BloodmoonHandler(),
-			ctx -> BloodmoonHandler.CODEC,
-			DataFixTypes.WORLD_GEN_SETTINGS
-	);
+	@Override
+	public NbtCompound writeNbt(NbtCompound nbt) {
+		nbt.putBoolean("bloodMoon", bloodMoon);
+		nbt.putBoolean("forceBloodMoon", forceBloodMoon);
+		nbt.putInt("nightCounter", nightCounter);
+		return nbt;
+	}
 
-	public static final Codec<BloodmoonHandler> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-			Codec.BOOL.fieldOf("bloodMoon").forGetter(h -> h.bloodMoon),
-			Codec.BOOL.fieldOf("forceBloodMoon").forGetter(h -> h.forceBloodMoon),
-			Codec.INT.fieldOf("daysElapsed").forGetter(h -> h.daysElapsed)
-	).apply(instance, (bloodMoon, forceBloodMoon, daysElapsed) -> {
+	public static BloodmoonHandler readNbt(NbtCompound nbt) {
 		BloodmoonHandler handler = new BloodmoonHandler();
-		handler.bloodMoon = bloodMoon;
-		handler.forceBloodMoon = forceBloodMoon;
-		handler.daysElapsed = daysElapsed;
+		handler.bloodMoon = nbt.getBoolean("bloodMoon");
+		handler.forceBloodMoon = nbt.getBoolean("forceBloodMoon");
+		handler.nightCounter = nbt.getInt("nightCounter");
 		return handler;
-	}));
+	}
 
 
 	public static void initialize(ServerWorld serverWorld) {
 		PersistentStateManager persistentStateManager = serverWorld.getPersistentStateManager();
-		INSTANCE = persistentStateManager.getOrCreate(BLOODMOON_HANDLER_TYPE);
+
+		// Refactor: no need for BLOODMOON_HANDLER_TYPE
+		INSTANCE = persistentStateManager.getOrCreate(
+				BloodmoonHandler::readNbt,
+				BloodmoonHandler::new,
+				"bloodmoon"
+		);
+
 		world = serverWorld;
 
+		// Register event listeners
 		ServerTickEvents.END_WORLD_TICK.register(BloodmoonHandler::endWorldTick);
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			BloodmoonHandler.INSTANCE.playerJoinedWorld(handler.getPlayer());
 		});
 	}
+
 
 	public static BloodmoonHandler getInstance() {
 		if (INSTANCE == null) {
@@ -107,7 +113,7 @@ public class BloodmoonHandler extends PersistentState {
 			if (INSTANCE.isBloodmoonActive()) {
 				if (!BloodmoonConfig.GENERAL.RESPECT_GAMERULE || world.getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING)) {
 					for (int i = 0; i < BloodmoonConfig.SPAWNING.SPAWN_SPEED; i++) {
-						INSTANCE.bloodMoonSpawner.triggerBloodmoonSpawning(world, world.getDifficulty() != Difficulty.PEACEFUL, false);
+						INSTANCE.bloodMoonSpawner.spawn(world, world.getDifficulty() != Difficulty.PEACEFUL, false);
 					}
 				}
 

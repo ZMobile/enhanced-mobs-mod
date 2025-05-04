@@ -827,7 +827,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 System.out.println("Block entity: " + blockEntity);
                 if (blockEntity instanceof LootableContainerBlockEntity container) {
                     // Drop all items from the container
-                    container.generateLoot(null); // Use the correct PlayerEntity if needed
+                    //container.generateLoot(null); // Use the correct PlayerEntity if needed
                     
                     for (int i = 0; i < container.size(); i++) {
                         ItemStack stack = container.getStack(i);

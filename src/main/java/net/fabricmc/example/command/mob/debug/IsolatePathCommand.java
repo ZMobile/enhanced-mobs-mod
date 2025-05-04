@@ -4,8 +4,8 @@ import baritone.api.BaritoneAPI;
 import com.google.gson.Gson;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import net.fabricmc.example.client.payload.ClientPayloadData;
 import net.fabricmc.example.client.payload.BaritoneCustomPayload;
+import net.fabricmc.example.client.payload.ClientPayloadData;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
@@ -27,17 +27,16 @@ public class IsolatePathCommand {
                             ClientPayloadData payloadData = new ClientPayloadData("isolatePathCommand", value);
                             Gson gson = new Gson();
                             String json = gson.toJson(payloadData);
-                            BaritoneCustomPayload customPayload = new BaritoneCustomPayload(json);
 
                             // Encode the custom payload into a PacketByteBuf
                             PacketByteBuf buf = PacketByteBufs.create();
-                            customPayload.write(buf);
+                            buf.writeString(json);
 
                             // Send the packet to all online players
                             MinecraftServer server = BaritoneAPI.getProvider().getPrimaryBaritone().getPlayerContext().world().getServer();
                             if (server != null) {
                                 for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                                    ServerPlayNetworking.send(player, customPayload);
+                                    ServerPlayNetworking.send(player, BaritoneCustomPayload.ID, buf);
                                 }
                             }
                             context.getSource().sendFeedback(() -> Text.of("Isolating path of mob: " + value), true);
