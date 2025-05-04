@@ -1,6 +1,8 @@
 package net.fabricmc.example.bloodmoon.server;
 
 import baritone.api.BaritoneAPI;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.example.bloodmoon.config.BloodmoonConfig;
 import net.fabricmc.example.bloodmoon.network.PacketHandler;
@@ -17,13 +19,10 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
-import net.minecraft.world.Difficulty;
-import net.minecraft.world.GameRules;
-import net.minecraft.world.PersistentState;
-import net.minecraft.world.PersistentStateManager;
-import net.minecraft.world.World;
+import net.minecraft.world.*;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 public class BloodmoonHandler extends PersistentState {
@@ -49,15 +48,29 @@ public class BloodmoonHandler extends PersistentState {
 		daysElapsed = 0;
 	}
 
-	public static final PersistentState.Type<BloodmoonHandler> BLOODMOON_HANDLER_TYPE = new PersistentState.Type<>(
-			BloodmoonHandler::new,
-            BloodmoonHandler::readNbt,
-			DataFixTypes.WORLD_GEN_SETTINGS // Adjust as needed
+	public static final PersistentStateType<BloodmoonHandler> BLOODMOON_HANDLER_TYPE = new PersistentStateType<>(
+			"bloodmoon_handler",
+			ctx -> new BloodmoonHandler(),
+			ctx -> BloodmoonHandler.CODEC,
+			DataFixTypes.WORLD_GEN_SETTINGS
 	);
+
+	public static final Codec<BloodmoonHandler> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+			Codec.BOOL.fieldOf("bloodMoon").forGetter(h -> h.bloodMoon),
+			Codec.BOOL.fieldOf("forceBloodMoon").forGetter(h -> h.forceBloodMoon),
+			Codec.INT.fieldOf("daysElapsed").forGetter(h -> h.daysElapsed)
+	).apply(instance, (bloodMoon, forceBloodMoon, daysElapsed) -> {
+		BloodmoonHandler handler = new BloodmoonHandler();
+		handler.bloodMoon = bloodMoon;
+		handler.forceBloodMoon = forceBloodMoon;
+		handler.daysElapsed = daysElapsed;
+		return handler;
+	}));
+
 
 	public static void initialize(ServerWorld serverWorld) {
 		PersistentStateManager persistentStateManager = serverWorld.getPersistentStateManager();
-		INSTANCE = persistentStateManager.getOrCreate(BLOODMOON_HANDLER_TYPE, "bloodmoon");
+		INSTANCE = persistentStateManager.getOrCreate(BLOODMOON_HANDLER_TYPE);
 		world = serverWorld;
 
 		ServerTickEvents.END_WORLD_TICK.register(BloodmoonHandler::endWorldTick);
@@ -170,15 +183,18 @@ public class BloodmoonHandler extends PersistentState {
 		return bloodMoon;
 	}
 
-	public static BloodmoonHandler readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
+	/*public static BloodmoonHandler readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
 		BloodmoonHandler handler = new BloodmoonHandler();
-		handler.bloodMoon = nbt.getBoolean("bloodMoon");
-		handler.forceBloodMoon = nbt.getBoolean("forceBloodMoon");
-		handler.nightCounter = nbt.getInt("nightCounter");
+		Optional<Boolean> bloodMoonOpt = nbt.getBoolean("bloodMoon");
+		handler.bloodMoon = bloodMoonOpt.orElse(false);
+		Optional<Boolean> forceBloodMoonOpt = nbt.getBoolean("forceBloodMoon");
+		handler.forceBloodMoon = forceBloodMoonOpt.orElse(false);
+		Optional<Integer> daysElapsedOpt = nbt.getInt("daysElapsed");
+		handler.nightCounter = daysElapsedOpt.orElse(0);
 		return handler;
 	}
 
-	@Override
+	/*@Override
 	public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
 		nbt.putBoolean("bloodMoon", bloodMoon);
 		nbt.putBoolean("forceBloodMoon", forceBloodMoon);
@@ -188,7 +204,7 @@ public class BloodmoonHandler extends PersistentState {
 
 	public boolean isBloodmoonScheduled() {
 		return forceBloodMoon;
-	}
+	}*/
 
 	public void stop() {
 		//BaritoneAPI.getSettings().slowPath.value = false;

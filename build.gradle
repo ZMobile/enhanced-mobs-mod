@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.8-SNAPSHOT'
+	id 'fabric-loom' version '1.10.1'
 }
 
 sourceCompatibility = JavaVersion.VERSION_21
@@ -81,8 +81,8 @@ dependencies {
 	//include files('lib/mobitone-1.21.jar')
 
 	// Implementation has both of these uncommented:
-	//modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone-1.21.3-2.2/mobitone-1.21.3-2.2.jar", 'mobitone', '1.21.3-2.2')
-	//include urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone-1.21.3-2.2/mobitone-1.21.3-2.2.jar", 'mobitone', '1.21.3-2.2')
+	//modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone-1.21.5-2.2/mobitone-1.21.5-2.2.jar", 'mobitone', '1.21.5-2.2')
+	//include urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone-1.21.5-2.2/mobitone-1.21.5-2.2.jar", 'mobitone', '1.21.5-2.2')
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
 	// You may need to force-disable transitiveness on them.
 }

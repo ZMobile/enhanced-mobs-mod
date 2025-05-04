@@ -28,7 +28,7 @@ public class BloodmoonEventHandler {
 		BloodmoonHandler.initialize(world);
 		if (/*!world.isClient && */world.getRegistryKey() == World.OVERWORLD) {
 			BloodmoonHandler.INSTANCE = world.getPersistentStateManager().getOrCreate(
-					BloodmoonHandler.BLOODMOON_HANDLER_TYPE, Reference.MOD_ID
+					BloodmoonHandler.BLOODMOON_HANDLER_TYPE
 			);
 
 			if (BloodmoonHandler.INSTANCE == null) {
