@@ -25,6 +25,9 @@ public class MobitoneServiceImpl implements MobitoneService {
     }
 
     public static void addMobitone(LivingEntity livingEntity) {
+        if (MinecraftServerUtil.getMinecraftServer() == null) {
+            return;
+        }
         MobitoneProvision existingMobitoneProvision = mobitoneProvisions.stream()
                 .filter(mobitoneProvisionQuery -> mobitoneProvisionQuery.getLivingEntity().equals(livingEntity))
                 .findFirst().orElse(null);
@@ -39,7 +42,7 @@ public class MobitoneServiceImpl implements MobitoneService {
             IBaritone baritone = BaritoneAPI.getProvider().getBaritoneForEntity(livingEntity);
             if (baritone != null && baritone.getPathingBehavior() != null) {
                 PathUpdateListener pathUpdateListener = new PathUpdateListener(livingEntity.getId(), baritone.getPathingBehavior());
-                System.out.println("PathUpdateListener created for entity: " + livingEntity.getType());
+                // Removed debug logging to reduce console spam
                 baritone.getGameEventHandler().registerEventListener(pathUpdateListener);
             }
         /*} else {
@@ -52,6 +55,9 @@ public class MobitoneServiceImpl implements MobitoneService {
     }
 
     public static void removeMobitone(LivingEntity livingEntity) {
+        if (MinecraftServerUtil.getMinecraftServer() == null) {
+            return;
+        }
         IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(livingEntity);
         if (goalBaritone != null) {
             // Clean up Baritone instance for this entity

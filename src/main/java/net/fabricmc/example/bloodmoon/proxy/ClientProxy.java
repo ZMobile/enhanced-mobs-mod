@@ -10,6 +10,11 @@ public class ClientProxy extends CommonProxy implements ClientModInitializer {
 		// Register the ClientBloodmoonHandler for client tick events
 		ClientTickEvents.END_CLIENT_TICK.register(ClientBloodmoonHandler.INSTANCE::onClientTick);
 
+		// Initialize client-side path rendering
+		new net.fabricmc.example.client.ClientPathManager().onInitializeClient();
+		new net.fabricmc.example.client.ClientPlacingBlockHighlighter().onInitializeClient();
+		new net.fabricmc.example.client.ClientTargetBlockHighlighter().onInitializeClient();
+
 		// Additional client-side initialization logic, if needed
 		/*ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
 			// Any other client-specific initialization can go here

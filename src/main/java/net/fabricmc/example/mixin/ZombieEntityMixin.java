@@ -1,5 +1,6 @@
 package net.fabricmc.example.mixin;
 
+import net.fabricmc.api.EnvType;
 import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.config.ConfigManager;
 import net.fabricmc.example.mobai.BreakPlaceAndChaseGoal;
@@ -7,6 +8,7 @@ import net.fabricmc.example.mobai.tracker.BreakPlaceAndChaseGoalTracker;
 import net.fabricmc.example.mobai.CustomTargetGoal;
 import net.fabricmc.example.mobai.tracker.MobPathTracker;
 import net.fabricmc.example.service.MobitoneServiceImpl;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.AzaleaBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.EntityType;
@@ -86,6 +88,26 @@ public abstract class ZombieEntityMixin extends PathAwareEntity {
             MobitoneServiceImpl.removeMobitone(this);
             BreakPlaceAndChaseGoalTracker.removeGoal(this.getId());
             MobPathTracker.removePath(this.getUuidAsString());
+        }
+    }
+
+
+    @Override
+    public boolean isPushable() {
+        // Prevent other entities from pushing this zombie
+        if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
+            return !BloodmoonHandler.INSTANCE.isBloodmoonActive();
+        } else {
+            return true;
+        }
+    }
+
+    @Override
+    public boolean isPushedByFluids() {
+        if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
+            return !BloodmoonHandler.INSTANCE.isBloodmoonActive();
+        } else {
+            return true;
         }
     }
 }

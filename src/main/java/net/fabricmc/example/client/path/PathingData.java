@@ -28,4 +28,8 @@ public class PathingData {
     public List<BetterBlockPos> getPathPositions() {
         return pathPositions;
     }
+
+    public String getType() {
+        return type;
+    }
 }

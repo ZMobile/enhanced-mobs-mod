@@ -38,8 +38,21 @@ public class ResetPathsCommand {
                             ServerPlayNetworking.send(player, customPayload);
                         }
                     }
+
+                    // Also clear target blocks
+                    ClientPayloadData targetBlockPayload = new ClientPayloadData("clearAllTargetBlocks", null);
+                    String targetJson = gson.toJson(targetBlockPayload);
+                    BaritoneCustomPayload targetCustomPayload = new BaritoneCustomPayload(targetJson);
+
+                    // Send clear target blocks command
+                    if (server != null) {
+                        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                            ServerPlayNetworking.send(player, targetCustomPayload);
+                        }
+                    }
+
                     // Send feedback to the command source
-                    context.getSource().sendFeedback(() -> Text.of("All paths have been cleared."), true);
+                    context.getSource().sendFeedback(() -> Text.of("All paths and target blocks have been cleared."), true);
                     return 1;
                 }));
     }

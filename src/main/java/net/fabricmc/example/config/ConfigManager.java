@@ -46,7 +46,7 @@ public class ConfigManager {
                 config.setSkeletonsBreakBlocksDuringBloodmoon(true);
             }
             if (config.getDaysBeforeBloodmoonPossibility() == null) {
-                config.setDaysBeforeBloodmoonPossibility(3);
+                config.setDaysBeforeBloodmoonPossibility(5);
             }
             if (config.isBuildingMiningMobsDuringBloodmoonOnly() == null) {
                 config.setBuildingMiningMobsDuringBloodmoonOnly(false);
@@ -60,7 +60,7 @@ public class ConfigManager {
                 config.setSpiderSpeed(true);
             }
             if (config.isSlowPath() == null) {
-                config.setSlowPath(true);
+                config.setSlowPath(false);
             }
             if (config.getSlowPathDelay() == null) {
                 config.setSlowPathDelay(4L);
@@ -80,6 +80,9 @@ public class ConfigManager {
     }
 
     public static ModConfig getConfig() {
+        if (config == null) {
+            loadConfig();
+        }
         return config;
     }
 

@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.10.1'
+	id 'fabric-loom' version '1.11.4'
 }
 
 sourceCompatibility = JavaVersion.VERSION_21
@@ -48,6 +48,10 @@ repositories {
 		name = 'babbaj-repo'
 		url = 'https://babbaj.github.io/maven/'
 	}
+	maven {
+		name = 'Modrinth'
+		url = 'https://api.modrinth.com/maven'
+	}
 }
 
 def urlFile = { url, name, version ->
@@ -77,12 +81,12 @@ dependencies {
 	//modImplementation files('lib/cloth-config-13.0.121-fabric.jar')
 	//implementation 'com.typesafe:config:1.4.1'
 	//modImplementation configurations.mobitone
-	modImplementation files('lib/mobitone-1.21.jar')
-	//include files('lib/mobitone-1.21.jar')
+	modImplementation files('lib/mobitone-1.21.8.jar')
+	//include files('lib/mobitone-1.21.8.jar')
 
 	// Implementation has both of these uncommented:
-	//modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone-1.21.5-2.2/mobitone-1.21.5-2.2.jar", 'mobitone', '1.21.5-2.2')
-	//include urlFile("https://github.com/ZMobile/baritone/releases/download/v1.10.2-Mobitone-1.21.5-2.2/mobitone-1.21.5-2.2.jar", 'mobitone', '1.21.5-2.2')
+	//modImplementation urlFile("https://github.com/ZMobile/baritone/releases/download/v1.12-Mobitone1.21.8/mobitone-1.21.8.jar", 'mobitone', '1.21.8')
+	//include urlFile("https://github.com/ZMobile/baritone/releases/download/v1.12-Mobitone1.21.8/mobitone-1.21.8.jar", 'mobitone', '1.21.8')
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
 	// You may need to force-disable transitiveness on them.
 }
@@ -94,7 +98,6 @@ processResources {
 		expand "version": project.version
 	}
 }
-
 
 tasks.withType(JavaCompile).configureEach {
 	// ensure that the encoding is set to UTF-8, no matter what the system default is
@@ -121,6 +124,18 @@ java {
 jar {
 	from("LICENSE") {
 		rename { "${it}_${project.archivesBaseName}"}
+	}
+}
+
+// Configure separate run directories for client and server
+loom {
+	runs {
+		client {
+			runDir = "run/client"
+		}
+		server {
+			runDir = "run/server"
+		}
 	}
 }
 

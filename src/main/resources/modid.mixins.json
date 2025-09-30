@@ -7,6 +7,8 @@
     "CreeperEntityMixin",
     "DrownedEntityMixin",
     "EntityMixin",
+    "HostileEntityMixin",
+    "MobEntityAccessor",
     "MobSpawnerMixin",
     "ModPlayerDataMixin",
     "RaiderEntityMixin",

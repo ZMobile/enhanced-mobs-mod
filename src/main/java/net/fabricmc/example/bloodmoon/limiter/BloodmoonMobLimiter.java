@@ -12,6 +12,8 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.WorldChunk;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BloodmoonMobLimiter {
     private static final int CHUNK_RADIUS = 6;
@@ -26,7 +28,13 @@ public class BloodmoonMobLimiter {
             for (ServerWorld world : server.getWorlds()) {
                 if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) continue;
 
-                for (Entity mob : world.iterateEntities()) {
+                // Create a copy of entities to avoid concurrent modification
+                List<Entity> entities = new ArrayList<>();
+                for (Entity entity : world.iterateEntities()) {
+                    entities.add(entity);
+                }
+
+                for (Entity mob : entities) {
                     if (!(mob instanceof MobEntity mobEntity) || !(mob instanceof Monster)) continue;
                     if (mobEntity.isPersistent()) {
                         continue; // Skip persistent mobs

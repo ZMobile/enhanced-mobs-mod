@@ -67,4 +67,28 @@ public class ClientRenderedBlockUpdateServiceImpl {
             }
         }
     }
+
+    public static void clearTargetBlock(int mobId) {
+        if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+            return;
+        }
+        Gson gson = new Gson();
+        ClientBlockData blockData = new ClientBlockData(mobId, null);
+        ClientPayloadData payloadData = new ClientPayloadData("clear_target_block", blockData);
+
+        String json = gson.toJson(payloadData);
+        BaritoneCustomPayload customPayload = new BaritoneCustomPayload(json);
+
+        // Encode the custom payload into a PacketByteBuf
+        PacketByteBuf buf = PacketByteBufs.create();
+        customPayload.write(buf);
+
+        // Send the packet to all online players
+        MinecraftServer server = BaritoneAPI.getProvider().getPrimaryBaritone().getPlayerContext().world().getServer();
+        if (server != null) {
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                ServerPlayNetworking.send(player, customPayload);
+            }
+        }
+    }
 }

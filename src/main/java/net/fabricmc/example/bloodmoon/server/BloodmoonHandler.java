@@ -157,12 +157,6 @@ public class BloodmoonHandler extends PersistentState {
 	}
 
 	public void setBloodmoon(boolean bloodMoon) {
-		if (!bloodMoon) {
-			for (ServerPlayerEntity player : logoutQueue) {
-				player.networkHandler.disconnect(Text.of("Logged out after Bloodmoon."));
-			}
-			logoutQueue.clear(); // Clear the queue after logging out players
-		}
 		if (this.bloodMoon != bloodMoon) {
 			PacketHandler.sendToAll(world, new MessageBloodmoonStatus(bloodMoon));
 			this.markDirty();

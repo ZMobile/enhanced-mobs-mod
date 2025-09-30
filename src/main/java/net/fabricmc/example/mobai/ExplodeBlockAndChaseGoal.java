@@ -71,16 +71,16 @@ public class ExplodeBlockAndChaseGoal extends Goal {
             targetPos = targetPlayer.getBlockPos();
             GoalBlock goal = new GoalBlock(targetPos.getX(), targetPos.getY(), targetPos.getZ());
             // Check if block underneath player is air and if so set goal to one of the adjacent blocks that's over a solid block.
-            if (mob.getEntityWorld().getBlockState(targetPos.down()).isAir()) {
+            if (mob.getWorld().getBlockState(targetPos.down()).isAir()) {
                 for (Direction direction : Direction.Type.HORIZONTAL) {
                     BlockPos adjacentPos = targetPos.offset(direction);
-                    if (mob.getEntityWorld().getBlockState(adjacentPos.down()).isSolidBlock(mob.getEntityWorld(), adjacentPos.down())) {
+                    if (mob.getWorld().getBlockState(adjacentPos.down()).isSolidBlock(mob.getWorld(), adjacentPos.down())) {
                         goal = new GoalBlock(adjacentPos.getX(), adjacentPos.getY(), adjacentPos.getZ());
                         break;
                     }
                 }
             }
-            if (mob.getEntityWorld().getBlockState(targetPos.down()).isAir()) {
+            if (mob.getWorld().getBlockState(targetPos.down()).isAir()) {
                 //System.out.println("Player is standing on air. Cannot calculate path.");
                 return;
             }

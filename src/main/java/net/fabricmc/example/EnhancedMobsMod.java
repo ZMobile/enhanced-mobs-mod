@@ -12,6 +12,7 @@ import net.fabricmc.example.bloodmoon.proxy.CommonProxy;
 import net.fabricmc.example.bloodmoon.reference.Reference;
 import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
 import net.fabricmc.example.bloodmoon.server.CommandBloodmoon;
+import net.fabricmc.example.client.darkness.ClientModPacket;
 import net.fabricmc.example.client.payload.BaritoneCustomPayload;
 import net.fabricmc.example.command.OptimizedMobitoneCommand;
 import net.fabricmc.example.command.TrueDarknessEnforcedCommand;
@@ -82,15 +83,20 @@ public class EnhancedMobsMod implements ModInitializer {
 	public static final Logger LOGGER = LogManager.getLogger(Reference.MOD_ID);
 	public static CommonProxy proxy;
 
+	private static final int DEFAULT_PATHING_MAX_CHUNK_BORDER_FETCH = 50;
+	private static final double DEFAULT_COST_HEURISTIC = 3.0D;
+	private static final int DEFAULT_PATH_CUTOFF_MINIMUM_LENGTH = 5;
+	private static final double DEFAULT_MAX_COST_INCREASE = 10.0D;
+
+
 	private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
 
 	@Override
 	public void onInitialize() {
 		System.out.println("Initializing mod...");
-		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
-			PayloadTypeRegistry.playS2C().register(BaritoneCustomPayload.ID, BaritoneCustomPayload.CODEC);
-		}
+		// Register payload for both client and server
+		PayloadTypeRegistry.playS2C().register(BaritoneCustomPayload.ID, BaritoneCustomPayload.CODEC);
 		ServerEntityEvents.ENTITY_LOAD.register(this::onEntityLoad);
 		ServerEntityEvents.ENTITY_LOAD.register((entity, serverWorld) -> {
 			if (entity instanceof ZombieEntity) {
@@ -188,7 +194,7 @@ public class EnhancedMobsMod implements ModInitializer {
 				UndoIsolatedPathCommand.register(dispatcher);
 				ResetPathsCommand.register(dispatcher);
 			}
-			//GoalInfoCommand.register(dispatcher);
+			GoalInfoCommand.register(dispatcher);
 			BloodmoonSpawnRatePercentageCommand.register(dispatcher);
 			BloodmoonChancePercentageCommand.register(dispatcher);
 			DaysBeforeBloodmoonPossibilityCommand.register(dispatcher);
@@ -209,6 +215,8 @@ public class EnhancedMobsMod implements ModInitializer {
 			MinecraftServerUtil.setMinecraftServer(server);
 			baritone.api.utils.MinecraftServerUtil.setMinecraftServer(server);
 			ConfigManager.loadConfig();
+			ConfigManager.getConfig().setSlowPath(false);
+			ConfigManager.saveConfig();
 			BaritoneAPI.getSettings().blockPlacementPenalty.value = ConfigManager.getConfig().getMobBlockPlacementPenalty();
 			BaritoneAPI.getSettings().blockBreakAdditionalPenalty.value = ConfigManager.getConfig().getMobBlockBreakAdditionalPenalty();
 			BaritoneAPI.getSettings().jumpPenalty.value = ConfigManager.getConfig().getMobJumpPenalty();
@@ -216,10 +224,14 @@ public class EnhancedMobsMod implements ModInitializer {
 			BaritoneAPI.getSettings().allowBreak.value = ConfigManager.getConfig().isAllowBreak();
 			BaritoneAPI.getSettings().slowPath.value = ConfigManager.getConfig().isSlowPath();
 			BaritoneAPI.getSettings().slowPathTimeDelayMS.value = ConfigManager.getConfig().getSlowPathDelay();
+			BaritoneAPI.getSettings().pathingMaxChunkBorderFetch.value = DEFAULT_PATHING_MAX_CHUNK_BORDER_FETCH;
+			BaritoneAPI.getSettings().costHeuristic.value = DEFAULT_COST_HEURISTIC;
+			BaritoneAPI.getSettings().pathCutoffMinimumLength.value = DEFAULT_PATH_CUTOFF_MINIMUM_LENGTH;
+			BaritoneAPI.getSettings().maxCostIncrease.value = DEFAULT_MAX_COST_INCREASE;
 			LOGGER.info("Server is starting");
 		});
 
-		//ClientModPacket.register();
+		ClientModPacket.register();
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			((ModPlayerData) handler.getPlayer()).setHasMod(false);
 
@@ -265,6 +277,56 @@ public class EnhancedMobsMod implements ModInitializer {
 				1,   // minGroupSize
 				4    // maxGroupSize
 		);
+		BiomeModifications.addSpawn(
+				BiomeSelectors.includeByKey(BiomeKeys.MUSHROOM_FIELDS),
+				SpawnGroup.MONSTER,
+				EntityType.ZOMBIE,
+				95,  // weight
+				1,    // min group size
+				4     // max group size
+		);
+		BiomeModifications.addSpawn(
+				BiomeSelectors.includeByKey(BiomeKeys.MUSHROOM_FIELDS),
+				SpawnGroup.MONSTER,
+				EntityType.CREEPER,
+				100,  // weight
+				1,    // min group size
+				4     // max group size
+		);
+		BiomeModifications.addSpawn(
+				BiomeSelectors.includeByKey(BiomeKeys.MUSHROOM_FIELDS),
+				SpawnGroup.MONSTER,
+				EntityType.SKELETON,
+				100,  // weight
+				1,    // min group size
+				4     // max group size
+		);
+		BiomeModifications.addSpawn(
+				BiomeSelectors.includeByKey(BiomeKeys.MUSHROOM_FIELDS),
+				SpawnGroup.MONSTER,
+				EntityType.SPIDER,
+				100,  // weight
+				1,    // min group size
+				4     // max group size
+		);
+		BiomeModifications.addSpawn(
+				BiomeSelectors.includeByKey(BiomeKeys.MUSHROOM_FIELDS),
+				SpawnGroup.MONSTER,
+				EntityType.WITCH,
+				5,  // weight
+				1,    // min group size
+				1     // max group size
+		);
+
+		BiomeModifications.addSpawn(
+				BiomeSelectors.includeByKey(BiomeKeys.MUSHROOM_FIELDS),
+				SpawnGroup.MONSTER,
+				EntityType.ENDERMAN,
+				10,  // weight
+				1,    // min group size
+				4     // max group size
+		);
+
 
 		//LOGGER.info("Enhanced Mobs Mod has been initialized");
 		System.out.println("Initializing mod complete");

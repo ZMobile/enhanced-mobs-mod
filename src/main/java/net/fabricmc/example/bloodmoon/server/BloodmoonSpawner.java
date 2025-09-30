@@ -49,6 +49,10 @@ public final class BloodmoonSpawner implements Spawner {
 	private final Set<ChunkPos> eligibleChunksForSpawning = Sets.newHashSet();
 	int witchCount = 0; // Counter for witches
 
+	// Cache for player positions to avoid repeated calculations
+	private List<PlayerEntity> cachedPlayers = null;
+	private List<Vec3d> cachedPlayerPositions = null;
+
 	public void triggerBloodmoonSpawning(ServerWorld world, boolean spawnHostileMobs, boolean spawnPeacefulMobs) {
 		if (!spawnHostileMobs && !spawnPeacefulMobs) {
 			return;
@@ -57,8 +61,14 @@ public final class BloodmoonSpawner implements Spawner {
 		this.eligibleChunksForSpawning.clear();
 		int eligibleChunkCount = 0;
 
-		for (PlayerEntity player : world.getPlayers()) {
+		// Cache player data to avoid repeated lookups
+		cachedPlayers = new ArrayList<>(world.getPlayers());
+		cachedPlayerPositions = new ArrayList<>();
+
+		for (PlayerEntity player : cachedPlayers) {
 			if (!player.isSpectator()) {
+				cachedPlayerPositions.add(player.getPos());
+
 				int playerChunkX = MathHelper.floor(player.getX() / 16.0D);
 				int playerChunkZ = MathHelper.floor(player.getZ() / 16.0D);
 				int radius = 8;
@@ -98,7 +108,11 @@ public final class BloodmoonSpawner implements Spawner {
 					Collections.shuffle(shuffledChunks);
 					BlockPos.Mutable mutablePos = new BlockPos.Mutable();
 
-					for (ChunkPos chunkPos : shuffledChunks) {
+					// Limit spawn attempts to prevent excessive processing
+					int maxSpawnAttempts = Math.min(shuffledChunks.size(), 50); // Limit to 50 chunks per spawn group
+
+					for (int i = 0; i < maxSpawnAttempts; i++) {
+						ChunkPos chunkPos = shuffledChunks.get(i);
 						BlockPos spawnPos = getRandomChunkPosition(world, chunkPos.x, chunkPos.z);
 						int x = spawnPos.getX();
 						int y = spawnPos.getY();
@@ -108,115 +122,121 @@ public final class BloodmoonSpawner implements Spawner {
 						if (!blockState.isOpaque()) {
 							int groupSize = MathHelper.ceil(Math.random() * 4.0D);
 
-							for (int i = 0; i < groupSize; ++i) {
+							for (int j = 0; j < groupSize; ++j) {
 								x += world.random.nextInt(6) - world.random.nextInt(6);
-								y += world.random.nextInt(1) - world.random.nextInt(1);
 								z += world.random.nextInt(6) - world.random.nextInt(6);
+
+								// Find the surface at the new X,Z position
+								BlockPos surfacePos = world.getTopPosition(Heightmap.Type.WORLD_SURFACE, new BlockPos(x, 0, z));
+								y = surfacePos.getY();
+
 								mutablePos.set(x, y, z);
 								float spawnX = (float) x + 0.5F;
 								float spawnZ = (float) z + 0.5F;
 								int blockLightLevel = world.getLightLevel(LightType.BLOCK, mutablePos);
 
+								// Check if the block below is opaque
+								BlockPos belowPos = mutablePos.down();
+								BlockState belowState = world.getBlockState(belowPos);
+
+								// Skip if block below is not opaque/solid
+								if (!belowState.isOpaque() || !belowState.isSolidBlock(world, belowPos)) {
+									continue;
+								}
+
+								// During bloodmoon, we need to prevent spawning in direct sunlight
+								int skyLightLevel = world.getLightLevel(LightType.SKY, mutablePos);
+								boolean isDaytime = world.isDay();
+
+								// If it's daytime and the position has high sky light, check if it's actually exposed to sun
+								if (isDaytime && skyLightLevel > 10 && world.isSkyVisible(mutablePos)) {
+									// This position is in direct sunlight, skip it
+									continue;
+								}
+
 								int waterLightThreshold = 7;
-								if (world.isSkyVisible(mutablePos) || (world.getBlockState(mutablePos).isOf(Blocks.WATER) && blockLightLevel <= waterLightThreshold) && /*world.getClosestPlayer(spawnX, y, spawnZ, BloodmoonConfig.SPAWNING.SPAWN_RANGE, false) == null && worldSpawnPos.isWithinDistance(new Vec3d(spawnX, y, spawnZ), BloodmoonConfig.SPAWNING.SPAWN_DISTANCE)*/ isPlayerNearby(world, mutablePos, 200)) {
-									RegistryEntry<Biome> biome = world.getBiome(mutablePos);
-									Pool<SpawnSettings.SpawnEntry> spawnList = world.getChunkManager().getChunkGenerator().getEntitySpawnList(biome, world.getStructureAccessor(), spawnGroup, mutablePos);
+								// Check spawning conditions
+								boolean canSpawn = false;
 
-									/* Check if the biome is an ocean and add Drowned to the spawn list
-									if (biome.isIn(BiomeTags.IS_OCEAN)) {
-										List<SpawnSettings.SpawnEntry> mutableSpawnList = new ArrayList<>(spawnList.getEntries());
-										mutableSpawnList.add(new SpawnSettings.SpawnEntry(EntityType.DROWNED, 1, 1, 1));
-										spawnList = Pool.of(mutableSpawnList);
-									}
-									 */
-									if (!spawnList.isEmpty()) {
-										int spawnIndex = world.random.nextInt(spawnList.getEntries().size());
-										SpawnSettings.SpawnEntry spawnEntry = spawnList.getEntries().get(spawnIndex).value();
+								// For water spawning (drowned)
+								if (world.getBlockState(mutablePos).isOf(Blocks.WATER) && blockLightLevel <= waterLightThreshold) {
+									canSpawn = true;
+								}
+								// For regular mob spawning on land
+								else if (!world.getBlockState(mutablePos).isOf(Blocks.WATER) && world.isAir(mutablePos)) {
+									canSpawn = true;
+								}
 
-										Box searchBox = new Box(mutablePos).expand(50);
-										List<PlayerEntity> nearbyPlayers = world.getEntitiesByClass(PlayerEntity.class, searchBox, player -> true);
+								if (canSpawn) {
+									// Use optimized player check
+									if (isPlayerNearbyOptimized(mutablePos, 200)) {
+										RegistryEntry<Biome> biome = world.getBiome(mutablePos);
+										Pool<SpawnSettings.SpawnEntry> spawnList = world.getChunkManager().getChunkGenerator().getEntitySpawnList(biome, world.getStructureAccessor(), spawnGroup, mutablePos);
 
-										double bloodmoonSpawnChance = ConfigManager.getConfig().getBloodmoonSpawnPercentage();
-										if (mutablePos.getY() < 45) {
-											bloodmoonSpawnChance = bloodmoonSpawnChance * 10;
-										}
+										if (!spawnList.isEmpty()) {
+											int spawnIndex = world.random.nextInt(spawnList.getEntries().size());
+											SpawnSettings.SpawnEntry spawnEntry = spawnList.getEntries().get(spawnIndex).value();
 
-										if (spawnEntry.type() == EntityType.DROWNED) {
-											if (!nearbyPlayers.isEmpty()) {
-												for (PlayerEntity player : nearbyPlayers) {
-													Box monsterSearchBox = new Box(player.getBlockPos()).expand(40);
-													List<LivingEntity> nearbyMonsters = world.getEntitiesByClass(LivingEntity.class, monsterSearchBox, entity -> entity instanceof Monster);
-
-													if (nearbyMonsters.size() < 20) {
-														bloodmoonSpawnChance = Math.min(1, ConfigManager.getConfig().getBloodmoonSpawnPercentage() * 100);
-														break;
-													}
-												}
-											}
-											/*System.out.println("Drowned spawning 1: " + world.getBlockState(mutablePos));
-											if (world.getBlockState(mutablePos).isOf(Blocks.WATER) &&
-													(world.getBlockState(mutablePos.up()).isOf(Blocks.WATER)) &&
-													(world.getBlockState(mutablePos.up(2)).isOf(Blocks.WATER))) {
-												System.out.println("Drowned spawning 2");
-												if (!nearbyPlayers.isEmpty()) {
-													System.out.println("Drowned spawning 3");
-													for (PlayerEntity player : nearbyPlayers) {
-														Box monsterSearchBox = new Box(player.getBlockPos()).expand(40);
-														List<LivingEntity> nearbyMonsters = world.getEntitiesByClass(LivingEntity.class, monsterSearchBox, entity -> entity instanceof Monster);
-
-														if (nearbyMonsters.size() < 20) {
-															bloodmoonSpawnChance = 1;
-															break;
-														}
-													}
-												}
-											}*/
-										}
-										if (Math.random() < bloodmoonSpawnChance) {
-											if (spawnEntry.type() == ENDERMAN) {
-												continue;
+											double bloodmoonSpawnChance = ConfigManager.getConfig().getBloodmoonSpawnPercentage();
+											if (mutablePos.getY() < 45) {
+												bloodmoonSpawnChance = bloodmoonSpawnChance * 10;
 											}
 
-											if (spawnEntry.type() == WITCH && Math.random() > 0.1) { // 10% chance to spawn a witch
-												continue;
-											}
-
+											// Optimize entity checks for specific types only
 											if (spawnEntry.type() == EntityType.DROWNED) {
-												if (!(world.getBlockState(mutablePos).isOf(Blocks.WATER) &&
-														world.getBlockState(mutablePos.up()).isOf(Blocks.WATER) &&
-														world.getBlockState(mutablePos.up(2)).isOf(Blocks.WATER))) {
-													continue;
+												// Only check for drowned-specific conditions
+												if (cachedPlayers.size() > 0) {
+													// Simple check instead of searching all entities
+													bloodmoonSpawnChance = Math.min(1, ConfigManager.getConfig().getBloodmoonSpawnPercentage() * 100);
 												}
 											}
 
-											if (spawnEntry.type() == WITCH) {
-												witchCount++;
-												if (witchCount > 5) { // Limit to 5 witches
+											if (Math.random() < bloodmoonSpawnChance) {
+												if (spawnEntry.type() == ENDERMAN) {
 													continue;
 												}
-											}
-											if (BloodmoonConfig.canSpawn(spawnEntry.type().getBaseClass())) {
-												MobEntity mobEntity;
 
-												try {
-													mobEntity = (MobEntity) spawnEntry.type().create(world, SpawnReason.NATURAL);
-												} catch (Exception e) {
-													e.printStackTrace();
-													return;
+												if (spawnEntry.type() == WITCH && Math.random() > 0.1) { // 10% chance to spawn a witch
+													continue;
 												}
 
-												mobEntity.refreshPositionAndAngles(spawnX, y, spawnZ, world.random.nextFloat() * 360.0F, 0.0F);
-
-												if (world.tryLoadEntity(mobEntity) && mobEntity.canSpawn(world, SpawnReason.NATURAL) && mobEntity.canSpawn(world)) {
-													++spawnCount;
-													mobEntity.setPersistent();
-
-													if (mobEntity.getType() == EntityType.DROWNED) {
-														LOGGER.info("Successfully spawned drowned at position: " + mutablePos);
+												if (spawnEntry.type() == EntityType.DROWNED) {
+													if (!(world.getBlockState(mutablePos).isOf(Blocks.WATER) &&
+															world.getBlockState(mutablePos.up()).isOf(Blocks.WATER) &&
+															world.getBlockState(mutablePos.up(2)).isOf(Blocks.WATER))) {
+														continue;
 													}
-												} else {
-													if (mobEntity.getType() == EntityType.DROWNED) {
-														LOGGER.warn("Failed to spawn drowned at position: " + mutablePos);
+												}
+
+												if (spawnEntry.type() == WITCH) {
+													witchCount++;
+													if (witchCount > 5) { // Limit to 5 witches
+														continue;
+													}
+												}
+												if (BloodmoonConfig.canSpawn(spawnEntry.type().getBaseClass())) {
+													MobEntity mobEntity;
+
+													try {
+														mobEntity = (MobEntity) spawnEntry.type().create(world, SpawnReason.NATURAL);
+													} catch (Exception e) {
+														e.printStackTrace();
+														return;
+													}
+
+													mobEntity.refreshPositionAndAngles(spawnX, y, spawnZ, world.random.nextFloat() * 360.0F, 0.0F);
+
+													if (world.tryLoadEntity(mobEntity) && mobEntity.canSpawn(world, SpawnReason.NATURAL) && mobEntity.canSpawn(world)) {
+														++spawnCount;
+														mobEntity.setPersistent();
+
+														if (mobEntity.getType() == EntityType.DROWNED) {
+															LOGGER.info("Successfully spawned drowned at position: " + mutablePos);
+														}
+													} else {
+														if (mobEntity.getType() == EntityType.DROWNED) {
+															LOGGER.warn("Failed to spawn drowned at position: " + mutablePos);
+														}
 													}
 												}
 											}
@@ -229,11 +249,24 @@ public final class BloodmoonSpawner implements Spawner {
 				}
 			}
 		}
+
+		// Clear cache after spawning
+		cachedPlayers = null;
+		cachedPlayerPositions = null;
 	}
 
-	private boolean isPlayerNearby(ServerWorld world, BlockPos pos, double distance) {
-		for (PlayerEntity player : world.getPlayers()) {
-			if (!player.isSpectator() && player.squaredDistanceTo(pos.getX(), pos.getY(), pos.getZ()) <= distance * distance) {
+	// Optimized player proximity check using cached positions
+	private boolean isPlayerNearbyOptimized(BlockPos pos, double distance) {
+		if (cachedPlayerPositions == null) {
+			return false;
+		}
+
+		double distanceSq = distance * distance;
+		for (Vec3d playerPos : cachedPlayerPositions) {
+			double dx = pos.getX() - playerPos.x;
+			double dy = pos.getY() - playerPos.y;
+			double dz = pos.getZ() - playerPos.z;
+			if (dx * dx + dy * dy + dz * dz <= distanceSq) {
 				return true;
 			}
 		}
@@ -251,12 +284,32 @@ public final class BloodmoonSpawner implements Spawner {
 	}
 
 	private static BlockPos getRandomChunkPosition(World world, int chunkX, int chunkZ) {
-		WorldChunk chunk = world.getChunk(chunkX, chunkZ);
+		// Avoid getChunk call if possible - use already loaded chunk
+		WorldChunk chunk = world.getChunkManager().getWorldChunk(chunkX, chunkZ, false);
+		if (chunk == null) {
+			// Fallback if chunk not loaded - estimate surface height
+			return new BlockPos(chunkX * 16 + world.random.nextInt(16), 64, chunkZ * 16 + world.random.nextInt(16));
+		}
+
 		int x = chunkX * 16 + world.random.nextInt(16);
 		int z = chunkZ * 16 + world.random.nextInt(16);
-		int maxY = chunk.sampleHeightmap(Heightmap.Type.WORLD_SURFACE, x, z) + 1;
-		int y = world.random.nextInt(maxY > 0 ? maxY : chunk.getHighestNonEmptySection() * 16 - 1);
-		return new BlockPos(x, y, z);
+
+		// Get the surface Y position (highest solid block)
+		int y = chunk.sampleHeightmap(Heightmap.Type.WORLD_SURFACE, x & 15, z & 15);
+
+		// Ensure Y is valid
+		if (y <= 0) {
+			// Fallback: search from top down for first solid block
+			for (y = world.getHeight() - 1; y > 0; y--) {
+				BlockPos pos = new BlockPos(x, y, z);
+				if (world.getBlockState(pos).isSolidBlock(world, pos)) {
+					break;
+				}
+			}
+		}
+
+		// Return position one block above the surface for spawning
+		return new BlockPos(x, y + 1, z);
 	}
 
 	public static boolean canSpawnAtLocation(EntityType<?> entityType, World world, BlockPos pos) {
