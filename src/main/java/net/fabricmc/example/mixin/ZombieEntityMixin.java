@@ -36,9 +36,9 @@ public abstract class ZombieEntityMixin extends PathAwareEntity {
     private void addCustomGoals(CallbackInfo info) {
         //GoalBlock goal = new GoalBlock(0, 60, 200);
         //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(),  this);v
-        //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
         if (ConfigManager.getConfig().isZombiesBreakAndPlaceBlocks()) {
-            if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+            boolean bloodmoonActive = BloodmoonHandler.INSTANCE != null && BloodmoonHandler.INSTANCE.isBloodmoonActive();
+            if (!bloodmoonActive) {
                 if (!ConfigManager.getConfig().isBuildingMiningMobsDuringBloodmoonOnly()) {
                     provisionMobitoneGoal();
                 }
@@ -96,7 +96,7 @@ public abstract class ZombieEntityMixin extends PathAwareEntity {
     public boolean isPushable() {
         // Prevent other entities from pushing this zombie
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
-            return !BloodmoonHandler.INSTANCE.isBloodmoonActive();
+            return BloodmoonHandler.INSTANCE == null || !BloodmoonHandler.INSTANCE.isBloodmoonActive();
         } else {
             return true;
         }
@@ -105,7 +105,7 @@ public abstract class ZombieEntityMixin extends PathAwareEntity {
     @Override
     public boolean isPushedByFluids() {
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
-            return !BloodmoonHandler.INSTANCE.isBloodmoonActive();
+            return BloodmoonHandler.INSTANCE == null || !BloodmoonHandler.INSTANCE.isBloodmoonActive();
         } else {
             return true;
         }

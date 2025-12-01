@@ -25,6 +25,7 @@ import net.fabricmc.example.command.mob.*;
 import net.fabricmc.example.command.mob.debug.GoalInfoCommand;
 import net.fabricmc.example.command.mob.debug.IsolatePathCommand;
 import net.fabricmc.example.command.mob.debug.ResetPathsCommand;
+import net.fabricmc.example.command.mob.debug.TogglePathRenderingCommand;
 import net.fabricmc.example.command.mob.debug.UndoIsolatedPathCommand;
 import net.fabricmc.example.command.mob.penalty.MobBlockBreakAdditionalPenaltyCommand;
 import net.fabricmc.example.command.mob.penalty.MobBlockPlacementPenaltyCommand;
@@ -94,8 +95,9 @@ public class EnhancedMobsMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		System.out.println("Initializing mod...");
+		LOGGER.info("=== EnhancedMobsMod.onInitialize() START ===");
 		// Register payload for both client and server
+		LOGGER.info("Registering payload...");
 		PayloadTypeRegistry.playS2C().register(BaritoneCustomPayload.ID, BaritoneCustomPayload.CODEC);
 		ServerEntityEvents.ENTITY_LOAD.register(this::onEntityLoad);
 		ServerEntityEvents.ENTITY_LOAD.register((entity, serverWorld) -> {
@@ -109,7 +111,7 @@ public class EnhancedMobsMod implements ModInitializer {
 					ItemStack stack = getRandomBlockStack(biome, random);
 					((ZombieEntity) entity).equipStack(EquipmentSlot.MAINHAND, stack);
 				}
-				if (entity instanceof DrownedEntity && BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+				if (entity instanceof DrownedEntity && BloodmoonHandler.INSTANCE != null && BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
 					double tridentChance = 3;
 
 					// Create a set of all boat entity types
@@ -160,6 +162,7 @@ public class EnhancedMobsMod implements ModInitializer {
 		});
 
 		// Initialize Bloodmoon instance and proxy
+		LOGGER.info("Initializing proxy...");
 		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
 			proxy = new ClientProxy();
 			((ClientProxy) proxy).onInitializeClient();
@@ -168,10 +171,14 @@ public class EnhancedMobsMod implements ModInitializer {
 		}
 
 		// Initialize proxy
+		LOGGER.info("Running proxy.preInit()...");
 		proxy.preInit();
+		LOGGER.info("Running proxy.init()...");
 		proxy.init();
+		LOGGER.info("Running proxy.postInit()...");
 		proxy.postInit();
 
+		LOGGER.info("Registering BloodmoonMobLimiter...");
 		BloodmoonMobLimiter.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			CommandBloodmoon.register(dispatcher);
@@ -194,6 +201,7 @@ public class EnhancedMobsMod implements ModInitializer {
 				UndoIsolatedPathCommand.register(dispatcher);
 				ResetPathsCommand.register(dispatcher);
 			}
+			TogglePathRenderingCommand.register(dispatcher);
 			GoalInfoCommand.register(dispatcher);
 			BloodmoonSpawnRatePercentageCommand.register(dispatcher);
 			BloodmoonChancePercentageCommand.register(dispatcher);
@@ -249,6 +257,7 @@ public class EnhancedMobsMod implements ModInitializer {
 				boolean isClientOnServer = isClientConnectedToServer();
 
 				if (!isClientOnServer
+						&& BloodmoonHandler.INSTANCE != null
 						&& BloodmoonHandler.INSTANCE.isBloodmoonActive()
 						&& player instanceof ServerPlayerEntity) {
 					// Cancel the interaction if it's a server and during a Bloodmoon
@@ -262,8 +271,9 @@ public class EnhancedMobsMod implements ModInitializer {
 			// Wake the player up and send a message
 			boolean isClientOnServer = isClientConnectedToServer();
 
-			if (!isClientOnServer &&
-					BloodmoonHandler.INSTANCE.isBloodmoonActive()
+			if (!isClientOnServer
+					&& BloodmoonHandler.INSTANCE != null
+					&& BloodmoonHandler.INSTANCE.isBloodmoonActive()
 					&& player instanceof ServerPlayerEntity) {
 				player.wakeUp();
 				((ServerPlayerEntity) player).sendMessage(Text.literal("You cannot sleep right now!"));
@@ -328,8 +338,7 @@ public class EnhancedMobsMod implements ModInitializer {
 		);
 
 
-		//LOGGER.info("Enhanced Mobs Mod has been initialized");
-		System.out.println("Initializing mod complete");
+		LOGGER.info("=== EnhancedMobsMod.onInitialize() END ===");
 	}
 
 	// Method to check if the client is connected to a server

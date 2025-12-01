@@ -26,7 +26,7 @@ public class BloodmoonMobLimiter {
             if (tickCounter % 20 != 0) return; // Every second
 
             for (ServerWorld world : server.getWorlds()) {
-                if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) continue;
+                if (BloodmoonHandler.INSTANCE == null || !BloodmoonHandler.INSTANCE.isBloodmoonActive()) continue;
 
                 // Create a copy of entities to avoid concurrent modification
                 List<Entity> entities = new ArrayList<>();

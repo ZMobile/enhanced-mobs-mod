@@ -80,7 +80,7 @@ public class MobitoneServiceImpl implements MobitoneService {
     }
 
     public static void removeOutdatedMobitones() {
-        if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+        if (BloodmoonHandler.INSTANCE == null || !BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
             return;
         }
         mobitoneProvisions.stream()

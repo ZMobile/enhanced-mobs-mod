@@ -20,16 +20,20 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
 import net.minecraft.world.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
 public class BloodmoonHandler extends PersistentState {
+	private static final Logger LOGGER = LogManager.getLogger("bloodmoon");
 	public static ServerWorld world;
 	public static BloodmoonHandler INSTANCE;
 	public static Set<ServerPlayerEntity> logoutQueue = new HashSet<>();
 	public static Set<ServerPlayerEntity> joinedPlayers = new HashSet<>();
+	private static boolean eventsRegistered = false;
 
 	private final BloodmoonSpawner bloodMoonSpawner;
 	//for my server only
@@ -69,14 +73,34 @@ public class BloodmoonHandler extends PersistentState {
 
 
 	public static void initialize(ServerWorld serverWorld) {
+		LOGGER.info("=== BloodmoonHandler.initialize() called for dimension: {} ===", serverWorld.getRegistryKey().getValue());
+		// Only initialize for Overworld to avoid duplicate registration
+		if (serverWorld.getRegistryKey() != World.OVERWORLD) {
+			LOGGER.info("Skipping non-Overworld dimension");
+			return;
+		}
+
+		LOGGER.info("Loading persistent state...");
 		PersistentStateManager persistentStateManager = serverWorld.getPersistentStateManager();
 		INSTANCE = persistentStateManager.getOrCreate(BLOODMOON_HANDLER_TYPE);
 		world = serverWorld;
+		LOGGER.info("Persistent state loaded");
 
-		ServerTickEvents.END_WORLD_TICK.register(BloodmoonHandler::endWorldTick);
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-			BloodmoonHandler.INSTANCE.playerJoinedWorld(handler.getPlayer());
-		});
+		// Only register events once to prevent duplicate handlers
+		if (!eventsRegistered) {
+			LOGGER.info("Registering BloodmoonHandler events (first time only)...");
+			eventsRegistered = true;
+			ServerTickEvents.END_WORLD_TICK.register(BloodmoonHandler::endWorldTick);
+			ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+				if (BloodmoonHandler.INSTANCE != null) {
+					BloodmoonHandler.INSTANCE.playerJoinedWorld(handler.getPlayer());
+				}
+			});
+			LOGGER.info("BloodmoonHandler events registered");
+		} else {
+			LOGGER.info("Events already registered, skipping");
+		}
+		LOGGER.info("=== BloodmoonHandler.initialize() END ===");
 	}
 
 	public static BloodmoonHandler getInstance() {

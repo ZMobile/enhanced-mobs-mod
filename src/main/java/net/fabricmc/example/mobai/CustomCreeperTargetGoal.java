@@ -31,7 +31,7 @@ public class CustomCreeperTargetGoal extends Goal {
             return true;
         }
         targetPlayer = mob.getWorld().getClosestPlayer(mob, MAX_UNOBSTRUCTED_DISTANCE);
-        if (BloodmoonHandler.INSTANCE.isBloodmoonActive() && within40Y(mob, targetPlayer)) {
+        if (BloodmoonHandler.INSTANCE != null && BloodmoonHandler.INSTANCE.isBloodmoonActive() && within40Y(mob, targetPlayer)) {
             return true;
         }
         if (mob.getTarget() == null && targetPlayer != null  && within40Y(mob, targetPlayer) &&
@@ -78,7 +78,7 @@ public class CustomCreeperTargetGoal extends Goal {
             stop();
         }
         if (targetPlayer != null) {
-            if (BloodmoonHandler.INSTANCE.isBloodmoonActive() && within40Y(mob, targetPlayer)) {
+            if (BloodmoonHandler.INSTANCE != null && BloodmoonHandler.INSTANCE.isBloodmoonActive() && within40Y(mob, targetPlayer)) {
                 mob.setTarget(targetPlayer);
                 stop();
             }

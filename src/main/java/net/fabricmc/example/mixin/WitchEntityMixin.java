@@ -27,16 +27,16 @@ public class WitchEntityMixin extends PathAwareEntity {
 
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void addCustomGoals(CallbackInfo info) {
-        if (BloodmoonHandler.INSTANCE.isBloodmoonActive() && random.nextFloat() < 0.8) {
+        boolean bloodmoonActive = BloodmoonHandler.INSTANCE != null && BloodmoonHandler.INSTANCE.isBloodmoonActive();
+        if (bloodmoonActive && random.nextFloat() < 0.8) {
             //Reducing witch spawns during bloodmoon by 95% because it spawns too many witches
             this.discard();
         }
         //GoalBlock goal = new GoalBlock(0, 60, 200);
         //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(),  this);
-        //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
         if (ConfigManager.getConfig().isWitchesBreakBlocks()) {
             if (ConfigManager.getConfig().isZombiesBreakAndPlaceBlocks()) {
-                if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+                if (!bloodmoonActive) {
                     if (!ConfigManager.getConfig().isBuildingMiningMobsDuringBloodmoonOnly()) {
                         provisionMobitoneGoal();
                     }

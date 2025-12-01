@@ -11,6 +11,7 @@ import baritone.api.utils.BetterBlockPos;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.example.client.ClientPathManager;
 import net.fabricmc.example.client.payload.BaritoneCustomPayload;
 import net.fabricmc.example.client.payload.ClientPayloadData;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -41,7 +42,12 @@ public class PathUpdateListener implements IGameEventListener {
 
     @Override
     public void onTick(TickEvent tickEvent) {
-        if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+        // Check if we're in a single-player environment (integrated server)
+        boolean isSinglePlayer = FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
+
+        if (isSinglePlayer) {
+            // In single-player, update paths directly without network payload
+            handleSinglePlayerPathUpdate();
             return;
         }
         IPathExecutor current = behavior.getCurrent();
@@ -203,6 +209,40 @@ public class PathUpdateListener implements IGameEventListener {
     @Override
     public void onPlayerDeath() {
 
+    }
+
+    private void handleSinglePlayerPathUpdate() {
+        IPathExecutor current = behavior.getCurrent();
+        IPathExecutor next = behavior.getNext();
+
+        if (behavior.getInProgress().isPresent()) {
+            IPathFinder pathFinder = behavior.getInProgress().get();
+            Optional<IPath> bestSoFar = pathFinder.bestPathSoFar();
+            if (bestSoFar.isPresent() && bestSoFar.get().positions() != null) {
+                List<BetterBlockPos> pathPositions = bestSoFar.get().positions();
+                PathingData pathingData = new PathingData(mobId, "bestSoFar", pathPositions);
+                ClientPathManager.updatePath(pathingData);
+            }
+
+            Optional<IPath> pathToMostRecentNodeConsidered = pathFinder.pathToMostRecentNodeConsidered();
+            if (pathToMostRecentNodeConsidered.isPresent() && pathToMostRecentNodeConsidered.get().positions() != null) {
+                List<BetterBlockPos> pathPositions = pathToMostRecentNodeConsidered.get().positions();
+                PathingData pathingData = new PathingData(mobId, "mostRecentConsidered", pathPositions);
+                ClientPathManager.updatePath(pathingData);
+            }
+        }
+
+        if (current != null && current.getPath() != null) {
+            List<BetterBlockPos> pathPositions = current.getPath().positions();
+            PathingData pathingData = new PathingData(mobId, "current", pathPositions);
+            ClientPathManager.updatePath(pathingData);
+        }
+
+        if (next != null && next.getPath() != null) {
+            List<BetterBlockPos> pathPositions = next.getPath().positions();
+            PathingData pathingData = new PathingData(mobId, "next", pathPositions);
+            ClientPathManager.updatePath(pathingData);
+        }
     }
 
     @Override

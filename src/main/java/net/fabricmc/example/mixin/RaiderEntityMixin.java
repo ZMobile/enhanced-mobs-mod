@@ -29,9 +29,9 @@ public abstract class RaiderEntityMixin extends PathAwareEntity {
     private void addCustomGoals(CallbackInfo info) {
         //GoalBlock goal = new GoalBlock(0, 60, 200);
         //BaritoneAPI.getProvider().createBaritone(MinecraftServerUtil.getMinecraftServer(),  this);
-        //if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+        boolean bloodmoonActive = BloodmoonHandler.INSTANCE != null && BloodmoonHandler.INSTANCE.isBloodmoonActive();
         if (ConfigManager.getConfig().isRaidersBreakBlocks()) {
-            if (!BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+            if (!bloodmoonActive) {
                 if (!ConfigManager.getConfig().isBuildingMiningMobsDuringBloodmoonOnly()) {
                     provisionMobitoneGoal();
                 }

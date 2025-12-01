@@ -24,7 +24,7 @@ public abstract class SlimeEntityMixin extends MobEntity {
 
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void addCustomGoals(CallbackInfo info) {
-        if (BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
+        if (BloodmoonHandler.INSTANCE != null && BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
             this.discard();
         }
     }
