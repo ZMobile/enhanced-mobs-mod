@@ -35,7 +35,7 @@ public abstract class HostileEntityMixin extends PathAwareEntity {
     @Inject(method = "updateDespawnCounter", at = @At("HEAD"), cancellable = true)
     private void optimizeDespawnCounter(CallbackInfo ci) {
         // Only run on server side
-        if (!this.getWorld().isClient()) {
+        if (!this.getEntityWorld().isClient()) {
             // During bloodmoon, mobs should persist - skip expensive despawn checks
             if (BloodmoonHandler.INSTANCE != null && BloodmoonHandler.INSTANCE.isBloodmoonActive()) {
                 ci.cancel();
@@ -44,7 +44,7 @@ public abstract class HostileEntityMixin extends PathAwareEntity {
         }
 
         // For non-bloodmoon times, rate limit light level calculations
-        World world = this.getWorld();
+        World world = this.getEntityWorld();
         int currentTick = (int) (world.getTime() % Integer.MAX_VALUE);
 
         // Only do full update every second instead of every tick

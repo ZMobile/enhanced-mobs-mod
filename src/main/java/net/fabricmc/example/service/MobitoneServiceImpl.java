@@ -11,14 +11,14 @@ import net.minecraft.entity.LivingEntity;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MobitoneServiceImpl implements MobitoneService {
     private static int maxProvisionDeadlineSeconds = 120;
     private static int maxMobitoneProvisions = 25;
-    private static List<MobitoneProvision> mobitoneProvisions = new ArrayList<>();
-    private static List<LivingEntity> queue = new ArrayList<>();
+    private static List<MobitoneProvision> mobitoneProvisions = new CopyOnWriteArrayList<>();
+    private static List<LivingEntity> queue = new CopyOnWriteArrayList<>();
 
     public MobitoneServiceImpl() {
 

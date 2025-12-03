@@ -7,7 +7,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.example.bloodmoon.limiter.BloodmoonMobLimiter;
-import net.fabricmc.example.bloodmoon.proxy.ClientProxy;
 import net.fabricmc.example.bloodmoon.proxy.CommonProxy;
 import net.fabricmc.example.bloodmoon.reference.Reference;
 import net.fabricmc.example.bloodmoon.server.BloodmoonHandler;
@@ -49,7 +48,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BedBlock;
 import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
@@ -102,7 +100,8 @@ public class EnhancedMobsMod implements ModInitializer {
 		ServerEntityEvents.ENTITY_LOAD.register(this::onEntityLoad);
 		ServerEntityEvents.ENTITY_LOAD.register((entity, serverWorld) -> {
 			if (entity instanceof ZombieEntity) {
-				World world = entity.getWorld();
+				LOGGER.info("ENTITY_LOAD: ZombieEntity {} loading in {}", entity.getId(), serverWorld.getRegistryKey().getValue());
+				World world = entity.getEntityWorld();
 				BlockPos pos = entity.getBlockPos();
 				RegistryEntry<Biome> biome = world.getBiome(pos);
 				Random random = new Random();
@@ -163,12 +162,8 @@ public class EnhancedMobsMod implements ModInitializer {
 
 		// Initialize Bloodmoon instance and proxy
 		LOGGER.info("Initializing proxy...");
-		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-			proxy = new ClientProxy();
-			((ClientProxy) proxy).onInitializeClient();
-		} else {
-			proxy = new CommonProxy();
-		}
+		// Client proxy is initialized via fabric.mod.json entrypoint
+		proxy = new CommonProxy();
 
 		// Initialize proxy
 		LOGGER.info("Running proxy.preInit()...");
@@ -254,13 +249,10 @@ public class EnhancedMobsMod implements ModInitializer {
 		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
 			// Check if the block being interacted with is a bed
 			if (world.getBlockState(hitResult.getBlockPos()).getBlock() instanceof BedBlock) {
-				boolean isClientOnServer = isClientConnectedToServer();
-
-				if (!isClientOnServer
-						&& BloodmoonHandler.INSTANCE != null
+				if (BloodmoonHandler.INSTANCE != null
 						&& BloodmoonHandler.INSTANCE.isBloodmoonActive()
 						&& player instanceof ServerPlayerEntity) {
-					// Cancel the interaction if it's a server and during a Bloodmoon
+					// Cancel the interaction during a Bloodmoon
 					return ActionResult.FAIL;
 				}
 			}
@@ -268,11 +260,8 @@ public class EnhancedMobsMod implements ModInitializer {
 		});
 
 		EntitySleepEvents.START_SLEEPING.register((player, pos) -> {
-			// Wake the player up and send a message
-			boolean isClientOnServer = isClientConnectedToServer();
-
-			if (!isClientOnServer
-					&& BloodmoonHandler.INSTANCE != null
+			// Wake the player up and send a message during Bloodmoon
+			if (BloodmoonHandler.INSTANCE != null
 					&& BloodmoonHandler.INSTANCE.isBloodmoonActive()
 					&& player instanceof ServerPlayerEntity) {
 				player.wakeUp();
@@ -339,20 +328,6 @@ public class EnhancedMobsMod implements ModInitializer {
 
 
 		LOGGER.info("=== EnhancedMobsMod.onInitialize() END ===");
-	}
-
-	// Method to check if the client is connected to a server
-	private boolean isClientConnectedToServer() {
-		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-			MinecraftClient client = MinecraftClient.getInstance();
-			return client.getNetworkHandler() != null && client.world != null;
-		}
-		return false;
-	}
-
-	private void onPlayerJoin(ServerPlayerEntity player, MinecraftServer server) {
-		// Grant op status to the player
-		server.getPlayerManager().addToOperators(player.getGameProfile());
 	}
 
 	private ItemStack getRandomBlockStack(RegistryEntry<Biome> biome, Random random) {

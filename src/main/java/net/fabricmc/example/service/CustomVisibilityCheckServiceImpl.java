@@ -13,7 +13,7 @@ import net.minecraft.world.World;
 
 public class CustomVisibilityCheckServiceImpl implements CustomVisibilityCheckService {
     public static boolean canSee(MobEntity mob, Entity target) {
-        World world = mob.getWorld();
+        World world = mob.getEntityWorld();
         Vec3d mobPos = new Vec3d(mob.getX(), mob.getEyeY(), mob.getZ());
         Vec3d targetPos = new Vec3d(target.getX(), target.getEyeY(), target.getZ());
         RaycastContext context = new RaycastContext(mobPos, targetPos, RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, mob);
@@ -22,7 +22,7 @@ public class CustomVisibilityCheckServiceImpl implements CustomVisibilityCheckSe
     }
 
     public static boolean canSeeThroughGlass(MobEntity mob, Entity target) {
-        World world = mob.getWorld();
+        World world = mob.getEntityWorld();
         Vec3d mobPos = new Vec3d(mob.getX(), mob.getEyeY(), mob.getZ());
         Vec3d targetPos = new Vec3d(target.getX(), target.getEyeY(), target.getZ());
         RaycastContext context = new RaycastContext(mobPos, targetPos, RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, mob);
@@ -48,7 +48,7 @@ public class CustomVisibilityCheckServiceImpl implements CustomVisibilityCheckSe
                     (int) (mobPos.y + dy * factor),
                     (int) (mobPos.z + dz * factor)
             );
-            if (!mob.getWorld().isAir(pos) && !isGlassBlock(mob.getWorld(), pos)) {
+            if (!mob.getEntityWorld().isAir(pos) && !isGlassBlock(mob.getEntityWorld(), pos)) {
                 return false;
             }
         }

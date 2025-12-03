@@ -44,10 +44,13 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 
 public class BreakPlaceAndChaseGoal extends Goal {
+    private static final Logger LOGGER = LogManager.getLogger("enhancedmobs");
     private final PathAwareEntity mob;
     private BlockPos previousPos;
     private Entity targetEntity;
@@ -73,7 +76,9 @@ public class BreakPlaceAndChaseGoal extends Goal {
     private int lastPathCheckTick = 0;
 
     public BreakPlaceAndChaseGoal(PathAwareEntity mob) {
+        LOGGER.info("BreakPlaceAndChaseGoal constructor START for mob {}", mob.getId());
         this.mob = mob;
+        LOGGER.info("BreakPlaceAndChaseGoal: Setting Baritone settings");
         BaritoneAPI.getSettings().allowParkour.value = false;
         BaritoneAPI.getSettings().allowJumpAt256.value = false;
         BaritoneAPI.getSettings().allowParkourAscend.value = false;
@@ -83,10 +88,15 @@ public class BreakPlaceAndChaseGoal extends Goal {
         BaritoneAPI.getSettings().assumeWalkOnWater.value = false;
         BaritoneAPI.getSettings().walkOnWaterOnePenalty.value = 5.0D;
         savedPath = null;
+        LOGGER.info("BreakPlaceAndChaseGoal: Updating MobPathTracker");
         MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
+        LOGGER.info("BreakPlaceAndChaseGoal: Adding to MobitoneService");
         MobitoneServiceImpl.addMobitone(mob);
+        LOGGER.info("BreakPlaceAndChaseGoal: Getting Baritone for entity");
         this.baritone = BaritoneAPI.getProvider().getBaritoneForEntity(mob);
+        LOGGER.info("BreakPlaceAndChaseGoal: Getting pathingBehavior");
         this.pathingBehavior = baritone.getPathingBehavior();
+        LOGGER.info("BreakPlaceAndChaseGoal constructor END for mob {}", mob.getId());
     }
 
     @Override
@@ -195,7 +205,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
         // Simple line-of-sight check first
         Vec3d mobEyes = mob.getEyePos();
         Vec3d targetEyes = targetEntity.getEyePos();
-        HitResult hitResult = mob.getWorld().raycast(new RaycastContext(
+        HitResult hitResult = mob.getEntityWorld().raycast(new RaycastContext(
                 mobEyes, targetEyes,
                 RaycastContext.ShapeType.COLLIDER,
                 RaycastContext.FluidHandling.NONE,
@@ -416,17 +426,19 @@ public class BreakPlaceAndChaseGoal extends Goal {
                             placingPos = null;
                             placingTargetPos = null;
                             findBreakingOrPlacingBlock();
-                        } else if (savedPath != null && (breakingPos != null || placingPos != null)) {
-                            // Keep using savedPath if mob is currently breaking/placing
-                            // This prevents the blue path from disappearing mid-action
+                        } else if (savedPath != null) {
+                            // No new path yet - use savedPath to maintain current breaking/placing action
                             currentPath = new ArrayList<>(savedPath);
+                            this.setControls(EnumSet.of(Control.MOVE, Control.LOOK, Control.JUMP));
+                            findBreakingOrPlacingBlock();
                         } else {
                             currentPath = null;
                         }
-                    } else if (savedPath != null && (breakingPos != null || placingPos != null)) {
-                        // Keep using savedPath if mob is currently breaking/placing
-                        // This prevents the blue path from disappearing mid-action
+                    } else if (savedPath != null) {
+                        // No path in progress - use savedPath to maintain current breaking/placing action
                         currentPath = new ArrayList<>(savedPath);
+                        this.setControls(EnumSet.of(Control.MOVE, Control.LOOK, Control.JUMP));
+                        findBreakingOrPlacingBlock();
                     } else {
                         currentPath = null;
                     }
@@ -434,6 +446,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 }
             } else if (savedPath != null) {
                 currentPath = new ArrayList<>(savedPath);
+                this.setControls(EnumSet.of(Control.MOVE, Control.LOOK, Control.JUMP));
                 breakingPos = null;
                 placingPos = null;
                 placingTargetPos = null;
@@ -1101,7 +1114,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
     }
 
     private World getWorld(PathAwareEntity mob) {
-        return MinecraftServerUtil.getMinecraftServer().getWorld(mob.getWorld().getRegistryKey());
+        return MinecraftServerUtil.getMinecraftServer().getWorld(mob.getEntityWorld().getRegistryKey());
     }
 
     private boolean isBreakable(BlockPos blockPos) {
@@ -1110,7 +1123,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
             return false;
         }
         ////System.out.println("block state: " + getWorld(mob).getBlockState(blockPos));
-        if (pathingBehavior != null && pathingBehavior.getCurrent() != null) {
+        /*if (currentPath != null) {
             IPathExecutor current = pathingBehavior.getCurrent(); // this should prevent most race conditions?
             Set<BlockPos> blocksToBreak = current.toBreak();
             ////System.out.println("Blocks to break size: " + blocksToBreak.size());
@@ -1126,7 +1139,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 }
                 ////System.out.println("Block to break: " + pos);
             }
-        }
+        }*/
         return blockState.isSolidBlock(getWorld(mob), blockPos) || willObstructPlayer(getWorld(mob), blockPos) || isObstructiveNonQualifyingSolidBlock(blockPos);
     }
 
@@ -1165,7 +1178,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 || block instanceof BedBlock
                 || block instanceof ChainBlock
                 || block == Blocks.IRON_BARS
-                || block == Blocks.CHAIN
+                || block == Blocks.IRON_CHAIN
                 || block == Blocks.POINTED_DRIPSTONE
                 || block == Blocks.END_ROD
                 || block instanceof AzaleaBlock
@@ -1253,22 +1266,26 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 BlockPos facingHeadPos = facingFeetPos.up();
 
                 // Check if the block at the entity's feet, head, or in front is a stalagmite
-                if (isADesignatedGlitchBlock(feetPos, mob.getWorld())) {
+                if (isADesignatedGlitchBlock(feetPos, mob.getEntityWorld())) {
                     breakingPos = feetPos;
-                } else if (isADesignatedGlitchBlock(headPos, mob.getWorld())) {
+                } else if (isADesignatedGlitchBlock(headPos, mob.getEntityWorld())) {
                     breakingPos = headPos;
-                } else if (isADesignatedGlitchBlock(facingFeetPos, mob.getWorld())) {
+                } else if (isADesignatedGlitchBlock(facingFeetPos, mob.getEntityWorld())) {
                     breakingPos = facingFeetPos;
-                } else if (isADesignatedGlitchBlock(facingHeadPos, mob.getWorld())) {
+                } else if (isADesignatedGlitchBlock(facingHeadPos, mob.getEntityWorld())) {
                     breakingPos = facingHeadPos;
                 }
             }
             if (previousPos == null) {
                 previousPos = mob.getBlockPos();
             }
+            // Proactively check if navigation target is blocked and fix it
+            validateAndUpdateNavigationTarget();
             if (breakingPos != null) {
                 // Keep full control
                 this.setControls(EnumSet.of(Control.MOVE, Control.LOOK, Control.JUMP));
+                // Render the breaking block as orange
+                ClientRenderedBlockUpdateServiceImpl.renderBreakingBlock(mob.getId(), breakingPos);
                 //System.out.println("Mob " + mob.getId() + " has breaking position: " + breakingPos);
                 if (!isSolidBlock(breakingPos)) {
                     resetGoal(true);
@@ -1365,25 +1382,28 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 }
                 //If mob moved more than 2 blocks away from previous pos:
             } else {
-                // Check if we should let vanilla AI take over
-                boolean canReachDirectly = canReachTargetDirectly();
-                boolean navFarFromTarget = isNavigationTargetFarFromActualTarget();
-                boolean stuckBelow = isStuckBelowTarget();
-
-                if (mob instanceof SkeletonEntity) {
-                }
-
-                // Simple logic: if mob can't reach target OR is stuck, maintain control
-                if (!canReachDirectly || stuckBelow) {
-                    // We need to dig/build to reach target
+                // If we have a currentPath with a savedPath, stay on it - don't let vanilla AI interfere
+                if (currentPath != null && savedPath != null) {
                     this.setControls(EnumSet.of(Control.MOVE, Control.LOOK, Control.JUMP));
-
-                    // Let Baritone handle the movement
+                    // Stop vanilla navigation from interfering
+                    mob.getNavigation().stop();
                 } else {
-                    // Can reach directly and not stuck - let vanilla AI handle it
-                    //System.out.println("Mob " + mob.getId() + " releasing control to vanilla AI");
-                    this.setControls(EnumSet.noneOf(Control.class));
-                    return;
+                    // Check if we should let vanilla AI take over
+                    boolean canReachDirectly = canReachTargetDirectly();
+                    boolean stuckBelow = isStuckBelowTarget();
+
+                    // Simple logic: if mob can't reach target OR is stuck, maintain control
+                    if (!canReachDirectly || stuckBelow) {
+                        // We need to dig/build to reach target
+                        this.setControls(EnumSet.of(Control.MOVE, Control.LOOK, Control.JUMP));
+
+                        // Let Baritone handle the movement
+                    } else {
+                        // Can reach directly and not stuck - let vanilla AI handle it
+                        //System.out.println("Mob " + mob.getId() + " releasing control to vanilla AI");
+                        mob.getNavigation().findPathTo(targetEntity, 0);
+                        return;
+                    }
                 }
 
                 if (pathRecalculationCooldown <= 0) {
@@ -1396,7 +1416,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
 
                         // Check Baritone status
                         boolean isPathing = baritone.getPathingBehavior().isPathing();
-                        IPathExecutor current = baritone.getPathingBehavior().getCurrent();
 
                         if (mob instanceof SkeletonEntity) {
                         }
@@ -1468,10 +1487,10 @@ public class BreakPlaceAndChaseGoal extends Goal {
         BlockPos facingPos = feetPos.offset(facing);
         BlockPos facingHeadPos = facingPos.up();
 
-        boolean isFeetStalagmite = isADesignatedGlitchBlock(feetPos, entity.getWorld());
-        boolean isHeadStalagmite = isADesignatedGlitchBlock(headPos, entity.getWorld());
-        boolean isFeetFacingStalagmite = isADesignatedGlitchBlock(facingPos, entity.getWorld());
-        boolean isHeadFacingStalagmite = isADesignatedGlitchBlock(facingHeadPos, entity.getWorld());
+        boolean isFeetStalagmite = isADesignatedGlitchBlock(feetPos, entity.getEntityWorld());
+        boolean isHeadStalagmite = isADesignatedGlitchBlock(headPos, entity.getEntityWorld());
+        boolean isFeetFacingStalagmite = isADesignatedGlitchBlock(facingPos, entity.getEntityWorld());
+        boolean isHeadFacingStalagmite = isADesignatedGlitchBlock(facingHeadPos, entity.getEntityWorld());
 
         return (isFeetStalagmite || isHeadStalagmite || isFeetFacingStalagmite || isHeadFacingStalagmite) && isEntityNotMoving(entity);
     }
@@ -1481,7 +1500,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
         BlockState blockState = world.getBlockState(pos);
         return blockState.isOf(Blocks.POINTED_DRIPSTONE) // Stalagmite
                 || blockState.isOf(Blocks.END_ROD) // End Rod
-                || blockState.isOf(Blocks.CHAIN) // Chain
+                || blockState.isOf(Blocks.IRON_CHAIN) // Chain
                 || blockState.isOf(Blocks.AZALEA) // Azalea Block
                 || blockState.isOf(Blocks.FLOWERING_AZALEA) // Flowering Azalea Block
                 || blockState.isOf(Blocks.BIG_DRIPLEAF)
@@ -1587,6 +1606,8 @@ public class BreakPlaceAndChaseGoal extends Goal {
                     baritone.getCustomGoalProcess().setGoalAndPath(getTargetGoal());
                 }
             }
+            // Validate navigation target after placing - it may now be inside the placed block
+            validateAndUpdateNavigationTarget();
             resetGoal(resetSavedPath);
         }
     }
@@ -1800,6 +1821,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
         if (currentPath != null || savedPath != null) {
             if (currentPath == null) {
                 currentPath = new ArrayList<>(savedPath);
+                this.setControls(EnumSet.of(Control.MOVE, Control.LOOK, Control.JUMP));
             }
             return areSolidBlocksSeparatingPlayerFromMob();
         }
@@ -1876,8 +1898,6 @@ public class BreakPlaceAndChaseGoal extends Goal {
     }
 
     private void resetGoal(boolean removePath) {
-        this.setControls(EnumSet.noneOf(Control.class));
-        currentPath = null;
         breakingTicks = 0;
         standingStillTicks = 0;
         generalStandingStillTicks = 0;
@@ -1887,14 +1907,22 @@ public class BreakPlaceAndChaseGoal extends Goal {
         previousPos = null;
         pathRecalculationCooldown = 0;
         blockDamageProgress.clear();
-        //if (ConfigManager.getConfig().isOptimizedMobitone()) {
-        //
+
         if (removePath) {
+            // Full reset - release controls and clear all paths
+            this.setControls(EnumSet.noneOf(Control.class));
+            currentPath = null;
             savedPath = null;
             MobPathTracker.updatePath(mob.getUuidAsString(), savedPath);
+        } else if (savedPath != null) {
+            // Partial reset (e.g., after breaking a block) - keep the path and controls
+            // Restore currentPath from savedPath to continue following it
+            currentPath = new ArrayList<>(savedPath);
+            // Re-find the next breaking/placing block on the path
+            findBreakingOrPlacingBlock();
+        } else {
+            currentPath = null;
         }
-        //}
-        //baritone.getPathingBehavior().setCanPath(true);
     }
 
     public boolean hasBreakingPos() {
@@ -1917,7 +1945,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
             BlockPos targetPos = targetEntity.getBlockPos();
             GoalBlock goal = new GoalBlock(targetPos.getX(), targetPos.getY(), targetPos.getZ());
             //Check if block underneath player is air and if so set goal to one of the adjacent blocks thats over a solid block.
-            if (mob.getWorld().getBlockState(targetPos.down()).isAir()) {
+            if (mob.getEntityWorld().getBlockState(targetPos.down()).isAir()) {
                 for (Direction direction : Direction.Type.HORIZONTAL) {
                     BlockPos adjacentPos = targetPos.offset(direction);
                     if (isSolidBlock(adjacentPos.down())) {
@@ -1983,6 +2011,61 @@ public class BreakPlaceAndChaseGoal extends Goal {
         }
         mob.getNavigation().startMovingTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), 1.0);
         ClientRenderedBlockUpdateServiceImpl.renderTargetBlock(mob.getId(), targetPos);
+    }
+
+    /**
+     * Validates the current navigation target and updates it if blocked.
+     * Called after placing a block to ensure the mob doesn't get stuck navigating to a now-solid position.
+     */
+    private void validateAndUpdateNavigationTarget() {
+        Path currentNavPath = mob.getNavigation().getCurrentPath();
+        if (currentNavPath == null || currentNavPath.isFinished()) {
+            return;
+        }
+
+        BlockPos navTarget = currentNavPath.getTarget();
+        if (navTarget == null) {
+            return;
+        }
+
+        // Check if the navigation target is now inside a solid block
+        if (isSolidBlock(navTarget)) {
+            BlockPos validPos = findValidAdjacentPosition(navTarget);
+            if (validPos != null) {
+                mob.getNavigation().startMovingTo(validPos.getX(), validPos.getY(), validPos.getZ(), 1.0);
+                ClientRenderedBlockUpdateServiceImpl.renderTargetBlock(mob.getId(), validPos);
+            }
+        }
+    }
+
+    /**
+     * Finds a valid position adjacent to or above a blocked position.
+     * Returns a position that is not solid and has space above it.
+     */
+    private BlockPos findValidAdjacentPosition(BlockPos blockedPos) {
+        // First try directly above
+        BlockPos abovePos = blockedPos.up();
+        if (!isSolidBlock(abovePos) && !isSolidBlock(abovePos.up())) {
+            return abovePos;
+        }
+
+        // Try horizontal adjacent positions at same level
+        for (Direction direction : Direction.Type.HORIZONTAL) {
+            BlockPos adjacentPos = blockedPos.offset(direction);
+            if (!isSolidBlock(adjacentPos) && !isSolidBlock(adjacentPos.up()) && isSolidBlock(adjacentPos.down())) {
+                return adjacentPos;
+            }
+        }
+
+        // Try horizontal adjacent positions one level up
+        for (Direction direction : Direction.Type.HORIZONTAL) {
+            BlockPos adjacentPos = blockedPos.up().offset(direction);
+            if (!isSolidBlock(adjacentPos) && !isSolidBlock(adjacentPos.up()) && isSolidBlock(adjacentPos.down())) {
+                return adjacentPos;
+            }
+        }
+
+        return null;
     }
 
     private void disableOtherGoals() {

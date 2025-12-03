@@ -57,7 +57,7 @@ public class CommandBloodmoon {
         Set<String> names = new HashSet<>();
         Class<Monster> monsterClass = Monster.class;
 
-        List<Entity> monstersNearby = player.getWorld().getEntitiesByClass(Monster.class, player.getBoundingBox().expand(10, 10, 10), entity -> entity instanceof Monster);
+        List<Entity> monstersNearby = player.getEntityWorld().getEntitiesByClass(Monster.class, player.getBoundingBox().expand(10, 10, 10), entity -> entity instanceof Monster);
 
         for (Entity entity : monsterNearby) {
             names.add(BloodmoonConfig.getEntityName(entity.getClass()));

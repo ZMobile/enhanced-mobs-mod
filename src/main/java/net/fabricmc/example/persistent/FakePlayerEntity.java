@@ -54,7 +54,7 @@ public class FakePlayerEntity extends ServerPlayerEntity {
     @Override
     public void tick() {
         super.tick();
-        //System.out.println("FakePlayerEntity ticking at: " + this.getPos());
+        //System.out.println("FakePlayerEntity ticking at: " + this.getEntityPos());
     }
 
     @Override

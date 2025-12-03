@@ -34,6 +34,7 @@ public class BloodmoonHandler extends PersistentState {
 	public static Set<ServerPlayerEntity> logoutQueue = new HashSet<>();
 	public static Set<ServerPlayerEntity> joinedPlayers = new HashSet<>();
 	private static boolean eventsRegistered = false;
+	private static boolean firstTickLogged = false;
 
 	private final BloodmoonSpawner bloodMoonSpawner;
 	//for my server only
@@ -121,6 +122,10 @@ public class BloodmoonHandler extends PersistentState {
 	}
 
 	public static void endWorldTick(ServerWorld world) {
+		if (!firstTickLogged) {
+			firstTickLogged = true;
+			LOGGER.info("=== FIRST SERVER TICK (endWorldTick called) ===");
+		}
 		if (INSTANCE != null && world.getRegistryKey() == World.OVERWORLD) {
 			/*if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
 				// Client-specific code should not be here

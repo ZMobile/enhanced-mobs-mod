@@ -4,6 +4,7 @@ import baritone.api.BaritoneAPI;
 import baritone.api.utils.BetterBlockPos;
 import com.google.gson.Gson;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.example.client.gson.GsonHelper;
 import net.fabricmc.example.client.path.ClientBlockData;
 import net.fabricmc.example.client.path.PathingData;
 import net.fabricmc.example.client.payload.BaritoneCustomPayload;
@@ -19,47 +20,40 @@ import net.minecraft.util.math.BlockPos;
 import java.util.List;
 
 public class ClientRenderedBlockUpdateServiceImpl {
+
+    // Use a pre-configured Gson instance that handles BlockPos/BetterBlockPos properly
+    private static final Gson GSON = GsonHelper.getGson();
+
+    public static void renderBreakingBlock(int mobId, BlockPos blockPos) {
+        // Always send packet - client will handle rendering
+        sendPlacingBlockPacket(mobId, blockPos);
+    }
+
     public static void renderPlacingBlock(int mobId, BlockPos blockPos) {
-        if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-            return;
-        }
-        Gson gson = new Gson();
-        ClientBlockData blockData = new ClientBlockData(mobId, blockPos);
-        ClientPayloadData payloadData = new ClientPayloadData("placing_block", blockData);
-
-        String json = gson.toJson(payloadData);
-        BaritoneCustomPayload customPayload = new BaritoneCustomPayload(json);
-
-        // Encode the custom payload into a PacketByteBuf
-        PacketByteBuf buf = PacketByteBufs.create();
-        customPayload.write(buf);
-
-        // Send the packet to all online players
-        MinecraftServer server = BaritoneAPI.getProvider().getPrimaryBaritone().getPlayerContext().world().getServer();
-        if (server != null) {
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                ServerPlayNetworking.send(player, customPayload);
-            }
-        }
+        // Always send packet - client will handle rendering
+        sendPlacingBlockPacket(mobId, blockPos);
     }
 
     public static void renderTargetBlock(int mobId, BlockPos blockPos) {
-        if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-            return;
-        }
-        BlockPos newBlockPos = new BlockPos(blockPos.getX(), blockPos.getY(), blockPos.getZ());
-        Gson gson = new Gson();
-        ClientBlockData blockData = new ClientBlockData(mobId, newBlockPos);
-        ClientPayloadData payloadData = new ClientPayloadData("target_block", blockData);
+        // Always send packet - client will handle rendering
+        sendTargetBlockPacket(mobId, blockPos);
+    }
 
-        String json = gson.toJson(payloadData);
+    public static void clearTargetBlock(int mobId) {
+        // Always send packet - client will handle clearing
+        sendClearTargetBlockPacket(mobId);
+    }
+
+    private static void sendPlacingBlockPacket(int mobId, BlockPos blockPos) {
+        ClientBlockData blockData = new ClientBlockData(mobId, blockPos);
+        ClientPayloadData payloadData = new ClientPayloadData("placing_block", blockData);
+
+        String json = GSON.toJson(payloadData);
         BaritoneCustomPayload customPayload = new BaritoneCustomPayload(json);
 
-        // Encode the custom payload into a PacketByteBuf
         PacketByteBuf buf = PacketByteBufs.create();
         customPayload.write(buf);
 
-        // Send the packet to all online players
         MinecraftServer server = BaritoneAPI.getProvider().getPrimaryBaritone().getPlayerContext().world().getServer();
         if (server != null) {
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
@@ -68,22 +62,34 @@ public class ClientRenderedBlockUpdateServiceImpl {
         }
     }
 
-    public static void clearTargetBlock(int mobId) {
-        if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-            return;
-        }
-        Gson gson = new Gson();
-        ClientBlockData blockData = new ClientBlockData(mobId, null);
-        ClientPayloadData payloadData = new ClientPayloadData("clear_target_block", blockData);
+    private static void sendTargetBlockPacket(int mobId, BlockPos blockPos) {
+        ClientBlockData blockData = new ClientBlockData(mobId, blockPos);
+        ClientPayloadData payloadData = new ClientPayloadData("target_block", blockData);
 
-        String json = gson.toJson(payloadData);
+        String json = GSON.toJson(payloadData);
         BaritoneCustomPayload customPayload = new BaritoneCustomPayload(json);
 
-        // Encode the custom payload into a PacketByteBuf
         PacketByteBuf buf = PacketByteBufs.create();
         customPayload.write(buf);
 
-        // Send the packet to all online players
+        MinecraftServer server = BaritoneAPI.getProvider().getPrimaryBaritone().getPlayerContext().world().getServer();
+        if (server != null) {
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                ServerPlayNetworking.send(player, customPayload);
+            }
+        }
+    }
+
+    private static void sendClearTargetBlockPacket(int mobId) {
+        ClientBlockData blockData = new ClientBlockData(mobId, null);
+        ClientPayloadData payloadData = new ClientPayloadData("clear_target_block", blockData);
+
+        String json = GSON.toJson(payloadData);
+        BaritoneCustomPayload customPayload = new BaritoneCustomPayload(json);
+
+        PacketByteBuf buf = PacketByteBufs.create();
+        customPayload.write(buf);
+
         MinecraftServer server = BaritoneAPI.getProvider().getPrimaryBaritone().getPlayerContext().world().getServer();
         if (server != null) {
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {

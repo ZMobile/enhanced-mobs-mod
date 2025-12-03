@@ -22,7 +22,7 @@ public class FakePlayerManager {
     public static void registerEvents() {
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             ServerPlayerEntity player = handler.player;
-            ServerWorld world = (ServerWorld) player.getWorld();
+            ServerWorld world = (ServerWorld) player.getEntityWorld();
             UUID playerUUID = player.getUuid();
 
             // Check if a fake player already exists for this player
@@ -83,7 +83,7 @@ public class FakePlayerManager {
         EntityTrackerUpdateS2CPacket metadataPacket = new EntityTrackerUpdateS2CPacket(fakePlayer.getId(), trackedValues);
 
         // Send packets to all connected players
-        for (ServerPlayerEntity player : fakePlayer.getServer().getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity player : fakePlayer.getEntityWorld().getServer().getPlayerManager().getPlayerList()) {
             player.networkHandler.sendPacket(addToTabListPacket);
             player.networkHandler.sendPacket(spawnPacket);
             player.networkHandler.sendPacket(metadataPacket);

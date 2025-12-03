@@ -9,7 +9,6 @@ import net.fabricmc.example.mobai.CustomTargetGoal;
 import net.fabricmc.example.mobai.ExplodeBlockAndChaseGoal;
 import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.fabricmc.example.util.MinecraftServerUtil;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.CreeperEntity;
 import net.minecraft.entity.mob.PathAwareEntity;

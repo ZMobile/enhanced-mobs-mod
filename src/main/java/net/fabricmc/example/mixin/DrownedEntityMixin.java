@@ -65,8 +65,8 @@ public abstract class DrownedEntityMixin extends PathAwareEntity {
                             BlockPos pathNodePos = path.get(i);
                             BlockPos blockBelow = pathNodePos.down();
 
-                            if (getWorld(this).getBlockState(blockBelow).isSolidBlock(getWorld(), blockBelow)
-                                    && getWorld().getBlockState(pathNodePos).isOf(Blocks.AIR)) {
+                            if (getWorld(this).getBlockState(blockBelow).isSolidBlock(getWorld(this), blockBelow)
+                                    && getWorld(this).getBlockState(pathNodePos).isOf(Blocks.AIR)) {
                                 if (this.getBlockPos().isWithinDistance(new Vec3d(pathNodePos.getX(), pathNodePos.getY(), pathNodePos.getZ()), 2)) {
                                     boostUpOutOfWater(this, pathNodePos);
                                     break;
@@ -82,7 +82,7 @@ public abstract class DrownedEntityMixin extends PathAwareEntity {
     }
 
     private void boostUpOutOfWater(MobEntity mob, BlockPos targetPos) {
-        Vec3d mobPos = mob.getPos();
+        Vec3d mobPos = mob.getEntityPos();
         Vec3d targetVec = new Vec3d(targetPos.getX() + 0.5, targetPos.getY(), targetPos.getZ() + 0.5);
         Vec3d directionToTarget = targetVec.subtract(mobPos).normalize();
 
@@ -104,7 +104,7 @@ public abstract class DrownedEntityMixin extends PathAwareEntity {
     }
 
     private void applyVelocityTowardsTarget(MobEntity mob, BlockPos targetPos) {
-        Vec3d mobPos = mob.getPos();
+        Vec3d mobPos = mob.getEntityPos();
         Vec3d targetVec = new Vec3d(targetPos.getX() + 0.1, targetPos.getY(), targetPos.getZ() + 0.1);
         Vec3d direction = targetVec.subtract(mobPos).normalize();
 
@@ -119,6 +119,6 @@ public abstract class DrownedEntityMixin extends PathAwareEntity {
     }
 
     public World getWorld(LivingEntity mob) {
-        return MinecraftServerUtil.getMinecraftServer().getWorld(mob.getWorld().getRegistryKey());
+        return MinecraftServerUtil.getMinecraftServer().getWorld(mob.getEntityWorld().getRegistryKey());
     }
 }

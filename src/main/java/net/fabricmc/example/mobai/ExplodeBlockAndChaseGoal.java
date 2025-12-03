@@ -71,16 +71,16 @@ public class ExplodeBlockAndChaseGoal extends Goal {
             targetPos = targetPlayer.getBlockPos();
             GoalBlock goal = new GoalBlock(targetPos.getX(), targetPos.getY(), targetPos.getZ());
             // Check if block underneath player is air and if so set goal to one of the adjacent blocks that's over a solid block.
-            if (mob.getWorld().getBlockState(targetPos.down()).isAir()) {
+            if (mob.getEntityWorld().getBlockState(targetPos.down()).isAir()) {
                 for (Direction direction : Direction.Type.HORIZONTAL) {
                     BlockPos adjacentPos = targetPos.offset(direction);
-                    if (mob.getWorld().getBlockState(adjacentPos.down()).isSolidBlock(mob.getWorld(), adjacentPos.down())) {
+                    if (mob.getEntityWorld().getBlockState(adjacentPos.down()).isSolidBlock(mob.getEntityWorld(), adjacentPos.down())) {
                         goal = new GoalBlock(adjacentPos.getX(), adjacentPos.getY(), adjacentPos.getZ());
                         break;
                     }
                 }
             }
-            if (mob.getWorld().getBlockState(targetPos.down()).isAir()) {
+            if (mob.getEntityWorld().getBlockState(targetPos.down()).isAir()) {
                 //System.out.println("Player is standing on air. Cannot calculate path.");
                 return;
             }
@@ -182,7 +182,7 @@ public class ExplodeBlockAndChaseGoal extends Goal {
     }
 
     private boolean isBreakable(BlockPos blockPos) {
-        //System.out.println("block state: " + mob.getWorld().getBlockState(blockPos));
+        //System.out.println("block state: " + mob.getEntityWorld().getBlockState(blockPos));
         if (pathingBehavior != null && pathingBehavior.getCurrent() != null) {
             IPathExecutor current = pathingBehavior.getCurrent(); // this should prevent most race conditions?
             Set<BlockPos> blocksToBreak = current.toBreak();
@@ -199,7 +199,7 @@ public class ExplodeBlockAndChaseGoal extends Goal {
     }
 
     private World getWorld(PathAwareEntity mob) {
-        return MinecraftServerUtil.getMinecraftServer().getWorld(mob.getWorld().getRegistryKey());
+        return MinecraftServerUtil.getMinecraftServer().getWorld(mob.getEntityWorld().getRegistryKey());
     }
 
     private boolean isSolidBlock(BlockPos blockPos) {
@@ -237,7 +237,7 @@ public class ExplodeBlockAndChaseGoal extends Goal {
                 || block instanceof BedBlock
                 || block instanceof ChainBlock
                 || block == Blocks.IRON_BARS
-                || block == Blocks.CHAIN
+                || block == Blocks.IRON_CHAIN
                 || block == Blocks.POINTED_DRIPSTONE
                 || block == Blocks.END_ROD
                 || block instanceof AzaleaBlock
@@ -282,13 +282,13 @@ public class ExplodeBlockAndChaseGoal extends Goal {
                 BlockPos facingHeadPos = facingFeetPos.up();
 
                 // Check if the block at the entity's feet, head, or in front is a stalagmite
-                if (isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(feetPos, mob.getWorld())) {
+                if (isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(feetPos, mob.getEntityWorld())) {
                     breakingPos = feetPos;
-                } else if (isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(headPos, mob.getWorld())) {
+                } else if (isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(headPos, mob.getEntityWorld())) {
                     breakingPos = headPos;
-                } else if (isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(facingFeetPos, mob.getWorld())) {
+                } else if (isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(facingFeetPos, mob.getEntityWorld())) {
                     breakingPos = facingFeetPos;
-                } else if (isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(facingHeadPos, mob.getWorld())) {
+                } else if (isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(facingHeadPos, mob.getEntityWorld())) {
                     breakingPos = facingHeadPos;
                 }
             } else {
@@ -330,10 +330,10 @@ public class ExplodeBlockAndChaseGoal extends Goal {
         BlockPos facingPos = feetPos.offset(facing);
         BlockPos facingHeadPos = facingPos.up();
 
-        boolean isFeetStalagmite = isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(feetPos, entity.getWorld());
-        boolean isHeadStalagmite = isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(headPos, entity.getWorld());
-        boolean isFeetFacingStalagmite = isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(facingPos, entity.getWorld());
-        boolean isHeadFacingStalagmite = isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(facingHeadPos, entity.getWorld());
+        boolean isFeetStalagmite = isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(feetPos, entity.getEntityWorld());
+        boolean isHeadStalagmite = isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(headPos, entity.getEntityWorld());
+        boolean isFeetFacingStalagmite = isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(facingPos, entity.getEntityWorld());
+        boolean isHeadFacingStalagmite = isStalagmiteBigPotEndRodChainsDripLeafOrAzaleaBlock(facingHeadPos, entity.getEntityWorld());
 
         return (isFeetStalagmite || isHeadStalagmite || isFeetFacingStalagmite || isHeadFacingStalagmite) && isEntityNotMoving(entity);
     }
@@ -343,7 +343,7 @@ public class ExplodeBlockAndChaseGoal extends Goal {
         BlockState blockState = world.getBlockState(pos);
         return blockState.isOf(Blocks.POINTED_DRIPSTONE) // Stalagmite
                 || blockState.isOf(Blocks.END_ROD) // End Rod
-                || blockState.isOf(Blocks.CHAIN) // Chain
+                || blockState.isOf(Blocks.IRON_CHAIN) // Chain
                 || blockState.isOf(Blocks.AZALEA) // Azalea Block
                 || blockState.isOf(Blocks.FLOWERING_AZALEA) // Flowering Azalea Block
                 || blockState.isOf(Blocks.BIG_DRIPLEAF)

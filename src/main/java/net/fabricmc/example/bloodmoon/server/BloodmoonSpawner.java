@@ -67,7 +67,7 @@ public final class BloodmoonSpawner implements Spawner {
 
 		for (PlayerEntity player : cachedPlayers) {
 			if (!player.isSpectator()) {
-				cachedPlayerPositions.add(player.getPos());
+				cachedPlayerPositions.add(player.getEntityPos());
 
 				int playerChunkX = MathHelper.floor(player.getX() / 16.0D);
 				int playerChunkZ = MathHelper.floor(player.getZ() / 16.0D);
@@ -94,7 +94,7 @@ public final class BloodmoonSpawner implements Spawner {
 		}
 
 		int spawnCount = 0;
-		BlockPos worldSpawnPos = world.getSpawnPos();
+		BlockPos worldSpawnPos = world.getSpawnPoint().getPos();
 
 		for (SpawnGroup spawnGroup : SpawnGroup.values()) {
 			if ((!spawnGroup.isPeaceful() || spawnPeacefulMobs) && (spawnGroup.isPeaceful() || spawnHostileMobs)) {

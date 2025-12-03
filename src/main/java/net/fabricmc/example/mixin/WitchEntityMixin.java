@@ -9,7 +9,6 @@ import net.fabricmc.example.mobai.CustomTargetGoal;
 import net.fabricmc.example.mobai.tracker.BreakPlaceAndChaseGoalTracker;
 import net.fabricmc.example.service.MobitoneServiceImpl;
 import net.fabricmc.example.util.MinecraftServerUtil;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.WitchEntity;
@@ -62,7 +61,7 @@ public class WitchEntityMixin extends PathAwareEntity {
     private void checkWitchState(CallbackInfo info) {
         /*ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if (player != null) {
-            Vec3d playerPosition = MinecraftClient.getInstance().player.getPos();
+            Vec3d playerPosition = MinecraftClient.getInstance().player.getEntityPos();
             GoalBlock goal = new GoalBlock((int) playerPosition.x, (int) playerPosition.y, (int) playerPosition.z);
             IBaritone goalBaritone = BaritoneAPI.getProvider().getBaritoneForEntity(this);
             if (goalBaritone != null) {

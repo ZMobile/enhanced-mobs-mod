@@ -40,7 +40,7 @@ public class BloodmoonMobLimiter {
                         continue; // Skip persistent mobs
                     }
                     boolean tooFar = true;
-                    Vec3d mobPos = mob.getPos();
+                    Vec3d mobPos = mob.getEntityPos();
 
                     for (ServerPlayerEntity player : world.getPlayers()) {
                         if (player.squaredDistanceTo(mobPos) <= BLOCK_RADIUS * BLOCK_RADIUS) {

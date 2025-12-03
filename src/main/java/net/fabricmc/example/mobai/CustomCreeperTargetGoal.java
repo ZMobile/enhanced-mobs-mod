@@ -26,11 +26,11 @@ public class CustomCreeperTargetGoal extends Goal {
 
     @Override
     public boolean canStart() {
-        targetPlayer = mob.getWorld().getClosestPlayer(mob, MAX_HEARING_DISTANCE);
+        targetPlayer = mob.getEntityWorld().getClosestPlayer(mob, MAX_HEARING_DISTANCE);
         if (targetPlayer != null && !CustomVisibilityCheckServiceImpl.isInCreativeMode(targetPlayer) && !targetPlayer.isSneaking()) {
             return true;
         }
-        targetPlayer = mob.getWorld().getClosestPlayer(mob, MAX_UNOBSTRUCTED_DISTANCE);
+        targetPlayer = mob.getEntityWorld().getClosestPlayer(mob, MAX_UNOBSTRUCTED_DISTANCE);
         if (BloodmoonHandler.INSTANCE != null && BloodmoonHandler.INSTANCE.isBloodmoonActive() && within40Y(mob, targetPlayer)) {
             return true;
         }
@@ -41,7 +41,7 @@ public class CustomCreeperTargetGoal extends Goal {
             }
         }
 
-        targetPlayer = mob.getWorld().getClosestPlayer(mob, MAX_GLASS_OBSTRUCTED_DISTANCE);
+        targetPlayer = mob.getEntityWorld().getClosestPlayer(mob, MAX_GLASS_OBSTRUCTED_DISTANCE);
         return mob.getTarget() == null && targetPlayer != null && within40Y(mob, targetPlayer) && (
                 CustomVisibilityCheckServiceImpl.canSeeThroughGlassWithException(mob, targetPlayer) && !CustomVisibilityCheckServiceImpl.isInCreativeMode(targetPlayer) && CustomVisibilityCheckServiceImpl.isFacingTarget(mob, targetPlayer));
     }
@@ -72,7 +72,7 @@ public class CustomCreeperTargetGoal extends Goal {
 
     @Override
     public void tick() {
-        PlayerEntity hearingTargetPlayer = mob.getWorld().getClosestPlayer(mob, MAX_HEARING_DISTANCE);
+        PlayerEntity hearingTargetPlayer = mob.getEntityWorld().getClosestPlayer(mob, MAX_HEARING_DISTANCE);
         if (hearingTargetPlayer != null) {
             mob.setTarget(hearingTargetPlayer);
             stop();

@@ -648,7 +648,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
     }
 
     private World getWorld(PathAwareEntity mob) {
-        return MinecraftServerUtil.getMinecraftServer().getWorld(mob.getWorld().getRegistryKey());
+        return MinecraftServerUtil.getMinecraftServer().getWorld(mob.getEntityWorld().getRegistryKey());
     }
 
     private boolean isBreakable(BlockPos blockPos) {
@@ -800,13 +800,13 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 BlockPos facingHeadPos = facingFeetPos.up();
 
                 // Check if the block at the entity's feet, head, or in front is a stalagmite
-                if (isADesignatedGlitchBlock(feetPos, mob.getWorld())) {
+                if (isADesignatedGlitchBlock(feetPos, mob.getEntityWorld())) {
                     breakingPos = feetPos;
-                } else if (isADesignatedGlitchBlock(headPos, mob.getWorld())) {
+                } else if (isADesignatedGlitchBlock(headPos, mob.getEntityWorld())) {
                     breakingPos = headPos;
-                } else if (isADesignatedGlitchBlock(facingFeetPos, mob.getWorld())) {
+                } else if (isADesignatedGlitchBlock(facingFeetPos, mob.getEntityWorld())) {
                     breakingPos = facingFeetPos;
-                } else if (isADesignatedGlitchBlock(facingHeadPos, mob.getWorld())) {
+                } else if (isADesignatedGlitchBlock(facingHeadPos, mob.getEntityWorld())) {
                     breakingPos = facingHeadPos;
                 }
             }
@@ -1019,10 +1019,10 @@ public class BreakPlaceAndChaseGoal extends Goal {
         BlockPos facingPos = feetPos.offset(facing);
         BlockPos facingHeadPos = facingPos.up();
 
-        boolean isFeetStalagmite = isADesignatedGlitchBlock(feetPos, entity.getWorld());
-        boolean isHeadStalagmite = isADesignatedGlitchBlock(headPos, entity.getWorld());
-        boolean isFeetFacingStalagmite = isADesignatedGlitchBlock(facingPos, entity.getWorld());
-        boolean isHeadFacingStalagmite = isADesignatedGlitchBlock(facingHeadPos, entity.getWorld());
+        boolean isFeetStalagmite = isADesignatedGlitchBlock(feetPos, entity.getEntityWorld());
+        boolean isHeadStalagmite = isADesignatedGlitchBlock(headPos, entity.getEntityWorld());
+        boolean isFeetFacingStalagmite = isADesignatedGlitchBlock(facingPos, entity.getEntityWorld());
+        boolean isHeadFacingStalagmite = isADesignatedGlitchBlock(facingHeadPos, entity.getEntityWorld());
 
         return (isFeetStalagmite || isHeadStalagmite || isFeetFacingStalagmite || isHeadFacingStalagmite) && isEntityNotMoving(entity);
     }
@@ -1440,6 +1440,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
                 }
             }
         }
+
         mob.getNavigation().startMovingTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), 1.0);
         ClientRenderedBlockUpdateServiceImpl.renderTargetBlock(mob.getId(), targetPos);
     }
@@ -1448,7 +1449,7 @@ public class BreakPlaceAndChaseGoal extends Goal {
         // Get the goal selector using the accessor
         MobEntityAccessor accessor = (MobEntityAccessor) mob;
         GoalSelector goalSelector = accessor.getGoalSelector();
-        
+        wellfirst
         System.out.println("Disabling other goals for mob " + mob.getId() + " (type: " + mob.getClass().getSimpleName() + ")");
         System.out.println("Total goals found: " + goalSelector.getGoals().size());
         
